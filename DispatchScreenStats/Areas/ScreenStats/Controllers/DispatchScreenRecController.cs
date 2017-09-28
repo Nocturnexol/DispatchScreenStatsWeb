@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using DispatchScreenStats.Controllers;
@@ -10,6 +11,8 @@ using DispatchScreenStats.IRepository;
 using DispatchScreenStats.Models;
 using DispatchScreenStats.Repository;
 using FineUIMvc;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
@@ -148,6 +151,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     }
                     // 关闭本窗体（触发窗体的关闭事件）
                     PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
+                    ShowNotify("导入成功");
                 }
                 catch (Exception e)
                 {
@@ -169,8 +173,49 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             JArray fields = JArray.Parse(values["Grid1_fields"]);
             int pageIndex = Convert.ToInt32(values["Grid1_pageIndex"]??"0");
 
+            var key = values["tbxKey"];
+            var installDate = values["dpInstallDate"];
+
+            var filter = new List<FilterDefinition<ScreenRec>>();
+            if (!string.IsNullOrEmpty(key))
+            {
+                var filters = new List<FilterDefinition<ScreenRec>>
+                {
+                    Builders<ScreenRec>.Filter.Regex(t => t.LineName,
+                        new BsonRegularExpression(new Regex(key, RegexOptions.IgnoreCase))),
+                    Builders<ScreenRec>.Filter.Regex(t => t.InstallStation,
+                        new BsonRegularExpression(new Regex(key, RegexOptions.IgnoreCase))),
+                        Builders<ScreenRec>.Filter.Regex(t => t.Materials.Remark,
+                        new BsonRegularExpression(new Regex(key, RegexOptions.IgnoreCase)))
+                };
+
+                int keyInt;
+                if (int.TryParse(key, out keyInt))
+                {
+                    Expression<Func<ScreenRec, bool>> exp = t => t.Owner == keyInt || t.ScreenCount == keyInt;
+                    filters.Add(exp);
+                }
+
+                filter.Add(Builders<ScreenRec>.Filter.Or(filters));
+            }
+            if (!string.IsNullOrEmpty(installDate))
+            {
+                DateTime date;
+                if (DateTime.TryParse(installDate, out date))
+                {
+                    Expression<Func<ScreenRec, bool>> f = t => t.InstallDate == date;
+                    filter.Add(f);
+                }
+                else
+                {
+                    Alert.Show("无效的日期格式！",MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
             int count;
-            var list = _rep.QueryByPage(pageIndex, PageSize, out count);
+            var list = _rep.QueryByPage(pageIndex, PageSize, out count,
+                filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null);
 
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);

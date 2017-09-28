@@ -168,6 +168,8 @@
     <Content Include="Areas\ScreenStats\Views\Shared\_Layout.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Import.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecDetail\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenLog\Index.cshtml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
     <Content Include="res\css\common.css" />
@@ -1997,6 +1999,8 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\DispatchScreenRecController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenLogController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenRecDetailController.cs" />
     <Compile Include="Areas\ScreenStats\ScreenStatsAreaRegistration.cs" />
     <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Controllers\BaseController.cs" />

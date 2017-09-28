@@ -18,7 +18,7 @@
             <tr>
                 <td>
                     @(F.Button()
-                            //.OnClientClick("window.open('http://fineui.com/mvc/','_blank');")
+                          //.OnClientClick("window.open('http://fineui.com/mvc/','_blank');")
                           .EnableDefaultCorner(false)
                           .EnableDefaultState(false)
                           .IconFont(IconFont.Home)
@@ -26,7 +26,7 @@
                           .ToolTip("官网首页")
                           .ID("btnHomePage")
                           .CssClass("icononlyaction")
-                    )
+                          )
                     <a class="logo" href="#">
                         发车屏记录统计系统
                     </a>
@@ -42,13 +42,13 @@
                           .ID("btnThemeSelect")
                           .CssClass("icontopaction themes")
                           .Listener("click", "onThemeSelectClick")
-                    )
+                          )
 
                     @(F.Button()
                           .EnableDefaultCorner(false)
                           .EnableDefaultState(false)
                           .IconAlign(IconAlign.Left)
-                            //.IconUrl(Url.Content("~/res/images/my_face_80.jpg"))
+                          //.IconUrl(Url.Content("~/res/images/my_face_80.jpg"))
                           .Text("admin")
                           .CssClass("userpicaction")
                           .Menu(F.Menu()
@@ -56,7 +56,7 @@
                                   F.MenuButton()
                                       .IconFont(IconFont.User)
                                       .Text("个人信息"),
-                                      //.Listener("click", "F.alert('尚未实现');"),
+                                  //.Listener("click", "F.alert('尚未实现');"),
                                   F.MenuSeparator(),
                                   F.MenuButton()
                                       .IconFont(IconFont.SignOut)
@@ -64,7 +64,7 @@
                                       .OnClick(Url.Action("onSignOut_Click"))
                               )
                           )
-                    )
+                          )
                 </td>
             </tr>
         </table>
@@ -74,15 +74,15 @@
         <h2>FineUIMvc</h2>
         基于 jQuery 的专业 ASP.NET MVC 控件库
 
-        <br />
+        <br/>
         <h2>支持的浏览器</h2>
         Chrome、Firefox、Safari、Edge、IE8.0+
 
-        <br />
+        <br/>
         <h2>授权协议</h2>
         商业授权
 
-        <br />
+        <br/>
         <h2>相关链接</h2>
         <ul class="list">
             <li>
@@ -131,10 +131,16 @@
                               F.TreeNode()
                                   .Text("发车屏管理")
                                   .Expanded(true)
-                                          .Nodes(
-                                              F.TreeNode()
-                                                  .Text("发车屏记录管理")
-                                                  .NavigateUrl("ScreenStats/DispatchScreenRec")
+                                  .Nodes(
+                                      F.TreeNode()
+                                          .Text("发车屏记录管理")
+                                          .NavigateUrl("ScreenStats/DispatchScreenRec"),
+                                      F.TreeNode()
+                                          .Text("发车屏记录明细")
+                                          .NavigateUrl("ScreenStats/ScreenRecDetail"),
+                                      F.TreeNode()
+                                          .Text("发车屏日志")
+                                          .NavigateUrl("ScreenStats/ScreenLog")
                                   )
                           )
                   ),
@@ -156,25 +162,25 @@
                                   .Layout(LayoutType.Fit)
                                   .Icon(Icon.House)
                                   .ContentEl("#maincontent")
-                                  ).Tools(
-                            F.Tool()
-                                .ID("toolRefresh")
-                                .ToolTip("刷新本页")
-                                .CssClass("tabtool")
-                                .MarginRight(5)
-                                .IconFont(IconFont.Refresh)
-                                .Listener("click", "onToolRefreshClick"),
-                            F.Tool()
-                                .ID("toolNewWindow")
-                                .ToolTip("在新标签页中打开")
-                                .CssClass("tabtool")
-                                .MarginRight(5)
-                                .IconFont(IconFont.Share)
-                                .Listener("click", "onToolNewWindowClick")
-                        )
+                          ).Tools(
+                              F.Tool()
+                                  .ID("toolRefresh")
+                                  .ToolTip("刷新本页")
+                                  .CssClass("tabtool")
+                                  .MarginRight(5)
+                                  .IconFont(IconFont.Refresh)
+                                  .Listener("click", "onToolRefreshClick"),
+                              F.Tool()
+                                  .ID("toolNewWindow")
+                                  .ToolTip("在新标签页中打开")
+                                  .CssClass("tabtool")
+                                  .MarginRight(5)
+                                  .IconFont(IconFont.Share)
+                                  .Listener("click", "onToolNewWindowClick")
+                          )
                   )
           )
-    )
+          )
 
     @(F.Window()
           .Hidden(true)
@@ -189,7 +195,7 @@
           .EnableIFrame(true)
           .Title("主题仓库")
           .ID("windowThemeRoller")
-    )
+          )
 
 }
 
