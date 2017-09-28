@@ -6,6 +6,10 @@ namespace DispatchScreenStats.Models
 {
     public class ScreenRec
     {
+        public ScreenRec()
+        {
+            Materials = new Materials();
+        }
         public int _id { get;set; }
         public int Owner { get; set; }
         public string LineName { get; set; }
@@ -16,7 +20,40 @@ namespace DispatchScreenStats.Models
         [Display(Name = "安装日期")]
         public DateTime? InstallDate { get; set; }
         public Materials Materials { get; set; }
-        public string Remark { get;set; }
+    }
+
+    public class ScreenRecDetail
+    {
+        public ScreenRecDetail()
+        {
+            Materials = new Materials();
+        }
+        public int _id { get; set; }
+        public int RecId { get; set; }
+        public int Owner { get; set; }
+        public string LineName { get; set; }
+        public int? ScreenCount { get; set; }
+        public string InstallStation { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
+        [Display(Name = "安装日期")]
+        public DateTime? InstallDate { get; set; }
+         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime SaveTime { get; set; }
+        public Materials Materials { get; set; }
+    }
+
+    public class ScreenLog
+    {
+        public int _id { get; set; }
+        public int Owner { get; set; }
+        public string LineName { get; set; }
+        public string InstallStation { get; set; }
+         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime? InstallDate { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+         public DateTime SaveTime { get; set; }
+         public string OperContent { get; set; }
     }
 
     public class Materials
@@ -34,6 +71,7 @@ namespace DispatchScreenStats.Models
         public string Power { get; set; }
         public string UnitBoard { get; set; }
         public string Canopy { get; set; }
+        public string Remark { get; set; }
     }
 
 }

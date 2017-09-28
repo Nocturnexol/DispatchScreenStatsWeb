@@ -1,4 +1,6 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Web.Mvc;
 using FineUIMvc;
 
 namespace DispatchScreenStats.Controllers
@@ -46,5 +48,27 @@ namespace DispatchScreenStats.Controllers
 
             n.Show();
         }
+         #region 上传文件类型判断
+
+        protected readonly IList<string> ValidFileTypes = new[]
+        {
+            "xls",
+            "xlsx"
+        };
+
+        protected string GetFileType(string fileName)
+        {
+            var fileType = string.Empty;
+            var lastDotIndex = fileName.LastIndexOf(".", StringComparison.Ordinal);
+            if (lastDotIndex >= 0)
+            {
+                fileType = fileName.Substring(lastDotIndex + 1).ToLower();
+            }
+
+            return fileType;
+        }
+
+
+        #endregion
 	}
 }
