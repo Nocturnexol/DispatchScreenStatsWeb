@@ -23,10 +23,12 @@
                                           .Rows(
                                               F.FormRow()
                                                   .Items(
-                                                      F.TextBox()
-                                                          .ID("tbxKey")
-                                                          .EmptyText("关键字"),
-                                                          F.DatePicker().ID("dpInstallDate").EmptyText("安装日期"),
+                                                              F.TextBox()
+                                                          .ID("tbxLineName")
+                                                          .EmptyText("安装线路"),
+                                                                  F.TextBox()
+                                                                  .ID("tbxStation")
+                                                                  .EmptyText("安装站点"),
                                                       F.Button()
                                                           .ID("btnSearch")
                                                           .Text("检索")
@@ -67,6 +69,9 @@
                   )
                   .Columns(
                       F.RowNumberField(),
+                              F.RenderField()
+                                          .HeaderText("设备编号").Width(80)
+                                          .DataField("DeviceNum"),
                       F.RenderField()
                           .HeaderText("营运公司").Width(80)
                           .DataField("Owner"),

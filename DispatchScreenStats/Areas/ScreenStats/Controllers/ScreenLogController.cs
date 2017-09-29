@@ -33,45 +33,21 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
             JArray fields = JArray.Parse(values["Grid1_fields"]);
             int pageIndex = Convert.ToInt32(values["Grid1_pageIndex"] ?? "0");
-            var key = values["tbxKey"];
-            var installDate = values["dpInstallDate"];
+            var line = values["tbxLineName"];
+            var station = values["tbxStation"];
 
             var filter = new List<FilterDefinition<ScreenLog>>();
-            if (!string.IsNullOrEmpty(key))
+            if (!string.IsNullOrWhiteSpace(line))
             {
-                var filters = new List<FilterDefinition<ScreenLog>>
-                {
-                    Builders<ScreenLog>.Filter.Regex(t => t.LineName,
-                        new BsonRegularExpression(new Regex(key, RegexOptions.IgnoreCase))),
-                    Builders<ScreenLog>.Filter.Regex(t => t.InstallStation,
-                        new BsonRegularExpression(new Regex(key, RegexOptions.IgnoreCase))),
-                        Builders<ScreenLog>.Filter.Regex(t => t.OperContent,
-                        new BsonRegularExpression(new Regex(key, RegexOptions.IgnoreCase)))
-                };
-
-                int keyInt;
-                if (int.TryParse(key, out keyInt))
-                {
-                    Expression<Func<ScreenLog, bool>> exp = t => t.Owner == keyInt;
-                    filters.Add(exp);
-                }
-
-                filter.Add(Builders<ScreenLog>.Filter.Or(filters));
+                filter.Add(Builders<ScreenLog>.Filter.Regex(t => t.LineName,
+                     new BsonRegularExpression(new Regex(line.Trim()))));
             }
-            if (!string.IsNullOrEmpty(installDate))
+            if (!string.IsNullOrWhiteSpace(station))
             {
-                DateTime date;
-                if (DateTime.TryParse(installDate, out date))
-                {
-                    Expression<Func<ScreenLog, bool>> f = t => t.InstallDate == date;
-                    filter.Add(f);
-                }
-                else
-                {
-                    Alert.Show("无效的日期格式！", MessageBoxIcon.Warning);
-                    return;
-                }
+                filter.Add(Builders<ScreenLog>.Filter.Regex(t => t.InstallStation,
+                    new BsonRegularExpression(new Regex(station.Trim()))));
             }
+
 
             int count;
             var list = _rep.QueryByPage(pageIndex, PageSize, out count,

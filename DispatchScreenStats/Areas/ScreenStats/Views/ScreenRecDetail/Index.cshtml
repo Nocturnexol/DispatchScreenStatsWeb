@@ -44,7 +44,7 @@
                   .ID("Grid1")
                   .DataIDField("_id")
                   .DataTextField("Name")
-                  .EnableCheckBoxSelect(true)
+                  .EnableCheckBoxSelect(true).AllowCellEditing(true).ClicksToEdit(1)
                   .AllowPaging(true)
                   .PageSize(ViewBag.PageSize)
                   .IsDatabasePaging(true)

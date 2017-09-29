@@ -11,6 +11,7 @@ namespace DispatchScreenStats.Models
             Materials = new Materials();
         }
         public int _id { get;set; }
+        public string DeviceNum { get; set; }
         public int Owner { get; set; }
         public string LineName { get; set; }
         public int? ScreenCount { get; set; }
@@ -29,7 +30,7 @@ namespace DispatchScreenStats.Models
             Materials = new Materials();
         }
         public int _id { get; set; }
-        public int RecId { get; set; }
+        public string DeviceNum { get; set; }
         public int Owner { get; set; }
         public string LineName { get; set; }
         public int? ScreenCount { get; set; }
@@ -46,6 +47,7 @@ namespace DispatchScreenStats.Models
     public class ScreenLog
     {
         public int _id { get; set; }
+        public string DeviceNum { get; set; }
         public int Owner { get; set; }
         public string LineName { get; set; }
         public string InstallStation { get; set; }

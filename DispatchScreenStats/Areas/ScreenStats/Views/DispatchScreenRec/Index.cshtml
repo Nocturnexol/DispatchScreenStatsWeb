@@ -3,7 +3,7 @@
     var F = Html.F();
 }
 
-@model IEnumerable<ScreenRec>
+@model IEnumerable<ScreenRecDetail>
 
 
 @section body {
@@ -16,27 +16,29 @@
           .Layout(LayoutType.VBox)
           .IsViewPort(true)
           .Items(
-                      F.Form()
-                                  .ID("Form1")
-                                  .ShowHeader(false)
-                                  .ShowBorder(false)
-                                  .Rows(
-                                      F.FormRow()
-                                          .Items(
-                                              F.TextBox()
-                                                  .ID("tbxKey")
-                                                  .EmptyText("关键字"),
-                                                  F.DatePicker().ID("dpInstallDate").EmptyText("安装日期"),
-                                              F.Button()
-                                                  .ID("btnSearch")
-                                                  .Text("检索")
-                                                  .OnClick(Url.Action("DoSearch"), "Form1,Grid1"),
-                                              F.Button()
-                                                  .ID("btnReset")
-                                                  .Text("重置")
-                                                  .OnClientClick("F.ui.Form1.reset();")
-                                          )
-                                  ),
+              F.Form()
+                  .ID("Form1")
+                  .ShowHeader(false)
+                  .ShowBorder(false)
+                  .Rows(
+                      F.FormRow()
+                          .Items(
+                              F.DropDownList().EnableEdit(true)
+                                  .ID("ddlLine").Items(ViewBag.Lines)
+                                  .EmptyText("安装线路"),
+                                      F.DropDownList().EnableEdit(true)
+                                          .ID("ddlStation").Items(ViewBag.Stations)
+                                  .EmptyText("安装站点"),
+                              F.Button()
+                                  .ID("btnSearch")
+                                  .Text("检索")
+                                  .OnClick(Url.Action("DoSearch"), "Form1,Grid1"),
+                              F.Button()
+                                  .ID("btnReset")
+                                  .Text("重置")
+                                  .OnClientClick("F.ui.Form1.reset();")
+                          )
+                  ),
               F.Grid()
                   .BoxFlex(1)
                   .ShowHeader(false)
@@ -45,7 +47,7 @@
                   .DataIDField("_id")
                   .DataTextField("Name")
                   .EnableCheckBoxSelect(true)
-                  .AllowPaging(true)
+                  .AllowPaging(true).AllowCellEditing(true).ClicksToEdit(1)
                   .PageSize(ViewBag.PageSize)
                   .IsDatabasePaging(true)
                   .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
@@ -57,42 +59,59 @@
                                   .Icon(Icon.Delete)
                                   .Text("删除选中记录")
                                   .Listener("click", "onDeleteSelectedClick"),
-                                           F.Button()
-                                          .ID("btnImport")
-                                          .Icon(Icon.PageExcel)
-                                          .Text("导入")
-                                          .Listener("click", "onImportClick")
-                              //F.ToolbarFill(),
-                              //F.Button()
-                              //    .ID("btnCreate")
-                              //    .Icon(Icon.Add)
-                              //    .Text("添加")
-                              //    .Listener("click", "onCreateClick")
+                              F.Button()
+                                  .ID("btnImport")
+                                  .Icon(Icon.PageExcel)
+                                  .Text("导入")
+                                  .Listener("click", "onImportClick"),
+                              F.ToolbarFill(),
+                              F.Button()
+                                  .ID("btnSubmit")
+                                  .Text("保存数据").Icon(Icon.SystemSave)
+                                  .OnClick(Url.Action("btnSubmit_Click"), "Grid1")
+                          //F.Button()
+                          //    .ID("btnCreate")
+                          //    .Icon(Icon.Add)
+                          //    .Text("添加")
+                          //    .Listener("click", "onCreateClick")
                           )
                   )
                   .Columns(
                       F.RowNumberField(),
-                              F.RenderField()
-                                  .HeaderText("ID").Width(60)
-                                  .DataField("_id"),
+                      F.RenderField()
+                          .HeaderText("设备编号").Width(80)
+                          .DataField("DeviceNum").Editor(F.TextBox().ID("tbxDeviceNum").Required(true)),
                       F.RenderField()
                           .HeaderText("营运公司").Width(80)
-                          .DataField("Owner"),
+                          .DataField("Owner").FieldType(FieldType.Int)
+                          .Editor(F.TextBox().ID("tbxOwner")),
                       F.RenderField()
                           .HeaderText("安装线路")
-                          .DataField("LineName").Width(180),
+                          .DataField("LineName").Width(180)
+                          .Editor(F.TextBox().ID("tbxLineName").Required(true)),
                       F.RenderField()
                           .HeaderText("屏数")
-                          .DataField("ScreenCount").Width(60),
+                          .DataField("ScreenCount").Width(60).FieldType(FieldType.Int)
+                          .Editor(F.NumberBox().ID("nbxScreenCount").NoDecimal(true).NoNegative(true).MinValue(0)),
                       F.RenderField()
                           .HeaderText("安装站点")
-                          .DataField("InstallStation").Width(120),
+                          .DataField("InstallStation").Width(120)
+                          .Editor(F.TextBox().ID("tbxInstallStation").Required(true)),
                       F.RenderField()
                           .HeaderText("安装日期")
-                          .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
+                          .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                          .Editor(
+                              F.DatePicker()
+                                  .ID("dpInstallDate").MaxDate(DateTime.Today)
+                                  .Required(true)
+                          ),
+                      F.RenderField()
+                          .HeaderText("保存时间").Width(150)
+                          .DataField("SaveTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd HH:mm:ss"),
                       F.RenderField()
                           .HeaderText("备注")
-                                          .DataField("Materials.Remark").ExpandUnusedSpace(true),
+                          .DataField("Materials.Remark").ExpandUnusedSpace(true)
+                          .Editor(F.TextBox().ID("tbxInstallStation")),
                       //F.RenderField()
                       //    .HeaderText("")
                       //    .Width(60)
@@ -117,7 +136,7 @@
     @(F.Window()
           .ID("Window1")
           .Width(600)
-          .Height(300)
+          .Height(150)
           .IsModal(true)
           .Hidden(true)
           .Target(Target.Top)
@@ -126,7 +145,7 @@
           .EnableIFrame(true)
           .IFrameUrl(Url.Content("about:blank"))
           .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
-    )
+          )
 
 }
 

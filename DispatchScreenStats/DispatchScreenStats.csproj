@@ -170,6 +170,7 @@
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Import.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRecDetail\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenLog\Index.cshtml" />
+    <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
     <Content Include="res\css\common.css" />
