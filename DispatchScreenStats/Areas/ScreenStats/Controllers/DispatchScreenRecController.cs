@@ -29,10 +29,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         // GET: /ScreenStats/DispatchScreenRec/
         public ActionResult Index()
         {
-            int count;
-            var list = _repDetail.QueryByPage(0, PageSize, out count);
-            ViewBag.RecordCount = count;
-            ViewBag.PageSize = PageSize;
+            //int count;
+            //var list = _repDetail.QueryByPage(0, PageSize, out count);
+            //ViewBag.RecordCount = count;
+            //ViewBag.PageSize = PageSize;
 
             var lines = new List<ListItem>
             {
@@ -47,7 +47,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             };
             stations.AddRange(_repDetail.Distinct(t => t.InstallStation).Select(t => new ListItem(t, t)));
             ViewBag.Stations = stations.ToArray();
-            return View(list);
+            return View(_repDetail.Find().ToList());
         }
 
         public ViewResult Import()
@@ -156,12 +156,15 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         }
                         else
                         {
-                            var dbModel =
-                                _rep.Find(t => t.LineName == model.LineName && t.InstallStation == model.InstallStation)
-                                    .ToList()
-                                    .FirstOrDefault(t => !string.IsNullOrEmpty(t.DeviceNum));
-                            if (dbModel != null)
-                                model.DeviceNum = dbModel.DeviceNum;
+                            //var dbModel =
+                            //    _rep.Find(t => t.LineName == model.LineName && t.InstallStation == model.InstallStation)
+                            //        .ToList()
+                            //        .FirstOrDefault(t => !string.IsNullOrEmpty(t.DeviceNum));
+                            var listModel =
+                                list.FirstOrDefault(
+                                    t => t.LineName == model.LineName && t.InstallStation == model.InstallStation);
+                            if (listModel != null)
+                                model.DeviceNum = listModel.DeviceNum;
                             else
                             {
                                 var maxNum = gIdList.LastOrDefault();
@@ -257,12 +260,12 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     new BsonRegularExpression(new Regex(station.Trim()))));
             }
 
-            int count;
-            var list = _repDetail.QueryByPage(pageIndex, PageSize, out count,
-                filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null);
-
+            //int count;
+            //var list = _repDetail.QueryByPage(pageIndex, PageSize, out count,
+            //    filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null);
+            var list = _repDetail.Find(filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null).ToList();
             var grid1 = UIHelper.Grid("Grid1");
-            grid1.RecordCount(count);
+            //grid1.RecordCount(count);
             grid1.DataSource(list, fields);
         }
         public ActionResult DoSearch(FormCollection values)
@@ -279,7 +282,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return UIHelper.Result();
         }
 
-        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex,int Grid1_pageSize)
+        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData)
         {
             if (!Grid1_modifiedData.Any())
             {
@@ -305,14 +308,29 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 }
             }
 
-            int count;
-            var source = _repDetail.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count);
-
+            //int count;
+            //var source = _repDetail.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count);
+            var source=_repDetail.Find().ToList();
             var grid1 = UIHelper.Grid("Grid1");
-            grid1.RecordCount(count);
+            //grid1.RecordCount(count);
             grid1.DataSource(source, Grid1_fields);
 
             ShowNotify("数据保存成功！");
+
+            return UIHelper.Result();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Grid1_RowClick(string rowText, JArray Grid2_fields)
+        {
+            var grid2 = UIHelper.Grid("Grid2");
+            grid2.DataSource(
+                _repDetail.Find(t => t.DeviceNum == rowText)
+                    .Sort(
+                        new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName)
+                            .Descending(t => t.ScreenCount))
+                    .ToList(), Grid2_fields);
 
             return UIHelper.Result();
         }

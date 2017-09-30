@@ -26,8 +26,8 @@
                               F.DropDownList().EnableEdit(true)
                                   .ID("ddlLine").Items(ViewBag.Lines)
                                   .EmptyText("安装线路"),
-                                      F.DropDownList().EnableEdit(true)
-                                          .ID("ddlStation").Items(ViewBag.Stations)
+                              F.DropDownList().EnableEdit(true)
+                                  .ID("ddlStation").Items(ViewBag.Stations)
                                   .EmptyText("安装站点"),
                               F.Button()
                                   .ID("btnSearch")
@@ -45,12 +45,13 @@
                   .ShowBorder(true)
                   .ID("Grid1")
                   .DataIDField("_id")
-                  .DataTextField("Name")
+                  .DataTextField("DeviceNum")
                   .EnableCheckBoxSelect(true)
-                  .AllowPaging(true).AllowCellEditing(true).ClicksToEdit(1)
-                  .PageSize(ViewBag.PageSize)
-                  .IsDatabasePaging(true)
-                  .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
+                  //.AllowPaging(true)
+                  .AllowCellEditing(true).ClicksToEdit(2)
+                  //.PageSize(ViewBag.PageSize)
+                  //.IsDatabasePaging(true)
+                  //.OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
                   .Toolbars(
                       F.Toolbar()
                           .Items(
@@ -66,7 +67,7 @@
                                   .Listener("click", "onImportClick"),
                               F.ToolbarFill(),
                               F.Button()
-                                  .ID("btnSubmit")
+                                  .ID("btnSubmit").Enabled(false)
                                   .Text("保存数据").Icon(Icon.SystemSave)
                                   .OnClick(Url.Action("btnSubmit_Click"), "Grid1")
                           //F.Button()
@@ -127,9 +128,46 @@
                           .EnableHeaderMenu(false)
                           .EnableColumnHide(false)
                   )
-                  .RecordCount(ViewBag.RecordCount)
-                  .DataSource(Model)
+                  .Listener("rowclick", "onGrid1RowClick")
+                  .Listener("datachange", "onGrid1DataChange")
+                  //.RecordCount(ViewBag.RecordCount)
+                  .DataSource(Model),
 
+              F.Grid()
+                  .BoxFlex(1)
+                  .ShowHeader(false)
+                  .ShowBorder(true).MarginTop(15)
+                  .ID("Grid2")
+                  .DataIDField("_id")
+                  .DataTextField("DeviceNum")
+                  .EnableCheckBoxSelect(true)
+                  .Columns(
+                      F.RowNumberField(),
+                      F.RenderField()
+                          .HeaderText("设备编号").Width(80)
+                          .DataField("DeviceNum"),
+                      F.RenderField()
+                          .HeaderText("营运公司").Width(80)
+                          .DataField("Owner").FieldType(FieldType.Int),
+                      F.RenderField()
+                          .HeaderText("安装线路")
+                          .DataField("LineName").Width(180),
+                      F.RenderField()
+                          .HeaderText("屏数")
+                          .DataField("ScreenCount").Width(60).FieldType(FieldType.Int),
+                      F.RenderField()
+                          .HeaderText("安装站点")
+                          .DataField("InstallStation").Width(120),
+                      F.RenderField()
+                          .HeaderText("安装日期")
+                          .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
+                      F.RenderField()
+                          .HeaderText("保存时间").Width(150)
+                          .DataField("SaveTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd HH:mm:ss"),
+                      F.RenderField()
+                          .HeaderText("备注")
+                          .DataField("Materials.Remark").ExpandUnusedSpace(true)
+                  )
           ))
 
 
@@ -152,6 +190,33 @@
 @section script {
 
     <script>
+        
+        function onGrid1DataChange() {
+            var grid1 = F.ui.Grid1;
+            var btnSubmit = F.ui.btnSubmit;
+
+            // 如果没有删除行，没有新增行，没有修改的数据
+            if (!grid1.getModifiedData().length) {
+                btnSubmit.disable();
+            } else {
+                btnSubmit.enable();
+            }
+        }
+
+        function onGrid1RowClick(event, rowId) {
+            var grid1 = F.ui.Grid1;
+            var rowData = grid1.getRowData(rowId);
+            var column = grid1.getColumn(grid1.getSelectedCell()[1]);
+
+            // 触发后台事件
+            F.doPostBack('@Url.Action("Grid1_RowClick")','Grid2', {
+                rowId: rowData.id,
+                rowText: rowData.text,
+                rowIndex: rowData.index,
+                columnText: column.text
+            });
+
+        }
 
         function renderDeleteField(value, params) {
             return '<a href="javascript:;" class="deletefield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/delete.png")"></a>';
