@@ -25,14 +25,15 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenRec> _rep = new MongoRepository<ScreenRec>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         private readonly IMongoRepository<ScreenLog> _repLog = new MongoRepository<ScreenLog>();
+        private readonly Expression<Func<ScreenRecDetail, bool>> _filter = t => string.IsNullOrEmpty(t.Materials.Remark);
         //
         // GET: /ScreenStats/DispatchScreenRec/
         public ActionResult Index()
         {
-            //int count;
-            //var list = _repDetail.QueryByPage(0, PageSize, out count);
-            //ViewBag.RecordCount = count;
-            //ViewBag.PageSize = PageSize;
+            int count;
+            var list = _repDetail.QueryByPage(0, PageSize, out count, _filter);
+            ViewBag.RecordCount = count;
+            ViewBag.PageSize = PageSize;
 
             var lines = new List<ListItem>
             {
@@ -47,7 +48,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             };
             stations.AddRange(_repDetail.Distinct(t => t.InstallStation).Select(t => new ListItem(t, t)));
             ViewBag.Stations = stations.ToArray();
-            return View(_repDetail.Find().ToList());
+            return View(list);
         }
 
         public ViewResult Import()
@@ -244,11 +245,14 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
             JArray fields = JArray.Parse(values["Grid1_fields"]);
             int pageIndex = Convert.ToInt32(values["Grid1_pageIndex"]??"0");
+            var pageSize = Convert.ToInt32(values["Grid1_pageSize"] ?? "0");
 
             var line = values["ddlLine"];
             var station = values["ddlStation"];
-
-            var filter = new List<FilterDefinition<ScreenRecDetail>>();
+            var filter = new List<FilterDefinition<ScreenRecDetail>>
+            {
+                _filter
+            };
             if (!string.IsNullOrWhiteSpace(line))
             {
                 filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.LineName,
@@ -260,12 +264,13 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     new BsonRegularExpression(new Regex(station.Trim()))));
             }
 
-            //int count;
-            //var list = _repDetail.QueryByPage(pageIndex, PageSize, out count,
-            //    filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null);
-            var list = _repDetail.Find(filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null).ToList();
+            int count;
+            var list = _repDetail.QueryByPage(pageIndex, pageSize, out count,
+                filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null);
+            //var list = _repDetail.Find(filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null).ToList();
             var grid1 = UIHelper.Grid("Grid1");
-            //grid1.RecordCount(count);
+            grid1.RecordCount(count);
+            grid1.PageSize(pageSize);
             grid1.DataSource(list, fields);
         }
         public ActionResult DoSearch(FormCollection values)
@@ -282,7 +287,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return UIHelper.Result();
         }
 
-        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData)
+        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex, int Grid1_pageSize)
         {
             if (!Grid1_modifiedData.Any())
             {
@@ -297,22 +302,22 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
                 if (status != "modified") continue;
                 var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
-                foreach (var valuePair in rowDic)
+                foreach (var p in rowDic)
                 {
                     var param = Expression.Parameter(typeof(ScreenRecDetail), "x");
-                    var paramArr = valuePair.Key.Split(new[] {'_'}, StringSplitOptions.RemoveEmptyEntries);
+                    var paramArr = p.Key.Split(new[] {'_'}, StringSplitOptions.RemoveEmptyEntries);
                     var body = paramArr.Length > 1 ? Expression.Property(Expression.Property(param, typeof(ScreenRecDetail), paramArr[0]), typeof(Materials), paramArr[1]) : Expression.Property(param, typeof(ScreenRecDetail), paramArr[0]);
                     var lambda =
                         Expression.Lambda<Func<ScreenRecDetail, object>>(Expression.Convert(body, typeof(object)), param);
-                    _repDetail.Update(t => t._id == rowId, Builders<ScreenRecDetail>.Update.Set(lambda, valuePair.Value));
+                    _repDetail.Update(t => t._id == rowId, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
                 }
             }
 
-            //int count;
-            //var source = _repDetail.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count);
-            var source=_repDetail.Find().ToList();
+            int count;
+            var source = _repDetail.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count, _filter);
+            //var source = _repDetail.Find(t => string.IsNullOrEmpty(t.Materials.Remark)).ToList();
             var grid1 = UIHelper.Grid("Grid1");
-            //grid1.RecordCount(count);
+            grid1.RecordCount(count);
             grid1.DataSource(source, Grid1_fields);
 
             ShowNotify("数据保存成功！");
@@ -326,7 +331,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
             var grid2 = UIHelper.Grid("Grid2");
             grid2.DataSource(
-                _repDetail.Find(t => t.DeviceNum == rowText)
+                _repDetail.Find(t => t.DeviceNum == rowText && !string.IsNullOrEmpty(t.Materials.Remark))
                     .Sort(
                         new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName)
                             .Descending(t => t.ScreenCount))

@@ -47,11 +47,11 @@
                   .DataIDField("_id")
                   .DataTextField("DeviceNum")
                   .EnableCheckBoxSelect(true)
-                  //.AllowPaging(true)
+                  .AllowPaging(true)
                   .AllowCellEditing(true).ClicksToEdit(2)
-                  //.PageSize(ViewBag.PageSize)
-                  //.IsDatabasePaging(true)
-                  //.OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
+                  .PageSize(ViewBag.PageSize)
+                  .IsDatabasePaging(true)
+                  .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
                   .Toolbars(
                       F.Toolbar()
                           .Items(
@@ -127,10 +127,32 @@
                           .TextAlign(TextAlign.Center)
                           .EnableHeaderMenu(false)
                           .EnableColumnHide(false)
-                  )
+                          ).PageItems(
+                    F.ToolbarSeparator(),
+                    F.ToolbarText()
+                        .Text("每页记录数："),
+                    F.DropDownList()
+                        .ID("ddlPageSize")
+                        .Width(80)
+                        .Listener("change", "onDdlPageSizeChange")
+                        .Items(
+                            F.ListItem()
+                                .Text("20")
+                                .Value("20"),
+                            F.ListItem()
+                                .Text("50")
+                                .Value("50"),
+                            F.ListItem()
+                                .Text("100")
+                                .Value("100"),
+                            F.ListItem()
+                                .Text("200")
+                                .Value("200")
+                        )
+                )
                   .Listener("rowclick", "onGrid1RowClick")
                   .Listener("datachange", "onGrid1DataChange")
-                  //.RecordCount(ViewBag.RecordCount)
+                  .RecordCount(ViewBag.RecordCount)
                   .DataSource(Model),
 
               F.Grid()
@@ -190,7 +212,23 @@
 @section script {
 
     <script>
-        
+        function doPostBackReBindGrid(event) {
+            var grid1 = F.ui.Grid1;
+
+            // 触发后台事件
+            F.doPostBack('@Url.Action("DoSearch")', {
+                Grid1_fields: grid1.fields,
+                Grid1_pageIndex: grid1.pageIndex,
+                Grid1_pageSize: F.ui.ddlPageSize.getValue()
+            });
+
+        }
+
+        function onDdlPageSizeChange(event) {
+            doPostBackReBindGrid();
+        }
+
+
         function onGrid1DataChange() {
             var grid1 = F.ui.Grid1;
             var btnSubmit = F.ui.btnSubmit;
