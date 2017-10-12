@@ -1,0 +1,93 @@
+﻿@{
+    ViewBag.Title = "Index";
+    var F = Html.F();
+}
+
+@model IEnumerable<ScreenRecStats>
+
+
+@section body {
+
+    @(F.Panel()
+          .ID("Panel1")
+          .BodyPadding(5)
+          .ShowBorder(false)
+          .ShowHeader(false)
+          .Layout(LayoutType.VBox)
+          .IsViewPort(true)
+          .Items(
+                     F.Form()
+                                          .ID("Form1")
+                                          .ShowHeader(false)
+                                          .ShowBorder(false)
+                                          .Rows(
+                                              F.FormRow()
+                                                  .Items(
+                                                                         F.DropDownList().EnableEdit(true)
+                                                          .ID("ddlDeviceNum").Items(ViewBag.DeviceNums)
+                                                          .EmptyText("设备编号"),
+                                                      F.Button()
+                                                          .ID("btnSearch")
+                                                          .Text("检索")
+                                                          .OnClick(Url.Action("DoSearch"), "Form1,Grid1"),
+                                                      F.Button()
+                                                          .ID("btnReset")
+                                                          .Text("重置")
+                                                          .OnClientClick("F.ui.Form1.reset();")
+                                                  )
+                                          ),
+              F.Grid()
+                  .BoxFlex(1)
+                  .ShowHeader(false)
+                  .ShowBorder(true)
+                  .ID("Grid1")
+                  .DataIDField("_id")
+                  .DataTextField("Name")
+                  .EnableCheckBoxSelect(true)
+                  .AllowPaging(true)
+                  .PageSize(ViewBag.PageSize)
+                  .IsDatabasePaging(true)
+                  .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
+                 
+                  .Columns(
+                      F.RowNumberField(),
+                              F.RenderField()
+                                          .HeaderText("设备编号").Width(80)
+                                          .DataField("DeviceNum"),
+                      F.RenderField()
+                          .HeaderText("详细信息")
+                                  .DataField("Details").Width(280),
+                      F.RenderField()
+                          .HeaderText("施工类型")
+                                  .DataField("ConstructionType").Width(120),
+                      F.RenderField()
+                          .HeaderText("施工日期")
+                          .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
+                                  
+                      F.RenderField()
+                          .HeaderText("备注")
+                                                  .DataField("Remark").ExpandUnusedSpace(true)
+           
+                  )
+                  .RecordCount(ViewBag.RecordCount)
+                  .DataSource(Model)
+
+          ))
+
+
+    @(F.Window()
+          .ID("Window1")
+          .Width(600)
+          .Height(300)
+          .IsModal(true)
+          .Hidden(true)
+          .Target(Target.Top)
+          .EnableResize(true)
+          .EnableMaximize(true)
+          .EnableIFrame(true)
+          .IFrameUrl(Url.Content("about:blank"))
+          .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
+    )
+
+}
+
