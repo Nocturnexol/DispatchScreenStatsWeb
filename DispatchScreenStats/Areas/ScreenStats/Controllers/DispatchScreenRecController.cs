@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using DispatchScreenStats.Controllers;
+using DispatchScreenStats.Enums;
 using DispatchScreenStats.IRepository;
 using DispatchScreenStats.Models;
 using DispatchScreenStats.Repository;
@@ -24,7 +25,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
     {
         private readonly IMongoRepository<ScreenRec> _rep = new MongoRepository<ScreenRec>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
-        private readonly IMongoRepository<ScreenLog> _repLog = new MongoRepository<ScreenLog>();
         private readonly Expression<Func<ScreenRecDetail, bool>> _filter = t => string.IsNullOrEmpty(t.Materials.Remark);
         //
         // GET: /ScreenStats/DispatchScreenRec/
@@ -122,6 +122,20 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         row.GetCell(18).SetCellType(CellType.String);
                         model.Materials.Canopy = row.GetCell(18).StringCellValue;
                         model.Materials.Remark = row.GetCell(19).StringCellValue;
+                        if (row.GetCell(20) != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(row.GetCell(20).StringCellValue))
+                                model.ExtraRemark += row.GetCell(20).StringCellValue;
+                        }
+                        if (row.GetCell(21) != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(row.GetCell(21).StringCellValue))
+                            {
+                                if (!string.IsNullOrEmpty(model.ExtraRemark))
+                                    model.ExtraRemark += "；";
+                                model.ExtraRemark += row.GetCell(21).StringCellValue;
+                            }
+                        }
 
                         if (model.Owner == 0 && string.IsNullOrEmpty(model.InstallStation) &&
                             model.InstallDate < DateTime.Parse("1970/1/1")) continue;
@@ -197,6 +211,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 var detail = new ScreenRecDetail();
                                 detail._id = (int) (_repDetail.Max(t => t._id) ?? 0) + 1;
                                 detail.LineName = line;
+                                detail.LinesInSameScreen = string.Join("、", lines.Except(new[] {line}));
                                 detail.Materials = rec.Materials;
                                 detail.Owner = rec.Owner;
                                 detail.InstallStation = rec.InstallStation;
@@ -205,19 +220,35 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 detail.DeviceNum = rec.DeviceNum;
                                 detail.SaveTime = DateTime.Now;
 
+                                detail.ExtraRemark = rec.ExtraRemark;
+
+                                if (lines.Length > 2)
+                                    detail.ScreenType = ScreenTypeEnum.表格定制屏;
+                                else if (lines.Length == 2)
+                                {
+                                    int unit;
+                                    if (int.TryParse(detail.Materials.UnitBoard, out unit))
+                                    {
+                                        if (unit == 28) detail.ScreenType = ScreenTypeEnum.七行双线屏;
+                                        else if (unit == 35) detail.ScreenType = ScreenTypeEnum.定制双线屏;
+                                    }
+                                }
+                                else if (lines.Length == 1)
+                                    detail.ScreenType = ScreenTypeEnum.标准单线屏;
+
                                 _repDetail.Add(detail);
 
-                                if (rec.ScreenCount.HasValue) continue;
-                                var log = new ScreenLog();
-                                log._id = (int) (_repLog.Max(t => t._id) ?? 0) + 1;
-                                log.LineName = line;
-                                log.DeviceNum = rec.DeviceNum;
-                                log.Owner = rec.Owner;
-                                log.InstallStation = rec.InstallStation;
-                                log.InstallDate = rec.InstallDate;
-                                log.SaveTime = DateTime.Now;
-                                log.OperContent = rec.Materials.Remark;
-                                _repLog.Add(log);
+                                //if (rec.ScreenCount.HasValue) continue;
+                                //var log = new ScreenLog();
+                                //log._id = (int) (_repLog.Max(t => t._id) ?? 0) + 1;
+                                //log.LineName = line;
+                                //log.DeviceNum = rec.DeviceNum;
+                                //log.Owner = rec.Owner;
+                                //log.InstallStation = rec.InstallStation;
+                                //log.InstallDate = rec.InstallDate;
+                                //log.SaveTime = DateTime.Now;
+                                //log.OperContent = rec.Materials.Remark;
+                                //_repLog.Add(log);
                             }
 
                         }

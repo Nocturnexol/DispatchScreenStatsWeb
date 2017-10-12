@@ -170,6 +170,7 @@
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Import.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRecDetail\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenLog\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Index.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2002,11 +2003,13 @@
     <Compile Include="Areas\ScreenStats\Controllers\DispatchScreenRecController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenLogController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecDetailController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenRecStatsController.cs" />
     <Compile Include="Areas\ScreenStats\ScreenStatsAreaRegistration.cs" />
     <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="Enums\ScreenTypeEnum.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

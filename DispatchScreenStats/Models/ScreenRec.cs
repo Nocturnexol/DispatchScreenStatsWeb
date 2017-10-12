@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using DispatchScreenStats.Enums;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace DispatchScreenStats.Models
@@ -20,7 +21,8 @@ namespace DispatchScreenStats.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
         [Display(Name = "安装日期")]
         public DateTime? InstallDate { get; set; }
-        public Materials Materials { get; set; }
+         public Materials Materials { get; set; }
+         public string ExtraRemark { get; set; }
     }
 
     public class ScreenRecDetail
@@ -33,6 +35,8 @@ namespace DispatchScreenStats.Models
         public string DeviceNum { get; set; }
         public int Owner { get; set; }
         public string LineName { get; set; }
+        public string LinesInSameScreen { get; set; }
+        public ScreenTypeEnum? ScreenType { get; set; }
         public int? ScreenCount { get; set; }
         public string InstallStation { get; set; }
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
@@ -42,6 +46,7 @@ namespace DispatchScreenStats.Models
          [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime SaveTime { get; set; }
         public Materials Materials { get; set; }
+        public string ExtraRemark { get; set; }
     }
 
     public class ScreenLog
@@ -56,6 +61,15 @@ namespace DispatchScreenStats.Models
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
          public DateTime SaveTime { get; set; }
          public string OperContent { get; set; }
+    }
+
+    public class ScreenRecStats
+    {
+        public string DeviceNum { get; set; }
+        public string Details { get; set; }
+        public string ConstructionType { get; set; }
+        public DateTime? Date { get; set; }
+        public string Remark { get; set; }
     }
 
     public class Materials

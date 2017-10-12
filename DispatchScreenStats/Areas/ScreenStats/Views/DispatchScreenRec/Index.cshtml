@@ -3,6 +3,7 @@
     var F = Html.F();
 }
 
+@using DispatchScreenStats.Enums
 @model IEnumerable<ScreenRecDetail>
 
 
@@ -91,6 +92,12 @@
                           .DataField("LineName").Width(180)
                           .Editor(F.TextBox().ID("tbxLineName").Required(true)),
                       F.RenderField()
+                          .HeaderText("屏幕类型").FieldType(FieldType.Int)
+                          .DataField("ScreenType").Width(120).RendererFunction("renderScreenType"),
+                      F.RenderField()
+                          .HeaderText("同屏线路")
+                          .DataField("LinesInSameScreen").Width(120),
+                      F.RenderField()
                           .HeaderText("屏数")
                           .DataField("ScreenCount").Width(60).FieldType(FieldType.Int)
                           .Editor(F.NumberBox().ID("nbxScreenCount").NoDecimal(true).NoNegative(true).MinValue(0)),
@@ -127,29 +134,29 @@
                           .TextAlign(TextAlign.Center)
                           .EnableHeaderMenu(false)
                           .EnableColumnHide(false)
-                          ).PageItems(
-                    F.ToolbarSeparator(),
-                    F.ToolbarText()
-                        .Text("每页记录数："),
-                    F.DropDownList()
-                        .ID("ddlPageSize")
-                        .Width(80)
-                        .Listener("change", "onDdlPageSizeChange")
-                        .Items(
-                            F.ListItem()
-                                .Text("20")
-                                .Value("20"),
-                            F.ListItem()
-                                .Text("50")
-                                .Value("50"),
-                            F.ListItem()
-                                .Text("100")
-                                .Value("100"),
-                            F.ListItem()
-                                .Text("200")
-                                .Value("200")
-                        )
-                )
+                  ).PageItems(
+                      F.ToolbarSeparator(),
+                      F.ToolbarText()
+                          .Text("每页记录数："),
+                      F.DropDownList()
+                          .ID("ddlPageSize")
+                          .Width(80)
+                          .Listener("change", "onDdlPageSizeChange")
+                          .Items(
+                              F.ListItem()
+                                  .Text("20")
+                                  .Value("20"),
+                              F.ListItem()
+                                  .Text("50")
+                                  .Value("50"),
+                              F.ListItem()
+                                  .Text("100")
+                                  .Value("100"),
+                              F.ListItem()
+                                  .Text("200")
+                                  .Value("200")
+                          )
+                  )
                   .Listener("rowclick", "onGrid1RowClick")
                   .Listener("datachange", "onGrid1DataChange")
                   .RecordCount(ViewBag.RecordCount)
@@ -162,7 +169,7 @@
                   .ID("Grid2")
                   .DataIDField("_id")
                   .DataTextField("DeviceNum")
-                  .EnableCheckBoxSelect(true)
+                  //.EnableCheckBoxSelect(true)
                   .Columns(
                       F.RowNumberField(),
                       F.RenderField()
@@ -212,6 +219,21 @@
 @section script {
 
     <script>
+        function renderScreenType(val) {
+            switch (val) {
+            case @((int)ScreenTypeEnum.标准单线屏):
+                return "@ScreenTypeEnum.标准单线屏";
+                case @((int)ScreenTypeEnum.七行双线屏):
+                    return "@ScreenTypeEnum.七行双线屏";
+                case @((int)ScreenTypeEnum.定制双线屏):
+                    return "@ScreenTypeEnum.定制双线屏";
+                case @((int)ScreenTypeEnum.表格定制屏):
+                    return "@ScreenTypeEnum.表格定制屏";
+                default:
+                    return "";
+            }
+        }
+
         function doPostBackReBindGrid(event) {
             var grid1 = F.ui.Grid1;
 
