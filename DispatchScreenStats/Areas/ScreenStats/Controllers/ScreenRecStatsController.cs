@@ -18,12 +18,17 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
     public class ScreenRecStatsController : BaseController
     {
         private readonly IMongoRepository<ScreenRec> _rep = new MongoRepository<ScreenRec>();
+
+        private readonly SortDefinition<ScreenRec> _sort =
+            new SortDefinitionBuilder<ScreenRec>().Ascending(t => t.DeviceNum)
+                .Ascending(t => t.LineName)
+                .Ascending(t => t.InstallStation);
         //
         // GET: /ScreenStats/ScreenRecStats/
         public ActionResult Index()
         {
             int count;
-            var list = _rep.QueryByPage(0, PageSize, out count).Select(Map).ToList();
+            var list = _rep.QueryByPage(0, PageSize, out count, null, _sort).Select(Map).ToList();
             ViewBag.RecordCount = count;
             ViewBag.PageSize = PageSize;
             var nums = new List<ListItem>
@@ -50,7 +55,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
             int count;
             var list = _rep.QueryByPage(pageIndex, PageSize, out count,
-                filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null).Select(Map).ToList();
+                filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null, _sort).Select(Map).ToList();
 
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);

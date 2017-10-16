@@ -41,8 +41,6 @@
                   .ShowHeader(false)
                   .ShowBorder(true)
                   .ID("Grid1")
-                  .DataIDField("_id")
-                  .DataTextField("Name")
                   .EnableCheckBoxSelect(true)
                   .AllowPaging(true)
                   .PageSize(ViewBag.PageSize)
@@ -67,8 +65,9 @@
                       F.RenderField()
                           .HeaderText("备注")
                                                   .DataField("Remark").ExpandUnusedSpace(true)
-           
-                  )
+
+                          )
+                          //.Listener("dataload", "onGridDataLoad")
                   .RecordCount(ViewBag.RecordCount)
                   .DataSource(Model)
 
@@ -91,3 +90,14 @@
 
 }
 
+@section script{
+    <script>
+        function onGridDataLoad(event) {
+            this.mergeCells([{
+                rowId: '1',
+                columnId: 'Details',
+                rowspan: 3
+            }]);
+        }
+    </script>
+}
