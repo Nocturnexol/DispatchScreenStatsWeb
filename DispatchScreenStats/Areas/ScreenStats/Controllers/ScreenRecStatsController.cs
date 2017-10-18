@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
 using DispatchScreenStats.Controllers;
@@ -38,6 +40,98 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             nums.AddRange(_rep.Distinct(t => t.DeviceNum).Select(t => new ListItem(t, t)));
             ViewBag.DeviceNums = nums.ToArray();
             return View(list);
+        }
+
+        public ActionResult IndexNew()
+        {
+            return View();
+        }
+        [HttpPost]
+        public JsonResult Search(FormCollection values)
+        {
+            int count;
+            var devNum = values["tbDevNum"];
+            var details = values["tbDetails"];
+            var type = values["tbType"];
+            var date = values["tbDate"];
+            var remark = values["tbRemark"];
+
+            var filter = new List<FilterDefinition<ScreenRec>>();
+            if (!string.IsNullOrWhiteSpace(devNum))
+            {
+                filter.Add(Builders<ScreenRec>.Filter.Eq(t => t.DeviceNum, devNum));
+            }
+            if (!string.IsNullOrWhiteSpace(details))
+            {
+                filter.Add(
+                    Builders<ScreenRec>.Filter.Or(
+                        Builders<ScreenRec>.Filter.Regex(t => t.LineName,
+                            new BsonRegularExpression(new Regex(details.Trim()))),
+                        Builders<ScreenRec>.Filter.Regex(t => t.InstallStation,
+                            new BsonRegularExpression(new Regex(details.Trim())))));
+            }
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                Expression<Func<ScreenRec, bool>> exp = t => string.IsNullOrEmpty(t.Materials.Remark);
+                var typeFilter = type == "安装"
+                    ? exp
+                    : Builders<ScreenRec>.Filter.Regex(t => t.Materials.Remark,
+                        new BsonRegularExpression(new Regex(type.Trim())));
+                filter.Add(typeFilter);
+            }
+            if (!string.IsNullOrWhiteSpace(date))
+            {
+                DateTime dt;
+                if (DateTime.TryParse(date, out dt))
+                    filter.Add(Builders<ScreenRec>.Filter.Eq(t => t.InstallDate, dt));
+            }
+            if (!string.IsNullOrWhiteSpace(remark))
+            {
+                filter.Add(
+                   Builders<ScreenRec>.Filter.Or(
+                       Builders<ScreenRec>.Filter.Regex(t => t.Materials.Remark,
+                           new BsonRegularExpression(new Regex(remark.Trim()))),
+                       Builders<ScreenRec>.Filter.Regex(t => t.ExtraRemark,
+                           new BsonRegularExpression(new Regex(remark.Trim())))));
+            }
+
+            var list = _rep.QueryByPage(0, int.MaxValue, out count, filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null, _sort).Select(Map).ToList();
+            return Json(GetHtmlStr(list));
+        }
+        public ViewResult Search()
+        {
+            return View();
+        }
+        private string GetHtmlStr(List<ScreenRecStats> list)
+        {
+            var devNumList = list.GroupBy(t => new { t.DeviceNum, t.Details }).Select(t => t.Key).ToList();
+            var htmlStr = new StringBuilder();
+            foreach (var devNum in devNumList)
+            {
+                var num = devNum.DeviceNum;
+                var recs = list.Where(t => t.DeviceNum == num && t.Details == devNum.Details).ToList();
+                var rec = recs.First();
+                var recCount = recs.Count;
+                if (recCount > 1)
+                {
+                    htmlStr.AppendFormat(
+                        "<tr class=\"tr\"><td class=\"td td-data azure\" rowspan=\"{5}\">{0}</td><td class=\"td td-data azure\" rowspan=\"{5}\">{1}</td><td class=\"td td-data\">{2}</td><td class=\"td td-data\">{3:yyyy-MM-dd}</td><td class=\"td td-data\">{4}</td></tr>",
+                        num, rec.Details, rec.ConstructionType, rec.Date, rec.Remark, recCount);
+                    recs.RemoveAt(0);
+                    foreach (var r in recs)
+                    {
+                        htmlStr.AppendFormat(
+                      "<tr class=\"tr\"><td class=\"td td-data\">{0}</td><td class=\"td td-data\">{1:yyyy-MM-dd}</td><td class=\"td td-data\">{2}</td></tr>", r.ConstructionType, r.Date, r.Remark);
+                    }
+                }
+                else
+                {
+                    htmlStr.AppendFormat(
+                        "<tr class=\"tr\"><td class=\"td td-data azure\">{0}</td><td class=\"td td-data azure\">{1}</td><td class=\"td td-data\">{2}</td><td class=\"td td-data\">{3:yyyy-MM-dd}</td><td class=\"td td-data\">{4}</td></tr>",
+                        num, rec.Details, rec.ConstructionType, rec.Date, rec.Remark);
+                }
+            }
+            return htmlStr.ToString().Replace("\r", "\\r").Replace("\n", "\\n");
         }
         private void UpdateGrid(NameValueCollection values)
         {

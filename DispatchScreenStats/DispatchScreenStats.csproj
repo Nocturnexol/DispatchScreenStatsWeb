@@ -171,6 +171,9 @@
     <Content Include="Areas\ScreenStats\Views\ScreenRecDetail\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenLog\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\IndexNew.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\IndexNewBak.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Search.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
