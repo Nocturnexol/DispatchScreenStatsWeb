@@ -66,11 +66,20 @@
                                   .Icon(Icon.PageExcel)
                                   .Text("导入")
                                   .Listener("click", "onImportClick"),
-                              F.ToolbarFill(),
+                                      F.ToolbarFill(),
+                                              F.Button()
+                                .ID("btnNew")
+                                .Text("新增日志")
+                                .Icon(Icon.Add)
+                                .Listener("click", "onNewClick"),
+                                      F.Button()
+                                .ID("btnReset")
+                                .Text("重置表格数据")
+                                .Listener("click", "onResetClick"),
                               F.Button()
                                   .ID("btnSubmit").Enabled(false)
                                   .Text("保存数据").Icon(Icon.SystemSave)
-                                  .OnClick(Url.Action("btnSubmit_Click"), "Grid1")
+                                  .OnClick(Url.Action("btnSubmit_Click"), "Grid1,Grid2")
                           //F.Button()
                           //    .ID("btnCreate")
                           //    .Icon(Icon.Add)
@@ -158,7 +167,7 @@
                           )
                   )
                   .Listener("rowclick", "onGrid1RowClick")
-                  .Listener("datachange", "onGrid1DataChange")
+                  .Listener("datachange", "onGridDataChange")
                   .RecordCount(ViewBag.RecordCount)
                   .DataSource(Model),
 
@@ -166,9 +175,9 @@
                   .BoxFlex(1)
                   .ShowHeader(false)
                   .ShowBorder(true).MarginTop(15)
-                  .ID("Grid2")
+                          .ID("Grid2").Listener("datachange", "onGridDataChange")
                   .DataIDField("_id")
-                  .DataTextField("DeviceNum")
+                          .DataTextField("DeviceNum").AllowCellEditing(true).ClicksToEdit(2)
                   //.EnableCheckBoxSelect(true)
                   .Columns(
                       F.RowNumberField(),
@@ -188,13 +197,17 @@
                           .HeaderText("安装站点")
                           .DataField("InstallStation").Width(120),
                       F.RenderField()
-                          .HeaderText("安装日期")
+                                  .HeaderText("安装日期").Editor(
+                                      F.DatePicker()
+                                          .ID("dpInstallDate2").MaxDate(DateTime.Today)
+                                          .Required(true)
+                                  )
                           .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
                       F.RenderField()
                           .HeaderText("保存时间").Width(150)
                           .DataField("SaveTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd HH:mm:ss"),
                       F.RenderField()
-                          .HeaderText("备注")
+                                  .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
                           .DataField("Materials.Remark").ExpandUnusedSpace(true)
                   )
           ))
@@ -221,16 +234,16 @@
     <script>
         function renderScreenType(val) {
             switch (val) {
-            case @((int)ScreenTypeEnum.标准单线屏):
+            case @((int) ScreenTypeEnum.标准单线屏):
                 return "@ScreenTypeEnum.标准单线屏";
-                case @((int)ScreenTypeEnum.七行双线屏):
-                    return "@ScreenTypeEnum.七行双线屏";
-                case @((int)ScreenTypeEnum.定制双线屏):
-                    return "@ScreenTypeEnum.定制双线屏";
-                case @((int)ScreenTypeEnum.表格定制屏):
-                    return "@ScreenTypeEnum.表格定制屏";
-                default:
-                    return "";
+            case @((int) ScreenTypeEnum.七行双线屏):
+                return "@ScreenTypeEnum.七行双线屏";
+            case @((int) ScreenTypeEnum.定制双线屏):
+                return "@ScreenTypeEnum.定制双线屏";
+            case @((int) ScreenTypeEnum.表格定制屏):
+                return "@ScreenTypeEnum.表格定制屏";
+            default:
+                return "";
             }
         }
 
@@ -238,7 +251,8 @@
             var grid1 = F.ui.Grid1;
 
             // 触发后台事件
-            F.doPostBack('@Url.Action("DoSearch")', {
+            F.doPostBack('@Url.Action("DoSearch")',
+            {
                 Grid1_fields: grid1.fields,
                 Grid1_pageIndex: grid1.pageIndex,
                 Grid1_pageSize: F.ui.ddlPageSize.getValue()
@@ -250,13 +264,40 @@
             doPostBackReBindGrid();
         }
 
+        function onNewClick(event) {
+            var grid2 = F.ui.Grid2;
+            var data = grid2.alldata[0].values;
+            // 新增一行（返回新增行的ID）
+            var addedRowId = grid2.addNewRecord({
+                'DeviceNum': data["DeviceNum"],
+                'Owner': data["Owner"],
+                'LineName': data["LineName"],
+                'ScreenCount': data["ScreenCount"],
+                'InstallStation': data["InstallStation"],
+                'SaveTime': new Date(),
+                'Materials.Remark': ''
+            }, true, 'InstallDate');
 
-        function onGrid1DataChange() {
+            // 选中新增的那一行
+            grid2.selectRow(addedRowId);
+        }
+        
+        function onResetClick(event) {
+            F.confirm({
+                message: '确定要重置表格数据？',
+                ok: function () {
+                    F.ui.Grid1.rejectChanges();
+                    F.ui.Grid2.rejectChanges();
+                }
+            });
+        }
+
+        function onGridDataChange() {
             var grid1 = F.ui.Grid1;
             var btnSubmit = F.ui.btnSubmit;
-
+            var grid2 = F.ui.Grid2;
             // 如果没有删除行，没有新增行，没有修改的数据
-            if (!grid1.getModifiedData().length) {
+            if (!grid1.getModifiedData().length && !grid2.getModifiedData().length) {
                 btnSubmit.disable();
             } else {
                 btnSubmit.enable();
@@ -269,12 +310,14 @@
             var column = grid1.getColumn(grid1.getSelectedCell()[1]);
 
             // 触发后台事件
-            F.doPostBack('@Url.Action("Grid1_RowClick")','Grid2', {
-                rowId: rowData.id,
-                rowText: rowData.text,
-                rowIndex: rowData.index,
-                columnText: column.text
-            });
+            F.doPostBack('@Url.Action("Grid1_RowClick")',
+                'Grid2',
+                {
+                    rowId: rowData.id,
+                    rowText: rowData.text,
+                    rowIndex: rowData.index,
+                    columnText: column.text
+                });
 
         }
 
@@ -289,6 +332,7 @@
         function onCreateClick(event) {
             F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Create")', '新增记录');
         }
+
         function onImportClick(parameters) {
             F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Import")', '导入Excel');
         }
@@ -315,26 +359,26 @@
             F.confirm({
                 message: '你确定要删除选中的&nbsp;<b>' + selectedRows.length + '</b>&nbsp;行数据吗？',
                 target: '_top',
-                ok: function () {
+                ok: function() {
                     deleteSelectedRows(selectedRows);
                 }
             });
         }
 
-        F.ready(function () {
+        F.ready(function() {
 
             var grid1 = F.ui.Grid1;
 
             grid1.el.on('click',
                 'a.deletefield',
-                function (event) {
+                function(event) {
                     var rowEl = $(this).closest('.f-grid-row');
                     var rowData = grid1.getRowData(rowEl);
                     console.log(rowData);
                     F.confirm({
                         message: '你确定要删除选中的行数据吗？',
                         target: '_top',
-                        ok: function () {
+                        ok: function() {
                             deleteSelectedRows([rowData.id]);
                         }
                     });
@@ -342,7 +386,7 @@
 
             grid1.el.on('click',
                 'a.editfield',
-                function (event) {
+                function(event) {
                     var rowEl = $(this).closest('.f-grid-row');
                     var rowData = grid1.getRowData(rowEl);
 

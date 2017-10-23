@@ -318,9 +318,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return UIHelper.Result();
         }
 
-        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex, int Grid1_pageSize)
+        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex, int Grid1_pageSize, JArray Grid2_modifiedData, JArray Grid2_fields)
         {
-            if (!Grid1_modifiedData.Any())
+            if (!Grid1_modifiedData.Any() && !Grid2_modifiedData.Any())
             {
                 ShowNotify("无修改数据！");
                 return UIHelper.Result();
@@ -350,6 +350,41 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
             grid1.DataSource(source, Grid1_fields);
+
+            foreach (var jToken in Grid2_modifiedData)
+            {
+                var modifiedRow = (JObject)jToken;
+                string status = modifiedRow.Value<string>("status");
+
+                if (status != "newadded") continue;
+                var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
+
+                var model = new ScreenRecDetail();
+                model._id = (int) (_repDetail.Max(t => t._id) ?? 0) + 1;
+                foreach (var p in rowDic)
+                {
+                    var paramArr = p.Key.Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (paramArr.Length > 1)
+                        typeof(Materials).GetProperty(paramArr[1])
+                            .SetValue(typeof(ScreenRecDetail).GetProperty(paramArr[0]).GetValue(model), p.Value);
+                    else
+                    {
+                        var prop =typeof(ScreenRecDetail).GetProperty(paramArr[0]);
+                        if(prop.PropertyType==typeof(int))
+                            prop.SetValue(model, Convert.ToInt32(p.Value));
+                        else if (prop.PropertyType == typeof(DateTime?) || prop.PropertyType == typeof(DateTime))
+                        {
+                            prop.SetValue(model,Convert.ToDateTime(p.Value));
+                        }
+                        else if (prop.PropertyType != typeof(int?))
+                        {
+                            prop.SetValue(model, p.Value);
+                        }
+                    }
+                }
+                _repDetail.Add(model);
+            }
+
 
             ShowNotify("数据保存成功！");
 

@@ -36,7 +36,17 @@
                   .ShowHeader(false)
                   .Items(
                       F.TextBox().ID("tbDevNum").Label("屏号").EmptyText("屏号"),
-                      F.TextBox().ID("tbDetails").Label("线路/站点").EmptyText("线路/站点"),
+                      F.Panel()
+                          .ID("Panel2")
+                          .ShowHeader(false)
+                          .CssClass("")
+                          .ShowBorder(false)
+                          .Layout(LayoutType.Column)
+                          .Items(
+                              F.TextBox().ID("tbDetails").Label("线路/站点").EmptyText("线路/站点").Width(420),
+                              F.CheckBox().ID("cbIsFuzzy").Label("是否模糊搜索").MarginLeft(36)
+                          ),
+                      
                       F.TextBox().ID("tbType").Label("施工类型").EmptyText("施工类型"),
                       F.DatePicker().MaxDate(DateTime.Today).ID("tbDate").Label("施工日期").EmptyText("施工日期"),
                       F.TextBox().ID("tbRemark").Label("备注").EmptyText("备注")
@@ -55,7 +65,8 @@
                 'tbDevNum': F.ui.tbDevNum.getValue(),
                 'tbDetails': F.ui.tbDetails.getValue(),
                 'tbType': F.ui.tbType.getValue(),
-                'tbRemark': F.ui.tbRemark.getValue()
+                'tbRemark': F.ui.tbRemark.getValue(),
+                'cbIsFuzzy':F.ui.cbIsFuzzy.getValue()
             };
             if (F.ui.tbDate.getValue()) {
                 values.tbDate = F.ui.tbDate.getValue().Format("yyyy-MM-dd");

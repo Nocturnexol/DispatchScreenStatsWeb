@@ -67,12 +67,18 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             }
             if (!string.IsNullOrWhiteSpace(details))
             {
-                filter.Add(
+                var isFuzzy = bool.Parse(values["cbIsFuzzy"]);
+                if(isFuzzy)
+                    filter.Add(
                     Builders<ScreenRec>.Filter.Or(
                         Builders<ScreenRec>.Filter.Regex(t => t.LineName,
                             new BsonRegularExpression(new Regex(details.Trim()))),
                         Builders<ScreenRec>.Filter.Regex(t => t.InstallStation,
                             new BsonRegularExpression(new Regex(details.Trim())))));
+                else 
+                    filter.Add(
+                        Builders<ScreenRec>.Filter.Or(Builders<ScreenRec>.Filter.Eq(t => t.LineName, details.Trim()),
+                            Builders<ScreenRec>.Filter.Eq(t => t.InstallStation, details.Trim())));
             }
             if (!string.IsNullOrWhiteSpace(type))
             {
