@@ -174,6 +174,8 @@
     <Content Include="Areas\ScreenStats\Views\ScreenRecStats\IndexNew.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRecStats\IndexNewBak.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Search.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Search.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Locate.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2012,6 +2014,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Enums\ScreenTypeEnum.cs" />
     <Compile Include="Enums\SortTypeEnum.cs" />
     <Compile Include="Global.asax.cs">
@@ -2028,6 +2031,8 @@
     <Content Include="Views\Login\Index.cshtml" />
     <Content Include="Views\Home\Themes.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\User\Index.cshtml" />
+    <Content Include="Views\User\AddOrEdit.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

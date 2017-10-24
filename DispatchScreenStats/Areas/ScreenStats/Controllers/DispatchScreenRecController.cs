@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
+using DispatchScreenStats.Common;
 using DispatchScreenStats.Controllers;
 using DispatchScreenStats.Enums;
 using DispatchScreenStats.IRepository;
@@ -278,22 +279,65 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             int pageIndex = Convert.ToInt32(values["Grid1_pageIndex"]??"0");
             var pageSize = Convert.ToInt32(values["Grid1_pageSize"] ?? "0");
 
-            var line = values["ddlLine"];
-            var station = values["ddlStation"];
+            var devNum = values["tbDevNum"];
+            var line = values["tbLine"];
+            var isFuzzyLine = values["cbIsFuzzyLine"];
+            var station = values["tbStation"];
+            var isFuzzyStation = values["cbIsFuzzyStation"];
+            var screenType = values["tbType"];
+            var screenCount = values["nbCount"];
+            //var remark = values["tbRemark"];
             var filter = new List<FilterDefinition<ScreenRecDetail>>
             {
                 _filter
             };
+            if (!string.IsNullOrWhiteSpace(devNum))
+            {
+                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.DeviceNum, devNum));
+            }
             if (!string.IsNullOrWhiteSpace(line))
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.LineName,
-                     new BsonRegularExpression(new Regex(line.Trim()))));
+                var isFuzzy = bool.Parse(isFuzzyLine);
+                if (isFuzzy)
+                {
+                    filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.LineName,
+                        new BsonRegularExpression(new Regex(line.Trim()))));
+                }
+                else
+                {
+                    filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.LineName, line.Trim()));
+                }
             }
             if (!string.IsNullOrWhiteSpace(station))
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.InstallStation,
-                    new BsonRegularExpression(new Regex(station.Trim()))));
+                var isFuzzy = bool.Parse(isFuzzyStation);
+                if (isFuzzy)
+                {
+                    filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.InstallStation,
+                        new BsonRegularExpression(new Regex(station.Trim()))));
+                }
+                else
+                {
+                    filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallStation, station.Trim()));
+                }
             }
+            if (!string.IsNullOrWhiteSpace(screenType))
+            {
+                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ScreenType,
+                    Enum.Parse(typeof(ScreenTypeEnum), screenType)));
+            }
+            if (!string.IsNullOrWhiteSpace(screenCount))
+            {
+                int c;
+                if (int.TryParse(screenCount, out c))
+                    filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ScreenCount, c));
+            }
+            //if (!string.IsNullOrWhiteSpace(remark))
+            //{
+            //    filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.Materials.Remark,
+            //        new BsonRegularExpression(new Regex(remark.Trim()))));
+            //}
+
 
             int count;
             var list = _repDetail.QueryByPage(pageIndex, pageSize, out count,
@@ -308,6 +352,29 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
             UpdateGrid(values);
             return UIHelper.Result();
+        }
+
+        public ViewResult Search()
+        {
+            ViewBag.ScreenTypes = CommonHelper.GetEnumSelectList(typeof(ScreenTypeEnum));
+            return View();
+        }
+
+        public ViewResult Locate(string station)
+        {
+            const string url = "http://api.map.baidu.com/place/v2/search";
+            var data = string.Format("{0}?q={1}-公交站&scope=1&region=上海&output=json&ak=6a21ea12a8e3c744047f0efab47c8473", url,
+                station);
+            //var data = "http://api.map.baidu.com/geocoder/v2/?city=上海&address=" + station +
+            //           "-公交车站&output=json&ak=6a21ea12a8e3c744047f0efab47c8473";
+            var json = CommonHelper.HttpGet(data);
+            var obj = JObject.Parse(json);
+            var location = obj.Value<JArray>("results").First().Value<JObject>("location");
+            //var location = obj.Value<JObject>("result").Value<JObject>("location");
+            ViewBag.lon = location.Value<string>("lng");
+            ViewBag.lat = location.Value<string>("lat");
+            ViewBag.station = station;
+            return View();
         }
 
         public ActionResult Delete(JArray selectedRows, FormCollection values)
