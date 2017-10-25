@@ -67,6 +67,10 @@
                                   .Icon(Icon.PageExcel)
                                   .Text("导入")
                                   .Listener("click", "onImportClick"),
+                                            F.Button()
+                                          .Icon(Icon.Map)
+                                          .Text("查看地图")
+                                          .Listener("click", "onMapAllClick"),
                               F.ToolbarFill(),
                               F.Button()
                                   .ID("btnNew")
@@ -217,7 +221,11 @@
                           .DataField("SaveTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd HH:mm:ss"),
                       F.RenderField()
                           .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
-                          .DataField("Materials.Remark").ExpandUnusedSpace(true)
+                          .DataField("Materials.Remark").ExpandUnusedSpace(true),
+                                   F.RenderField()
+                        .Width(50)
+                        .EnableHeaderMenu(false)
+                        .RendererFunction("renderActions")
                   )
           ))
 
@@ -248,6 +256,7 @@
           .IFrameUrl(Url.Content("about:blank"))
           .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
           )
+    @(F.HiddenField().ID("rowClicked"))
 }
 
 @section script {
@@ -293,28 +302,45 @@
             doPostBackReBindGrid();
         }
 
+        function onMapAllClick() {
+            window.open('@Url.Content("~/ScreenStats/DispatchScreenRec/LocateAll")');
+        }
+
+        function renderActions(value, params) {
+            var deleteImageUrl = '@Url.Content("~/res/icon/delete.png")';
+            return '<a class="action-btn delete" href="javascript:;"><img class="f-grid-cell-icon" src="' + deleteImageUrl + '"></a>';
+        }
+
         function onNewClick(event) {
             var grid2 = F.ui.Grid2;
-            var data = grid2.alldata[0].values;
-            // 新增一行（返回新增行的ID）
-            var addedRowId = grid2.addNewRecord({
-                'DeviceNum': data["DeviceNum"],
-                'Owner': data["Owner"],
-                'LineName': data["LineName"],
-                'ScreenCount': data["ScreenCount"],
-                'InstallStation': data["InstallStation"],
-                'SaveTime': new Date(),
-                'Materials.Remark': ''
-            }, true, 'InstallDate');
+            //var data = grid2.alldata[0].values;
+            var rowData = F.ui.rowClicked.getValue();
+            if (rowData) {
+                var data = $.parseJSON(rowData);
+                // 新增一行（返回新增行的ID）
+                var addedRowId = grid2.addNewRecord({
+                        'DeviceNum': data["DeviceNum"],
+                        'Owner': data["Owner"],
+                        'LineName': data["LineName"],
+                        'ScreenCount': data["ScreenCount"],
+                        'InstallStation': data["InstallStation"],
+                        'InstallDate':data["InstallDate"],
+                        'SaveTime': new Date()
+                    },
+                    true,
+                    'Materials_Remark');
+                // 选中新增的那一行
+                grid2.selectRow(addedRowId);
+            } else {
+                F.alert("请选择一行记录");
+            }
 
-            // 选中新增的那一行
-            grid2.selectRow(addedRowId);
         }
-        
+
         function onResetClick(event) {
             F.confirm({
                 message: '确定要重置表格数据？',
-                ok: function () {
+                ok: function() {
                     F.ui.Grid1.rejectChanges();
                     F.ui.Grid2.rejectChanges();
                 }
@@ -337,7 +363,7 @@
             var grid1 = F.ui.Grid1;
             var rowData = grid1.getRowData(rowId);
             var column = grid1.getColumn(grid1.getSelectedCell()[1]);
-
+            F.ui.rowClicked.setValue(JSON.stringify(rowData.values));
             // 触发后台事件
             F.doPostBack('@Url.Action("Grid1_RowClick")',
                 'Grid2',
@@ -396,6 +422,20 @@
 
         F.ready(function() {
 
+            var grid2 = F.ui.Grid2;
+            grid2.el.on('click', 'a.action-btn.delete', function (event) {
+                var cnode = $(this);
+                var rowData = grid2.getRowData(cnode.closest('.f-grid-row'));
+
+                F.confirm({
+                    message: '删除选中行？',
+                    target: '_top',
+                    ok: function () {
+                        grid2.deleteRow(rowData);
+                    }
+                });
+            });
+
             var grid1 = F.ui.Grid1;
 
             grid1.el.on('click',
@@ -419,8 +459,8 @@
                     var rowEl = $(this).closest('.f-grid-row');
                     var rowData = grid1.getRowData(rowEl);
 
-                    window.open('@Url.Content("~/ScreenStats/DispatchScreenRec/Locate/")?station=' +
-                        rowData.values.InstallStation);
+                    window.open('@Url.Content("~/ScreenStats/DispatchScreenRec/Locate/")?line=' +
+                        rowData.values.LineName+'&station='+rowData.values.InstallStation);
                 });
 
         });

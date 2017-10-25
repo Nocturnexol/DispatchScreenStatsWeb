@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace DispatchScreenStats.Models
 {
@@ -14,6 +15,7 @@ namespace DispatchScreenStats.Models
         public string UserMark { set; get; }
         public string dept { set; get; }
         public string dept_New { set; get; }
+        [Display(Name = "密码"), Required,PasswordPropertyText,MinLength(6)]
         public string UserPwd { set; get; }
         public string PassWord { set; get; }
         [Display(Name = "备注")]

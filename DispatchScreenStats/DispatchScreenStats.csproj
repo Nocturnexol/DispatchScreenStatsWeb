@@ -50,6 +50,10 @@
       <HintPath>..\packages\Autofac.Mvc5.4.0.2\lib\net45\Autofac.Integration.Mvc.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="BS.GIS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\BS.GIS.dll</HintPath>
+    </Reference>
     <Reference Include="FineUIMvc, Version=1.4.0.0, Culture=neutral, PublicKeyToken=2317dd1e500693f3, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\FineUIMvc.dll</HintPath>
@@ -93,6 +97,10 @@
     </Reference>
     <Reference Include="NPOI.OpenXmlFormats, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
       <HintPath>..\packages\NPOI.2.3.0\lib\net40\NPOI.OpenXmlFormats.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Oracle.ManagedDataAccess, Version=4.122.1.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
+      <HintPath>..\packages\Oracle.ManagedDataAccess.12.2.1100\lib\net40\Oracle.ManagedDataAccess.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -176,6 +184,7 @@
     <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Locate.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\LocateAll.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2011,6 +2020,7 @@
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecStatsController.cs" />
     <Compile Include="Areas\ScreenStats\ScreenStatsAreaRegistration.cs" />
     <Compile Include="Common\CommonHelper.cs" />
+    <Compile Include="Common\OracleHelper.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
@@ -2021,6 +2031,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="IRepository\IMongoRepository.cs" />
+    <Compile Include="Models\Point.cs" />
     <Compile Include="Models\ScreenRec.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

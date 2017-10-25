@@ -360,7 +360,42 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return View();
         }
 
-        public ViewResult Locate(string station)
+        public ViewResult Locate(string line,string station)
+        {
+            var point = new OracleHelper().GetPointByLine(line);
+            ViewBag.station = station;
+            return View(point ?? GetPoint(station));
+        }
+
+        public ViewResult LocateAll()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public JsonResult GetPoints()
+        {
+            var screens = _rep.Find(t=>string.IsNullOrEmpty(t.Materials.Remark)).ToList();
+            var stations = screens.Select(t => t.InstallStation).Distinct().ToList();
+            var points = new List<dynamic>();
+            foreach (var station in stations)
+            {
+                var point = GetPoint(station);
+                if (point != null)
+                    points.Add(new { station, x = point.X, y = point.Y });
+            }
+            var res= new List<dynamic>();
+            foreach (var screen in screens)
+            {
+                var rec = screen;
+                var point = points.FirstOrDefault(t => t.station == rec.InstallStation);
+                if (point != null)
+                    res.Add(new {rec, point});
+            }
+
+            return Json(res);
+        }
+        private Point GetPoint(string station)
         {
             const string url = "http://api.map.baidu.com/place/v2/search";
             var data = string.Format("{0}?q={1}-公交站&scope=1&region=上海&output=json&ak=6a21ea12a8e3c744047f0efab47c8473", url,
@@ -369,18 +404,18 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             //           "-公交车站&output=json&ak=6a21ea12a8e3c744047f0efab47c8473";
             var json = CommonHelper.HttpGet(data);
             var obj = JObject.Parse(json);
-            var location = obj.Value<JArray>("results").First().Value<JObject>("location");
+            var results = obj.Value<JArray>("results");
+            if (!results.Any()) return null;
+            var location = results.First().Value<JObject>("location");
+            if (location==null) return null;
             //var location = obj.Value<JObject>("result").Value<JObject>("location");
-            ViewBag.lon = location.Value<string>("lng");
-            ViewBag.lat = location.Value<string>("lat");
-            ViewBag.station = station;
-            return View();
+            var point = new Point(location.Value<string>("lng"), location.Value<string>("lat"));
+            return point;
         }
-
         public ActionResult Delete(JArray selectedRows, FormCollection values)
         {
             var ids = selectedRows.Select(Convert.ToInt32).ToList();
-            _rep.Delete(t => ids.Contains(t._id));
+            _repDetail.Delete(t => ids.Contains(t._id));
             UpdateGrid(values);
             return UIHelper.Result();
         }
@@ -422,9 +457,16 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             {
                 var modifiedRow = (JObject)jToken;
                 string status = modifiedRow.Value<string>("status");
+                var rowId = modifiedRow.Value<string>("id");
 
-                if (status != "newadded") continue;
-                var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
+                if (status == "newadded")
+                {
+                    var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
+                if (!rowDic.ContainsKey("InstallDate") || !rowDic.ContainsKey("Materials_Remark"))
+                {
+                    Alert.Show("安装日期和备注不能为空！");
+                    return UIHelper.Result();
+                }
 
                 var model = new ScreenRecDetail();
                 model._id = (int) (_repDetail.Max(t => t._id) ?? 0) + 1;
@@ -450,6 +492,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     }
                 }
                 _repDetail.Add(model);
+                }
+                else if (status == "deleted")
+                {
+                    _repDetail.Delete(t => t._id == int.Parse(rowId));
+                }
             }
 
 

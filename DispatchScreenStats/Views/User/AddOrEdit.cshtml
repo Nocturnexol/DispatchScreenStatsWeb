@@ -37,6 +37,7 @@
                       Model == null ? new HiddenFieldExtension(new HiddenField()) : F.HiddenFieldFor(m => m._id),
                       F.TextBoxFor(m => m.LoginName),
                       F.TextBoxFor(m => m.UserName),
+                      Model == null ? F.TextBoxFor(m => m.UserPwd).TextMode(TextMode.Password) : F.TextBoxFor(m => m.UserPwd).Hidden(true),
                       F.TextAreaFor(m => m.Remark)
                   )
           ))

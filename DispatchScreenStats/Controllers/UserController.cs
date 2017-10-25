@@ -76,7 +76,7 @@ namespace DispatchScreenStats.Controllers
                     else
                     {
                         model._id = (int)(_rep.Max(t => t._id) ?? 0) + 1;
-                        model.UserPwd = CommonHelper.GetMd5("123456", true);
+                        model.UserPwd = CommonHelper.GetMd5(model.UserPwd, true);
                         _rep.Add(model);
                         // 关闭本窗体（触发窗体的关闭事件）
                         PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
@@ -84,8 +84,10 @@ namespace DispatchScreenStats.Controllers
                 }
                 else
                 {
+                    if (!(model.UserPwd.Length > 18)) model.UserPwd = CommonHelper.GetMd5(model.UserPwd, true);
                     _rep.Update(t => t._id == model._id,
                         Builders<User>.Update.Set(t => t.UserName, model.UserName)
+                            .Set(t => t.UserPwd,model.UserPwd)
                             .Set(t => t.LoginName, model.LoginName)
                             .Set(t => t.Remark, model.Remark));
                     // 关闭本窗体（触发窗体的关闭事件）
