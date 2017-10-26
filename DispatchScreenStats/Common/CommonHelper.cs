@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using FineUIMvc;
 
 namespace DispatchScreenStats.Common
 {
-    public class CommonHelper
+    public static class CommonHelper
     {
         /// <summary>
         /// 获取md5
@@ -106,6 +108,31 @@ namespace DispatchScreenStats.Common
             myResponseStream.Close();
 
             return retString;
+        }
+
+        public static IList<T> ToList<T>(this DataTable dt) where T:new()
+        {
+            IList<T> ts = new List<T>();
+            foreach (DataRow dr in dt.Rows)
+            {
+                T t = new T();
+                // 获得此模型的公共属性      
+                PropertyInfo[] propertys = t.GetType().GetProperties();
+                foreach (PropertyInfo pi in propertys)
+                {
+                    var tempName = pi.Name;
+                    if (dt.Columns.Contains(tempName))
+                    {
+                        // 判断此属性是否有Setter      
+                        if (!pi.CanWrite) continue;
+                        object value = dr[tempName];
+                        if (value != DBNull.Value)
+                            pi.SetValue(t, value, null);
+                    }
+                }
+                ts.Add(t);
+            }
+            return ts;
         }
 
     }

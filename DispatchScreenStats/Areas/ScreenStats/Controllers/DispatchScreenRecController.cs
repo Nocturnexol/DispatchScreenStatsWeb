@@ -362,7 +362,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
         public ViewResult Locate(string line,string station)
         {
-            var point = new OracleHelper().GetPointByLine(line);
+            var point = new OracleHelper().GetPointByLine(line,station);
             ViewBag.station = station;
             return View(point ?? GetPoint(station));
         }
@@ -376,22 +376,24 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         public JsonResult GetPoints()
         {
             var screens = _rep.Find(t=>string.IsNullOrEmpty(t.Materials.Remark)).ToList();
-            var stations = screens.Select(t => t.InstallStation).Distinct().ToList();
-            var points = new List<dynamic>();
-            foreach (var station in stations)
-            {
-                var point = GetPoint(station);
-                if (point != null)
-                    points.Add(new { station, x = point.X, y = point.Y });
-            }
-            var res= new List<dynamic>();
-            foreach (var screen in screens)
-            {
-                var rec = screen;
-                var point = points.FirstOrDefault(t => t.station == rec.InstallStation);
-                if (point != null)
-                    res.Add(new {rec, point});
-            }
+            //var stations = screens.Select(t => t.InstallStation).Distinct().ToList();
+            //var points = new List<dynamic>();
+            //foreach (var station in stations)
+            //{
+            //    var point = GetPoint(station);
+            //    if (point != null)
+            //        points.Add(new { station, x = point.X, y = point.Y });
+            //}
+            var res = new OracleHelper().GetPointsByLines(screens);
+            //foreach (var screen in screens)
+            //{
+            //    var rec = screen;
+            //    //var point = points.FirstOrDefault(t => t.station == rec.InstallStation);
+            //    var lines = screen.LineName.Split(new[] {'、'}, StringSplitOptions.RemoveEmptyEntries);
+            //    var point = new OracleHelper().GetPointByLine(lines[0]) ?? GetPoint(screen.InstallStation);
+            //    if (point != null)
+            //        res.Add(new {rec, point});
+            //}
 
             return Json(res);
         }
