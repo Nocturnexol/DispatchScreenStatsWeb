@@ -1,0 +1,162 @@
+﻿@{
+    ViewBag.Title = "IndexNew";
+    var f = Html.F();
+}
+@section head{
+<style>
+    .td {
+        text-align: center;
+        font-size: 9pt;
+        border-left-style: solid;
+        border-right-style: solid;
+        border-bottom-style: solid;
+        border-top-style: solid;
+        border-right-width: 1px;
+        border-left-width: 1px;
+        border-bottom-width: 1px;
+        border-top-width: 1px;
+        padding-left: 2px;
+        word-wrap: break-word;
+        overflow: hidden;
+        padding: 1px;
+        vertical-align: middle;
+    }
+    .x-table{border-collapse: collapse}
+    .title {
+        background-color: rgb(235,247,252);
+        color: rgb(42,135,198);
+        border-bottom-color: rgb(149,211,244);
+        font-family: Microsoft YaHei UI;
+        border-bottom-style: solid;
+        border-bottom-width: 3px;
+        border-right: 0;
+        border-left: 0;
+        border-top: 0;
+        padding-left: 2px;
+        font-size: 18pt;
+        overflow: hidden;
+        padding: 0;
+        vertical-align: middle;
+        text-align: left;
+        word-wrap: break-word;
+    }
+    .colName {
+        background-color: rgb(79, 173, 194);
+        color: rgb(255, 255, 255);
+        border-bottom-color: rgb(164, 218, 234);
+        border-left-color: rgb(164, 218, 234);
+        border-top-color: rgb(164, 218, 234);
+        font-family: Microsoft YaHei UI;
+        border-right-color: rgb(164, 218, 234);
+    }
+    .td-data {
+        color: rgb(30, 30, 30);
+        border-bottom-color: rgb(164, 218, 234);
+        border-left-color: rgb(164, 218, 234);
+        border-top-color: rgb(164, 218, 234);
+        font-family: Microsoft YaHei UI;
+        border-right-color: rgb(164, 218, 234);
+    }
+    .tr {
+        height: 30px;
+    }
+    .azure {
+        background-color: rgb(241, 254, 255);
+    }
+</style>
+    }
+@section body{
+    @f.Button().Listener("click", "onBtnClick").Icon(Icon.SystemSearch).Text("搜索").CssStyle("left:8px")
+    @f.Button().Listener("click", "exportToExcel").Text("导出").Icon(Icon.PageExcel).CssStyle("margin-left:10px")
+    @f.Button().Listener("click", "doSearch()").Text("查看全部").CssStyle("margin-left:2px")
+    @(f.DropDownList().ID("ddlSort").Listener("change","ddlChange")
+          .Items(
+              f.ListItem().Text("默认排序").Value("Default").Selected(true),
+              f.ListItem().Text("按线路名").Value("Line"),
+              f.ListItem().Text("按施工日期").Value("Date"))
+          .CssStyle("position:absolute;margin-left:5px;top: 10px"))
+    <div style="border-top: 0; left: 0; width: inherit; height: inherit; position: absolute;">
+        <div style="width: 1058px; height: 1122px; border: none;">
+            <div style="background-color: rgb(255, 255, 255); top: 15.0px; left: 18.0px; width: 1025.0px; position: absolute; height: 1099.36062992126px;">
+                <div id="tableDiv" style="top: 0; left: 0; width: 858px; position: absolute; height: 1073px;">
+                    @*<table class="x-table" style="left: 0; table-layout: fixed; width: 857px; position: absolute;" cellspacing="0" cellpadding="0">
+                        <colgroup>
+                            <col style="width: 50px;">
+                            <col style="width: 60px;">
+                            <col style="width: 150px;">
+                            <col style="width: 120px;">
+                            <col style="width: 100px;">
+                            <col style="width: 220px;">
+                        </colgroup>
+                        <tbody>
+                        <tr style="height: 43px;">
+                            <td class="title" style="background-color: rgb(235, 247, 252); color: rgb(42, 135, 198); border-bottom-color: rgb(149, 211, 244); font-family: Microsoft YaHei UI;" colspan="6"> &nbsp; 发车屏记录报表</td>
+                        </tr>
+                        <tr style="display: none; height: 0;"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr style="display: none; height: 0;"><td></td></tr>
+                        <tr style="height: 10px;"><td></td><td></td><td></td><td></td></tr>
+                        <tr style="height: 29px;">
+                            <td class="td colName">序号</td>
+                            <td class="td colName">屏号</td>
+                            <td class="td colName">详细信息</td>
+                            <td class="td colName">施工类型</td>
+                            <td class="td colName">施工日期</td>
+                            <td class="td colName">备注</td>
+                        </tr>
+                        </tbody>
+                    </table>*@
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @(f.Window()
+          .ID("Window1")
+          .Width(600)
+          .Height(350)
+          .IsModal(true)
+          .Hidden(true)
+          .Target(Target.Top)
+          .EnableResize(true)
+          .EnableMaximize(true)
+          .EnableIFrame(true)
+          .IFrameUrl(Url.Content("about:blank"))
+          .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
+          )
+}
+
+@section script{
+    <script>
+        $(document).ready(function() {
+            doSearch();
+        });
+
+        function ddlChange() {
+            $.post("@Url.Action("Sort_changed")",
+                { ddlSort: $('li.ui-state-active').attr('data-value') },
+                function(result) {
+                    $("#tableDiv").html(result.escape());
+                });
+        }
+
+        function onBtnClick() {
+            F.ui.Window1.show('@Url.Content("~/ScreenStats/ScreenRecStats/Search")', '搜索');
+        }
+
+        function doSearch(values) {
+            $.post("@Url.Action("Search")",
+                values,
+                function(result) {
+                    $("#tableDiv").html(result.escape());
+                });
+        }
+
+        function exportToExcel() {
+            window.location.href = '@Url.Action("Export")';
+        }
+
+        String.prototype.escape = function() {
+            return this.replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&quot;/g, "\"");
+        }
+    </script>
+}

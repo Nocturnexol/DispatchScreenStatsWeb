@@ -1,0 +1,98 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+        body, html, #allmap {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            font-family: "微软雅黑";
+        }
+    </style>
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=907d72bb60cb7fe8d473a23dd4a6bbcd"></script>
+    @*<script type="text/javascript" src="http://developer.baidu.com/map/jsdemo/demo/convertor.js"></script>*@
+    <title>GPS定位</title>
+</head>
+<body>
+    <div id="allmap"></div>
+</body>
+</html>
+<script type="text/javascript">
+    // 百度地图API功能
+    var opts = {
+        width: 220,     // 信息窗口宽度
+        height: 106,     // 信息窗口高度
+        enableMessage: true//设置允许信息窗发送短息
+    };
+    //地图初始化
+    var bm = new BMap.Map("allmap");
+    bm.centerAndZoom("上海", 13);
+    bm.addControl(new BMap.NavigationControl());
+    bm.enableScrollWheelZoom(true);
+    $.post("@Url.Action("GetPoints")",
+    { },
+    function (res) {
+        $.each(res, function (index, value, array) {
+            //GPS坐标
+            var gpsPoint = new BMap.Point(value.point.X, value.point.Y);
+            //添加谷歌marker和label
+            var marker = new BMap.Marker(gpsPoint);
+            bm.addOverlay(marker); //添加GPS标注
+            addClickHandler(value.rec, marker);
+            var labelgps = new BMap.Label(value.rec.InstallStation, { offset: new BMap.Size(20, 0) });
+            marker.setLabel(labelgps); //添加GPS标注
+        });
+    });
+    function addClickHandler(content,marker) {
+        marker.addEventListener("click", function (e) {
+                openInfo(content, e);
+            }
+		);
+    }
+    function openInfo(content, e) {
+        var p = e.target;
+        var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+        opts.title = content.DeviceNum;
+        var strs = "安装线路：" + content.LineName + "<br/>屏数：" + content.ScreenCount + "<br/>安装站点：" + content.InstallStation + "<br/>安装日期：" + convertDate(content.InstallDate, "yyyy-MM-dd");
+        var infoWindow = new BMap.InfoWindow(strs, opts);  // 创建信息窗口对象 
+        bm.openInfoWindow(infoWindow, point); //开启信息窗口
+    }
+    //bm.setCenter(gpsPoint);
+
+
+    function convertDate(jsonTime, format) {
+        var date = new Date(parseInt(jsonTime.replace("/Date(", "").replace(")/", ""), 10));
+        var formatDate = date.Format(format);
+        return formatDate;
+    }
+    // 对Date的扩展，将 Date 转化为指定格式的String
+    // 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符， 
+    // 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字) 
+    // 例子： 
+    // (new Date()).Format("yyyy-MM-dd hh:mm:ss.S") ==> 2006-07-02 08:09:04.423 
+    // (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18 
+    Date.prototype.Format = function (fmt) { //author: meizz 
+        var o = {
+            "M+": this.getMonth() + 1, //月份 
+            "d+": this.getDate(), //日 
+            "h+": this.getHours(), //小时 
+            "m+": this.getMinutes(), //分 
+            "s+": this.getSeconds(), //秒 
+            "q+": Math.floor((this.getMonth() + 3) / 3), //季度 
+            "S": this.getMilliseconds() //毫秒 
+        };
+        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt))
+                fmt = fmt.replace(RegExp.$1,
+                    (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+    }
+</script>
