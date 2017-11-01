@@ -46,7 +46,7 @@
             var marker = new BMap.Marker(gpsPoint);
             bm.addOverlay(marker); //添加GPS标注
             addClickHandler(value.rec, marker);
-            var labelgps = new BMap.Label(value.rec.InstallStation, { offset: new BMap.Size(20, 0) });
+            var labelgps = new BMap.Label(value.rec.LineName + ' - ' + value.rec.InstallStation, { offset: new BMap.Size(20, 0) });
             marker.setLabel(labelgps); //添加GPS标注
         });
     });

@@ -26,6 +26,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
     {
         private readonly IMongoRepository<ScreenRec> _rep = new MongoRepository<ScreenRec>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
+        private readonly IMongoRepository<BasicData> _repBasic = new MongoRepository<BasicData>();
         private readonly Expression<Func<ScreenRecDetail, bool>> _filter = t => string.IsNullOrEmpty(t.Materials.Remark);
         //
         // GET: /ScreenStats/DispatchScreenRec/
@@ -49,6 +50,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             };
             stations.AddRange(_repDetail.Distinct(t => t.InstallStation).Select(t => new ListItem(t, t)));
             ViewBag.Stations = stations.ToArray();
+            ViewBag.HandlingTypes = GetBasicDdlByName("处理类型");
+            ViewBag.ChargeTypes = GetBasicDdlByName("收费类型");
+            ViewBag.PaymentStatuses = GetBasicDdlByName("付款状态");
+
             return View(list);
         }
 
@@ -466,7 +471,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
                 if (!rowDic.ContainsKey("InstallDate") || !rowDic.ContainsKey("Materials_Remark"))
                 {
-                    Alert.Show("安装日期和备注不能为空！");
+                    Alert.Show("备注不能为空！");
                     return UIHelper.Result();
                 }
 
@@ -520,6 +525,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     .ToList(), Grid2_fields);
 
             return UIHelper.Result();
+        }
+
+        private ListItem[] GetBasicDdlByName(string name)
+        {
+            return _repBasic.Find(t => t.Type == name).ToList().Select(t => new ListItem(t.Name, t.Name)).ToArray();
         }
     }
 }

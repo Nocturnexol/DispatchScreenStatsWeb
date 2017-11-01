@@ -67,10 +67,10 @@
                                   .Icon(Icon.PageExcel)
                                   .Text("导入")
                                   .Listener("click", "onImportClick"),
-                                            F.Button()
-                                          .Icon(Icon.Map)
-                                          .Text("查看地图")
-                                          .Listener("click", "onMapAllClick"),
+                              F.Button()
+                                  .Icon(Icon.Map)
+                                  .Text("查看地图")
+                                  .Listener("click", "onMapAllClick"),
                               F.ToolbarFill(),
                               F.Button()
                                   .ID("btnNew")
@@ -220,12 +220,21 @@
                           .HeaderText("保存时间").Width(150)
                           .DataField("SaveTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd HH:mm:ss"),
                       F.RenderField()
+                          .HeaderText("处理类型")
+                          .DataField("HandlingType").Editor(F.DropDownList().Items(ViewBag.HandlingTypes)),
+                      F.RenderField()
+                          .HeaderText("收费类型")
+                                          .DataField("ChargeType").Editor(F.DropDownList().Items(ViewBag.ChargeTypes)),
+                      F.RenderField()
+                          .HeaderText("付款状态")
+                                          .DataField("PaymentStatus").Editor(F.DropDownList().Items(ViewBag.PaymentStatuses)),
+                      F.RenderField()
                           .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
-                          .DataField("Materials.Remark").ExpandUnusedSpace(true),
-                                   F.RenderField()
-                        .Width(50)
-                        .EnableHeaderMenu(false)
-                        .RendererFunction("renderActions")
+                          .DataField("Materials.Remark").Width(180),
+                      F.RenderField()
+                          .Width(50)
+                          .EnableHeaderMenu(false)
+                          .RendererFunction("renderActions")
                   )
           ))
 

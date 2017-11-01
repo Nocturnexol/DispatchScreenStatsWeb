@@ -11,18 +11,21 @@ namespace DispatchScreenStats.Models
         {
             Materials = new Materials();
         }
-        public int _id { get;set; }
+
+        public int _id { get; set; }
         public string DeviceNum { get; set; }
         public int Owner { get; set; }
         public string LineName { get; set; }
         public int? ScreenCount { get; set; }
         public string InstallStation { get; set; }
-         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
         [Display(Name = "安装日期")]
         public DateTime? InstallDate { get; set; }
-         public Materials Materials { get; set; }
-         public string ExtraRemark { get; set; }
+
+        public Materials Materials { get; set; }
+        public string ExtraRemark { get; set; }
     }
 
     public class ScreenRecDetail
@@ -31,6 +34,7 @@ namespace DispatchScreenStats.Models
         {
             Materials = new Materials();
         }
+
         public int _id { get; set; }
         public string DeviceNum { get; set; }
         public int Owner { get; set; }
@@ -39,12 +43,18 @@ namespace DispatchScreenStats.Models
         public ScreenTypeEnum? ScreenType { get; set; }
         public int? ScreenCount { get; set; }
         public string InstallStation { get; set; }
+
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
         [Display(Name = "安装日期")]
         public DateTime? InstallDate { get; set; }
-         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime SaveTime { get; set; }
+
+        public string HandlingType { get; set; }
+        public string ChargeType { get; set; }
+        public string PaymentStatus { get; set; }
         public Materials Materials { get; set; }
         public string ExtraRemark { get; set; }
     }
@@ -56,11 +66,14 @@ namespace DispatchScreenStats.Models
         public int Owner { get; set; }
         public string LineName { get; set; }
         public string InstallStation { get; set; }
-         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-        public DateTime? InstallDate { get; set; }
+
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-         public DateTime SaveTime { get; set; }
-         public string OperContent { get; set; }
+        public DateTime? InstallDate { get; set; }
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime SaveTime { get; set; }
+
+        public string OperContent { get; set; }
     }
 
     public class ScreenRecStats
@@ -79,7 +92,7 @@ namespace DispatchScreenStats.Models
         public string GridLines { get; set; }
         public string SmallExchange { get; set; }
         public string BigExchange { get; set; }
-        public string PatchBoard{get; set; }
+        public string PatchBoard { get; set; }
         public string OneToTwoSwitch { get; set; }
         public string UsbAdapter { get; set; }
         public string ThreePinPlug { get; set; }

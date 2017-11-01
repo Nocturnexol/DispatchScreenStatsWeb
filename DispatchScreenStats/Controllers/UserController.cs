@@ -30,8 +30,6 @@ namespace DispatchScreenStats.Controllers
             JArray fields = JArray.Parse(values["Grid1_fields"]);
             int pageIndex = Convert.ToInt32(values["Grid1_pageIndex"] ?? "0");
             var pageSize = Convert.ToInt32(values["Grid1_pageSize"] ?? "0");
-
-
             int count;
             var list = _rep.QueryByPage(pageIndex, pageSize, out count);
             var grid1 = UIHelper.Grid("Grid1");
