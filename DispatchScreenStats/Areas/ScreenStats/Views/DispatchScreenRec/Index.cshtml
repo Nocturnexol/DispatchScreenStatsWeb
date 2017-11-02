@@ -148,6 +148,13 @@
                           .TextAlign(TextAlign.Center)
                           .EnableHeaderMenu(false)
                           .EnableColumnHide(false),
+                                   F.RenderField()
+                                  .HeaderText("")
+                                  .Width(60)
+                                  .RendererFunction("renderDetailField")
+                                  .TextAlign(TextAlign.Center)
+                                  .EnableHeaderMenu(false)
+                                  .EnableColumnHide(false),
                       F.RenderField()
                           .HeaderText("")
                           .Width(60)
@@ -265,22 +272,33 @@
           .IFrameUrl(Url.Content("about:blank"))
           .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
           )
+@(F.Window()
+        .ID("iframeWindow")
+        .EnableIFrame(true)
+        .EnableMaximize(true)
+        .EnableResize(true)
+        .Target(Target.Top)
+        .Height(350)
+        .Width(700)
+        .Title("配件")
+        .Hidden(true)
+)
     @(F.HiddenField().ID("rowClicked"))
 }
 
 @section script {
 
     <script>
-        function onBtnClick() {
-            F.ui.Window2.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Search")', '搜索');
-        }
+    function onBtnClick() {
+        F.ui.Window2.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Search")', '搜索');
+    }
 
-        function doSearch(values) {
-            F.doPostBack('@Url.Action("DoSearch")', 'Grid1', values);
-        }
+    function doSearch(values) {
+        F.doPostBack('@Url.Action("DoSearch")', 'Grid1', values);
+    }
 
-        function renderScreenType(val) {
-            switch (val) {
+    function renderScreenType(val) {
+        switch (val) {
             case @((int) ScreenTypeEnum.标准单线屏):
                 return "@ScreenTypeEnum.标准单线屏";
             case @((int) ScreenTypeEnum.七行双线屏):
@@ -291,187 +309,198 @@
                 return "@ScreenTypeEnum.表格定制屏";
             default:
                 return "";
-            }
+        }
+    }
+
+    function doPostBackReBindGrid(event) {
+        var grid1 = F.ui.Grid1;
+
+        // 触发后台事件
+        F.doPostBack('@Url.Action("DoSearch")',
+        {
+            Grid1_fields: grid1.fields,
+            Grid1_pageIndex: grid1.pageIndex,
+            Grid1_pageSize: F.ui.ddlPageSize.getValue()
+        });
+
+    }
+
+    function onDdlPageSizeChange(event) {
+        doPostBackReBindGrid();
+    }
+
+    function onMapAllClick() {
+        window.open('@Url.Content("~/ScreenStats/DispatchScreenRec/LocateAll")');
+    }
+
+    function renderActions(value, params) {
+        var deleteImageUrl = '@Url.Content("~/res/icon/delete.png")';
+        return '<a class="action-btn delete" href="javascript:;"><img class="f-grid-cell-icon" src="' + deleteImageUrl + '"></a>';
+    }
+
+    function onNewClick(event) {
+        var grid2 = F.ui.Grid2;
+        //var data = grid2.alldata[0].values;
+        var rowData = F.ui.rowClicked.getValue();
+        if (rowData) {
+            var data = $.parseJSON(rowData);
+            // 新增一行（返回新增行的ID）
+            var addedRowId = grid2.addNewRecord({
+                'DeviceNum': data["DeviceNum"],
+                'Owner': data["Owner"],
+                'LineName': data["LineName"],
+                'ScreenCount': data["ScreenCount"],
+                'InstallStation': data["InstallStation"],
+                'InstallDate':data["InstallDate"],
+                'SaveTime': new Date()
+            },
+                true,
+                'Materials_Remark');
+            // 选中新增的那一行
+            grid2.selectRow(addedRowId);
+        } else {
+            F.alert("请选择一行记录");
         }
 
-        function doPostBackReBindGrid(event) {
-            var grid1 = F.ui.Grid1;
+    }
 
-            // 触发后台事件
-            F.doPostBack('@Url.Action("DoSearch")',
+    function onResetClick(event) {
+        F.confirm({
+            message: '确定要重置表格数据？',
+            ok: function() {
+                F.ui.Grid1.rejectChanges();
+                F.ui.Grid2.rejectChanges();
+            }
+        });
+    }
+
+    function onGridDataChange() {
+        var grid1 = F.ui.Grid1;
+        var btnSubmit = F.ui.btnSubmit;
+        var grid2 = F.ui.Grid2;
+        // 如果没有删除行，没有新增行，没有修改的数据
+        if (!grid1.getModifiedData().length && !grid2.getModifiedData().length) {
+            btnSubmit.disable();
+        } else {
+            btnSubmit.enable();
+        }
+    }
+
+    function onGrid1RowClick(event, rowId) {
+        var grid1 = F.ui.Grid1;
+        var rowData = grid1.getRowData(rowId);
+        var column = grid1.getColumn(grid1.getSelectedCell()[1]);
+        F.ui.rowClicked.setValue(JSON.stringify(rowData.values));
+        // 触发后台事件
+        F.doPostBack('@Url.Action("Grid1_RowClick")',
+            'Grid2',
             {
-                Grid1_fields: grid1.fields,
-                Grid1_pageIndex: grid1.pageIndex,
-                Grid1_pageSize: F.ui.ddlPageSize.getValue()
+                rowId: rowData.id,
+                rowText: rowData.text,
+                rowIndex: rowData.index,
+                columnText: column.text
             });
 
-        }
+    }
 
-        function onDdlPageSizeChange(event) {
-            doPostBackReBindGrid();
-        }
+    function renderDeleteField(value, params) {
+        return '<a href="javascript:;" class="deletefield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/delete.png")"></a>';
+    }
 
-        function onMapAllClick() {
-            window.open('@Url.Content("~/ScreenStats/DispatchScreenRec/LocateAll")');
-        }
+    function renderLocateField(value, params) {
+        return '<a href="javascript:;" class="locatefield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/map.png")"></a>';
+    }
 
-        function renderActions(value, params) {
-            var deleteImageUrl = '@Url.Content("~/res/icon/delete.png")';
-            return '<a class="action-btn delete" href="javascript:;"><img class="f-grid-cell-icon" src="' + deleteImageUrl + '"></a>';
-        }
+    function renderDetailField() {
+        return '<a href="javascript:;" class="detailfield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/application_view_detail.png")"></a>';
+    }
 
-        function onNewClick(event) {
-            var grid2 = F.ui.Grid2;
-            //var data = grid2.alldata[0].values;
-            var rowData = F.ui.rowClicked.getValue();
-            if (rowData) {
-                var data = $.parseJSON(rowData);
-                // 新增一行（返回新增行的ID）
-                var addedRowId = grid2.addNewRecord({
-                        'DeviceNum': data["DeviceNum"],
-                        'Owner': data["Owner"],
-                        'LineName': data["LineName"],
-                        'ScreenCount': data["ScreenCount"],
-                        'InstallStation': data["InstallStation"],
-                        'InstallDate':data["InstallDate"],
-                        'SaveTime': new Date()
-                    },
-                    true,
-                    'Materials_Remark');
-                // 选中新增的那一行
-                grid2.selectRow(addedRowId);
-            } else {
-                F.alert("请选择一行记录");
-            }
+    function onCreateClick(event) {
+        F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Create")', '新增记录');
+    }
 
-        }
+    function onImportClick(parameters) {
+        F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Import")', '导入Excel');
+    }
 
-        function onResetClick(event) {
-            F.confirm({
-                message: '确定要重置表格数据？',
-                ok: function() {
-                    F.ui.Grid1.rejectChanges();
-                    F.ui.Grid2.rejectChanges();
-                }
+    function deleteSelectedRows(selectedRows) {
+        // 触发后台事件
+        F.doPostBack('@Url.Action("Delete")',
+            'Form1,Grid1',
+            {
+                'selectedRows': selectedRows
             });
+    }
+
+    function onDeleteSelectedClick(event) {
+        var grid1 = F.ui.Grid1;
+
+        if (!grid1.hasSelection()) {
+            F.alert('请至少选择一项！');
+            return;
         }
 
-        function onGridDataChange() {
-            var grid1 = F.ui.Grid1;
-            var btnSubmit = F.ui.btnSubmit;
-            var grid2 = F.ui.Grid2;
-            // 如果没有删除行，没有新增行，没有修改的数据
-            if (!grid1.getModifiedData().length && !grid2.getModifiedData().length) {
-                btnSubmit.disable();
-            } else {
-                btnSubmit.enable();
+        var selectedRows = grid1.getSelectedRows();
+        console.log(selectedRows);
+        F.confirm({
+            message: '你确定要删除选中的&nbsp;<b>' + selectedRows.length + '</b>&nbsp;行数据吗？',
+            target: '_top',
+            ok: function() {
+                deleteSelectedRows(selectedRows);
             }
-        }
+        });
+    }
 
-        function onGrid1RowClick(event, rowId) {
-            var grid1 = F.ui.Grid1;
-            var rowData = grid1.getRowData(rowId);
-            var column = grid1.getColumn(grid1.getSelectedCell()[1]);
-            F.ui.rowClicked.setValue(JSON.stringify(rowData.values));
-            // 触发后台事件
-            F.doPostBack('@Url.Action("Grid1_RowClick")',
-                'Grid2',
-                {
-                    rowId: rowData.id,
-                    rowText: rowData.text,
-                    rowIndex: rowData.index,
-                    columnText: column.text
-                });
+    F.ready(function() {
 
-        }
+        var grid2 = F.ui.Grid2;
+        grid2.el.on('click', 'a.action-btn.delete', function (event) {
+            var cnode = $(this);
+            var rowData = grid2.getRowData(cnode.closest('.f-grid-row'));
 
-        function renderDeleteField(value, params) {
-            return '<a href="javascript:;" class="deletefield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/delete.png")"></a>';
-        }
-
-        function renderLocateField(value, params) {
-            return '<a href="javascript:;" class="locatefield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/map.png")"></a>';
-        }
-
-        function onCreateClick(event) {
-            F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Create")', '新增记录');
-        }
-
-        function onImportClick(parameters) {
-            F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Import")', '导入Excel');
-        }
-
-        function deleteSelectedRows(selectedRows) {
-            // 触发后台事件
-            F.doPostBack('@Url.Action("Delete")',
-                'Form1,Grid1',
-                {
-                    'selectedRows': selectedRows
-                });
-        }
-
-        function onDeleteSelectedClick(event) {
-            var grid1 = F.ui.Grid1;
-
-            if (!grid1.hasSelection()) {
-                F.alert('请至少选择一项！');
-                return;
-            }
-
-            var selectedRows = grid1.getSelectedRows();
-            console.log(selectedRows);
             F.confirm({
-                message: '你确定要删除选中的&nbsp;<b>' + selectedRows.length + '</b>&nbsp;行数据吗？',
+                message: '删除选中行？',
                 target: '_top',
-                ok: function() {
-                    deleteSelectedRows(selectedRows);
+                ok: function () {
+                    grid2.deleteRow(rowData);
                 }
             });
-        }
+        });
 
-        F.ready(function() {
+        var grid1 = F.ui.Grid1;
 
-            var grid2 = F.ui.Grid2;
-            grid2.el.on('click', 'a.action-btn.delete', function (event) {
-                var cnode = $(this);
-                var rowData = grid2.getRowData(cnode.closest('.f-grid-row'));
-
+        grid1.el.on('click',
+            'a.deletefield',
+            function(event) {
+                var rowEl = $(this).closest('.f-grid-row');
+                var rowData = grid1.getRowData(rowEl);
+                console.log(rowData);
                 F.confirm({
-                    message: '删除选中行？',
+                    message: '你确定要删除选中的行数据吗？',
                     target: '_top',
-                    ok: function () {
-                        grid2.deleteRow(rowData);
+                    ok: function() {
+                        deleteSelectedRows([rowData.id]);
                     }
                 });
             });
 
-            var grid1 = F.ui.Grid1;
+        grid1.el.on('click',
+            'a.locatefield',
+            function(event) {
+                var rowEl = $(this).closest('.f-grid-row');
+                var rowData = grid1.getRowData(rowEl);
 
-            grid1.el.on('click',
-                'a.deletefield',
-                function(event) {
-                    var rowEl = $(this).closest('.f-grid-row');
-                    var rowData = grid1.getRowData(rowEl);
-                    console.log(rowData);
-                    F.confirm({
-                        message: '你确定要删除选中的行数据吗？',
-                        target: '_top',
-                        ok: function() {
-                            deleteSelectedRows([rowData.id]);
-                        }
-                    });
-                });
-
-            grid1.el.on('click',
-                'a.locatefield',
-                function(event) {
-                    var rowEl = $(this).closest('.f-grid-row');
-                    var rowData = grid1.getRowData(rowEl);
-
-                    window.open('@Url.Content("~/ScreenStats/DispatchScreenRec/Locate/")?line=' +
+                window.open('@Url.Content("~/ScreenStats/DispatchScreenRec/Locate/")?line=' +
                         rowData.values.LineName+'&station='+rowData.values.InstallStation);
                 });
 
+            grid1.el.on('click',
+                'a.detailfield',
+                function(event) {
+                    var rowEl = $(this).closest('.f-grid-row');
+                    var rowData = grid1.getRowData(rowEl);
+                    F.ui.iframeWindow.show( '@Url.Action("Index","Accessory")?devNum='+rowData.values.DeviceNum);
+                });
         });
 
 

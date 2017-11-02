@@ -187,6 +187,7 @@
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\LocateAll.cshtml" />
     <Content Include="Areas\ScreenStats\Views\BasicData\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\BasicData\AddOrEdit.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\Accessory\Index.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2016,6 +2017,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\AccessoryController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\BasicDataController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\DispatchScreenRecController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenLogController.cs" />
@@ -2034,6 +2036,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="IRepository\IMongoRepository.cs" />
+    <Compile Include="Models\Accessory.cs" />
     <Compile Include="Models\BasicData.cs" />
     <Compile Include="Models\Point.cs" />
     <Compile Include="Models\ScreenRec.cs" />
