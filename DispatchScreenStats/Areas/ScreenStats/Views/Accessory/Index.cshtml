@@ -1,0 +1,139 @@
+﻿@{
+    var F = Html.F();
+}
+
+
+@section body {
+
+    @(F.Grid()
+        .ID("Grid1")
+        .ShowBorder(false)
+        .ShowHeader(false)
+        .EnableCollapse(true)
+        .DataIDField("_id")
+        .DataTextField("DevNum")
+                .EnableMultiSelect(false).AllowPaging(true)
+                  .AllowCellEditing(true)
+                  .PageSize(ViewBag.PageSize)
+                  .IsDatabasePaging(true)
+                  .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
+                .Listener("datachange", "onGridDataChange")
+        .IsViewPort(true)
+        .Columns(
+              F.RowNumberField(),
+            F.RenderField()
+                .DataField("DevNum").Hidden(true),
+            F.RenderField()
+                .DataField("Name")
+                .HeaderText("名称").Editor(F.DropDownList().Required(true).Items(ViewBag.Names)),
+            F.RenderField()
+                .DataField("Type")
+                .HeaderText("类型").Editor(F.TextBox()),
+            F.RenderField()
+                .DataField("Layout")
+                        .HeaderText("布局").Editor(F.TextBox()),
+            F.RenderField()
+                        .DataField("Price")
+                        .HeaderText("价格").Editor(F.NumberBox().NoDecimal(false).DecimalPrecision(2).NoNegative(true)),
+            F.RenderField()
+                .DataField("Remark")
+                .HeaderText("备注").Editor(F.TextBox())
+                        .ExpandUnusedSpace(true),
+                              F.RenderField()
+                                  .Width(50)
+                                  .EnableHeaderMenu(false)
+                                  .RendererFunction("renderActions")
+        )
+        .Toolbars(
+            F.Toolbar()
+                .Position(ToolbarPosition.Top)
+                .Items(
+                    F.Button()
+                        .ID("btnClose")
+                        .Text("关闭")
+                        .Icon(Icon.SystemClose)
+                        .Listener("click", "F.activeWindow.hide();"),
+                     F.Button()
+                                  .ID("btnNew")
+                                  .Text("新增配件")
+                                  .Icon(Icon.Add)
+                                  .Listener("click", "onNewClick"),
+                                            F.Button()
+                                          .ID("btnReset")
+                                          .Text("重置表格数据")
+                                          .Listener("click", "onResetClick"),
+                                      F.Button()
+                                          .ID("btnSubmit").Enabled(false)
+                                          .Text("保存数据").Icon(Icon.SystemSave)
+                                          .OnClick(Url.Action("btnSubmit_Click"), "Grid1")
+                )
+        )
+                .DataSource(Model).RecordCount(ViewBag.RecordCount)
+                
+
+    )
+
+}
+
+@section script {
+    <script>
+        function onGridDataChange() {
+            var grid1 = F.ui.Grid1;
+            var btnSubmit = F.ui.btnSubmit;
+            // 如果没有删除行，没有新增行，没有修改的数据
+            if (!grid1.getModifiedData().length) {
+                btnSubmit.disable();
+            } else {
+                btnSubmit.enable();
+            }
+        }
+
+        function renderActions(value, params) {
+            var deleteImageUrl = '@Url.Content("~/res/icon/delete.png")';
+            return '<a class="action-btn delete" href="javascript:;"><img class="f-grid-cell-icon" src="' +
+                deleteImageUrl +
+                '"></a>';
+        }
+
+        function onResetClick(event) {
+            F.confirm({
+                message: '确定要重置表格数据？',
+                ok: function() {
+                    F.ui.Grid1.rejectChanges();
+                }
+            });
+        }
+
+        function onNewClick(event) {
+            var grid1 = F.ui.Grid1;
+            //var data = grid2.alldata[0].values;
+            // 新增一行（返回新增行的ID）
+            var addedRowId = grid1.addNewRecord({
+                'DevNum': '@ViewBag.devNum'
+                },
+                true,
+                'Name');
+            // 选中新增的那一行
+            grid1.selectRow(addedRowId);
+        }
+
+        F.ready(function() {
+
+            var grid1 = F.ui.Grid1;
+            grid1.el.on('click',
+                'a.action-btn.delete',
+                function(event) {
+                    var cnode = $(this);
+                    var rowData = grid1.getRowData(cnode.closest('.f-grid-row'));
+
+                    F.confirm({
+                        message: '删除选中行？',
+                        target: '_top',
+                        ok: function() {
+                            grid1.deleteRow(rowData);
+                        }
+                    });
+                });
+        });
+    </script>
+}
