@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 using DispatchScreenStats.Common;
@@ -26,6 +28,8 @@ namespace DispatchScreenStats.Controllers
                     Builders<User>.Filter.Eq(t => t.LoginName, tbxUserName));
             if (_rep.Get(filter) != null)
             {
+                var cookie = new HttpCookie("user", tbxUserName) {Expires = DateTime.Now.AddDays(1)};
+                Response.Cookies.Add(cookie);
                 FormsAuthentication.RedirectFromLoginPage(tbxUserName, false);
             }
             else

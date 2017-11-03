@@ -7,12 +7,18 @@ using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 using FineUIMvc;
 
 namespace DispatchScreenStats.Common
 {
     public static class CommonHelper
     {
+        public static string User { get
+        {
+            var cookie = HttpContext.Current.Request.Cookies["user"];
+            return cookie != null ? cookie.Value : null;
+        } }
         /// <summary>
         /// 获取md5
         /// </summary>

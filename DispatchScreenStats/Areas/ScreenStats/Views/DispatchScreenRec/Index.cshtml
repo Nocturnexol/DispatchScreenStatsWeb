@@ -1,8 +1,10 @@
 ﻿@{
     ViewBag.Title = "Index";
     var F = Html.F();
+    var isAuthorized = CommonHelper.User == "admin";
 }
 
+@using DispatchScreenStats.Common
 @using DispatchScreenStats.Enums
 @model IEnumerable<ScreenRecDetail>
 
@@ -57,16 +59,16 @@
                       F.Toolbar()
                           .Items(
                               F.Button().Listener("click", "onBtnClick").Icon(Icon.SystemSearch).Text("搜索"),
-                              F.Button()
+                            isAuthorized?  F.Button()
                                   .ID("btnDeleteSelected")
                                   .Icon(Icon.Delete)
                                   .Text("删除选中记录")
-                                  .Listener("click", "onDeleteSelectedClick"),
-                              F.Button()
+                                          .Listener("click", "onDeleteSelectedClick") : F.Button().Hidden(true),
+                           isAuthorized? F.Button()
                                   .ID("btnImport")
                                   .Icon(Icon.PageExcel)
                                   .Text("导入")
-                                  .Listener("click", "onImportClick"),
+                                  .Listener("click", "onImportClick"):F.Button().Hidden(true),
                               F.Button()
                                   .Icon(Icon.Map)
                                   .Text("查看地图")
@@ -155,13 +157,13 @@
                                   .TextAlign(TextAlign.Center)
                                   .EnableHeaderMenu(false)
                                   .EnableColumnHide(false),
-                      F.RenderField()
+                    isAuthorized?  F.RenderField()
                           .HeaderText("")
                           .Width(60)
                           .RendererFunction("renderDeleteField")
                           .TextAlign(TextAlign.Center)
                           .EnableHeaderMenu(false)
-                          .EnableColumnHide(false)
+                                  .EnableColumnHide(false) : F.RenderField().Hidden(true)
 
                   ).PageItems(
                       F.ToolbarSeparator(),
