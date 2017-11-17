@@ -144,7 +144,8 @@
                                       F.TreeNode()
                                           .Text("基础数据")
                                           .NavigateUrl("ScreenStats/BasicData")
-                                  )
+                                          ), 
+                                          F.TreeNode().Text("舒适度").Expanded(true).Nodes(F.TreeNode().Text("舒适度统计").NavigateUrl("ComfortDegree/ComfortDegreeStats/"))
                           )
                   ),
               F.Region()

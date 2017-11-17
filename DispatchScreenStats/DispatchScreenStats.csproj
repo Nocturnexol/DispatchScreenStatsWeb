@@ -19,6 +19,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,6 +29,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +38,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Antlr3.Runtime, Version=3.4.1.9004, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
@@ -103,6 +106,7 @@
       <HintPath>..\packages\Oracle.ManagedDataAccess.12.2.1100\lib\net40\Oracle.ManagedDataAccess.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.0.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
       <Private>True</Private>
@@ -113,8 +117,6 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
@@ -144,13 +146,13 @@
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="WebGrease, Version=1.5.2.14234, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WebGrease.1.5.2\lib\WebGrease.dll</HintPath>
       <Private>True</Private>
@@ -188,6 +190,12 @@
     <Content Include="Areas\ScreenStats\Views\BasicData\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\BasicData\AddOrEdit.cshtml" />
     <Content Include="Areas\ScreenStats\Views\Accessory\Index.cshtml" />
+    <Content Include="Areas\ComfortDegree\Views\web.config" />
+    <Content Include="Areas\ComfortDegree\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\ComfortDegree\Views\Shared\_Layout.cshtml" />
+    <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\Index.cshtml" />
+    <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\Authorize.cshtml" />
+    <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\CompareImg.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2017,6 +2025,8 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Areas\ComfortDegree\ComfortDegreeAreaRegistration.cs" />
+    <Compile Include="Areas\ComfortDegree\Controllers\ComfortDegreeStatsController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\AccessoryController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\BasicDataController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\DispatchScreenRecController.cs" />
@@ -2030,6 +2040,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\UserController.cs" />
+    <Compile Include="Enums\AuthDiffType.cs" />
     <Compile Include="Enums\ScreenTypeEnum.cs" />
     <Compile Include="Enums\SortTypeEnum.cs" />
     <Compile Include="Global.asax.cs">
@@ -2038,8 +2049,10 @@
     <Compile Include="IRepository\IMongoRepository.cs" />
     <Compile Include="Models\Accessory.cs" />
     <Compile Include="Models\BasicData.cs" />
+    <Compile Include="Models\ComfortDegreeStats.cs" />
     <Compile Include="Models\Point.cs" />
     <Compile Include="Models\ScreenRec.cs" />
+    <Compile Include="Models\SimilarPhoto.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repository\MongoRepository.cs" />
@@ -2060,6 +2073,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Areas\ComfortDegree\Models\" />
     <Folder Include="Areas\ScreenStats\Models\" />
     <Folder Include="res\images\themes\border\" />
     <Folder Include="res\js\" />

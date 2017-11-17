@@ -1,0 +1,92 @@
+﻿@{
+    ViewBag.Title = "Layout/VBoxHBox";
+    var F = Html.F();
+    var paths = ViewBag.paths as List<ImgStats> ?? new List<ImgStats>();
+}
+@model ComfortDegreeStats
+
+@section body {
+
+    @(F.Panel()
+          .ID("Panel2")
+          .ShowBorder(true)
+          .Layout(LayoutType.VBox)
+          .ShowHeader(false)
+          .Title("图片对比")
+          .BodyPadding(5)
+          .IsViewPort(true)
+          .Items(
+              F.Panel()
+                  .ID("Panel1")
+                  .BoxFlex(1)
+                  .ShowBorder(false)
+                  .ShowHeader(false)
+                  .Layout(LayoutType.HBox)
+                  .BoxConfigChildMargin("0 5 0 0")
+                  .MarginBottom(5)
+                  .Items(
+                      F.Panel()
+                          .ID("Panel3")
+                          .BoxFlex(1)
+                          .ShowBorder(true)
+                          .ShowHeader(true).Title("原图")
+                          .Items(
+                              F.Image().ImageUrl(Url.Action("GetImg") + "?path=" + Model.ImgPath)
+                          ),
+                      F.Panel()
+                          .ID("Panel4")
+                          .BoxFlex(1)
+                          .ShowBorder(true).Title(paths.Count>0?string.Format("{0}({1})", paths[0].FileName, paths[0].Value):"无图片")
+                          .ShowHeader(true).Layout(LayoutType.VBox)
+                          .Items(
+                          paths.Count>0?F.Image().ImageUrl(Url.Action("GetImg") + "?path=" + paths[0].FilePath):F.Image().Hidden(true)
+                          ),
+                      F.Panel()
+                          .ID("Panel6")
+                          .BoxFlex(1)
+                          .ShowBorder(true)
+                                  .ShowHeader(true).Title(paths.Count > 1 ? string.Format("{0}({1})", paths[1].FileName, paths[1].Value) : "无图片")
+                          .Margin(0)
+                          .Items(
+                                      paths.Count > 1 ? F.Image().ImageUrl(Url.Action("GetImg") + "?path=" + paths[1].FilePath) : F.Image().Hidden(true)
+                          )
+                  ),
+              F.Panel()
+                  .ID("Panel5")
+                  .BoxFlex(1)
+                  .ShowBorder(false)
+                  .ShowHeader(false)
+                  .Layout(LayoutType.HBox)
+                  .BoxConfigChildMargin("0 5 0 0")
+                  .Items(
+                      F.Panel()
+                          .ID("Panel7")
+                          .BoxFlex(1)
+                          .ShowBorder(true)
+                          .ShowHeader(true).Title(paths.Count > 2 ?string.Format("{0}({1})", paths[2].FileName, paths[2].Value) : "无图片")
+                          .Items(
+                                      paths.Count > 2 ? F.Image().ImageUrl(Url.Action("GetImg") + "?path=" + paths[2].FilePath) : F.Image().Hidden(true)
+                          ),
+                      F.Panel()
+                          .ID("Panel8")
+                          .BoxFlex(1)
+                          .ShowBorder(true)
+                          .ShowHeader(true).Title(paths.Count > 3 ?string.Format("{0}({1})", paths[3].FileName, paths[3].Value) : "无图片")
+                          .Items(
+                                      paths.Count > 3 ? F.Image().ImageUrl(Url.Action("GetImg") + "?path=" + paths[3].FilePath) : F.Image().Hidden(true)
+                          ),
+                      F.Panel()
+                          .ID("Panel9")
+                          .BoxFlex(1)
+                          .ShowBorder(true)
+                          .ShowHeader(true).Title(paths.Count > 4 ?string.Format("{0}({1})", paths[4].FileName, paths[4].Value) : "无图片")
+                          .Margin(0)
+                          .Items(
+                                      paths.Count > 4 ? F.Image().ImageUrl(Url.Action("GetImg") + "?path=" + paths[4].FilePath) : F.Image().Hidden(true)
+                          )
+                  )
+          ))
+
+
+}
+
