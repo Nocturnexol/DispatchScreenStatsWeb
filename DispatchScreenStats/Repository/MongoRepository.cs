@@ -107,8 +107,17 @@ namespace DispatchScreenStats.Repository
             var res = _collection.FindOneAndUpdate(filter, update);
             return res;
         }
-
+        public T Update(FilterDefinition<T> filter, UpdateDefinition<T> update)
+        {
+            var res = _collection.FindOneAndUpdate(filter, update);
+            return res;
+        }
         public long Delete(Expression<Func<T, bool>> filter)
+        {
+            var res = _collection.DeleteMany(filter);
+            return res.IsAcknowledged ? res.DeletedCount : 0;
+        }
+        public long Delete(FilterDefinition<T> filter)
         {
             var res = _collection.DeleteMany(filter);
             return res.IsAcknowledged ? res.DeletedCount : 0;

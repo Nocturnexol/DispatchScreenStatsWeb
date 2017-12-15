@@ -30,7 +30,7 @@ namespace DispatchScreenStats.Common
             var cmd =
                 new OracleCommand(
                     string.Format(
-                        "select strlon02,strlat02 from stationclass t where levelid=1 and roadline='{0}' and stationname like '%{1}%'",
+                        "select strlon02,strlat02 from stationclass t where levelid=1 and roadline='{0}' and (stationname like '%{1}%' or levelname like '%{1}%')",
                         line, station.Substring(0, station.Length - 2)),
                     conn);
             var dataReader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
@@ -58,23 +58,45 @@ namespace DispatchScreenStats.Common
                                 line = t.LineName.Split(new[] {'、'}, StringSplitOptions.RemoveEmptyEntries)[0]
                             })
                     .ToList();
+            string inStr;
+            if (lines.Count > 1000)
+            {
+                inStr = "roadline in (" + string.Join(",", lines.Take(1000).Select(t => "'" + t.line + "'").ToArray()) +
+                        ")";
+                var i = 1;
+                while (lines.Skip(1000 * i).Any())
+                {
+                    var l = lines.Skip(1000 * i).ToList();
+                    inStr += " or roadline in (" +
+                             string.Join(",",
+                                 l.Take(l.Count > 1000 ? 1000 : l.Count).Select(t => "'" + t.line + "'").ToArray()) +
+                             ")";
+                    i++;
+                }
+            }
+            else
+            {
+                inStr = "roadline in (" + string.Join(",", lines.Select(t => "'" + t.line + "'").ToArray()) + ")";
+            }
 
             var conn = new OracleConnection(ConfigurationManager.ConnectionStrings["OracleConn"].ConnectionString);
             conn.Open();
             var cmd =
                 new OracleCommand(
                     string.Format(
-                        "select roadline,stationname,strlon02,strlat02 from stationclass t where levelid=1 and roadline in ({0})",
-                        string.Join(",", lines.Select(t => "'" + t.line + "'").ToArray())), conn);
+                        "select roadline,stationname,levelname,strlon02,strlat02 from stationclass t where levelid=1 and ({0})",
+                        inStr), conn);
             var dataReader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
             if (!dataReader.HasRows) return null;
             var dt = new DataTable();
             dt.Load(dataReader);
             foreach (var line in lines)
             {
+                var nameLike = line.rec.InstallStation.Length > 0
+                    ? line.rec.InstallStation.Substring(0, line.rec.InstallStation.Length - 2)
+                    : "";
                 var dr =
-                    dt.Select("roadline='" + line.line + "' and stationname like '%" +
-                              line.rec.InstallStation.Substring(0, line.rec.InstallStation.Length - 2) + "%'")
+                    dt.Select("roadline='" + line.line + "' and (stationname like '%" +nameLike+ "%' or levelname like '%"+nameLike+"%')")
                         .FirstOrDefault();
                 if (dr == null)
                 {

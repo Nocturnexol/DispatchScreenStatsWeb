@@ -43,7 +43,7 @@
             //GPS坐标
             var gpsPoint = new BMap.Point(value.point.X, value.point.Y);
             //添加谷歌marker和label
-            var marker = new BMap.Marker(gpsPoint);
+            var marker = value.rec.IsInspected ? new BMap.Marker(gpsPoint,{icon:new BMap.Icon("/Content/marker.png", new BMap.Size(50,50))}) : new BMap.Marker(gpsPoint);
             bm.addOverlay(marker); //添加GPS标注
             addClickHandler(value.rec, marker);
             var labelgps = new BMap.Label(value.rec.LineName + ' - ' + value.rec.InstallStation, { offset: new BMap.Size(20, 0) });

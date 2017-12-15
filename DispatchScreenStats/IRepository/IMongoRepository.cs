@@ -19,6 +19,8 @@ namespace DispatchScreenStats.IRepository
         void Add(T model);
         void BulkInsert(List<T> list);
         T Update(Expression<Func<T, bool>> filter, UpdateDefinition<T> update);
+        T Update(FilterDefinition<T> filter, UpdateDefinition<T> update);
         long Delete(Expression<Func<T, bool>> filter);
+        long Delete(FilterDefinition<T> filter);
     }
 }

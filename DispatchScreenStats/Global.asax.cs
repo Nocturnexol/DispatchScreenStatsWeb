@@ -21,7 +21,7 @@ namespace DispatchScreenStats
 
             ModelBinders.Binders.Add(typeof(JArray), new JArrayModelBinder());
             ModelBinders.Binders.Add(typeof(JObject), new JObjectModelBinder());
-
+            if (_transPath == null) return;
             string[] files = Directory.GetFiles(_transPath, "*.jpg", SearchOption.AllDirectories);
             foreach (string item in files)
             {

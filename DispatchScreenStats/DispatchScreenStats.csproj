@@ -161,6 +161,7 @@
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\marker.png" />
     <Content Include="Content\Site.css" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
@@ -196,6 +197,9 @@
     <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\Index.cshtml" />
     <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\Authorize.cshtml" />
     <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\CompareImg.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\InspectionImport.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRepairs\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRepairs\RepairsImport.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2033,6 +2037,7 @@
     <Compile Include="Areas\ScreenStats\Controllers\ScreenLogController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecDetailController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecStatsController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenRepairsController.cs" />
     <Compile Include="Areas\ScreenStats\ScreenStatsAreaRegistration.cs" />
     <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Common\OracleHelper.cs" />

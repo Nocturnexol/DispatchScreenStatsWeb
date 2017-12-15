@@ -16,6 +16,7 @@ namespace DispatchScreenStats.Models
         public string DeviceNum { get; set; }
         public int Owner { get; set; }
         public string LineName { get; set; }
+        public string ConstructionType { get; set; }
         public int? ScreenCount { get; set; }
         public string InstallStation { get; set; }
 
@@ -23,9 +24,14 @@ namespace DispatchScreenStats.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
         [Display(Name = "安装日期")]
         public DateTime? InstallDate { get; set; }
-
+        public bool? IsInspected { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
+        [Display(Name = "巡检日期")]
+        public DateTime? InspectionDate { get; set; }
         public Materials Materials { get; set; }
         public string ExtraRemark { get; set; }
+        public bool IsLog { get; set; }
     }
 
     public class ScreenRecDetail
@@ -40,6 +46,7 @@ namespace DispatchScreenStats.Models
         public int Owner { get; set; }
         public string LineName { get; set; }
         public string LinesInSameScreen { get; set; }
+        public string ConstructionType { get; set; }
         public ScreenTypeEnum? ScreenType { get; set; }
         public int? ScreenCount { get; set; }
         public string InstallStation { get; set; }
@@ -48,6 +55,11 @@ namespace DispatchScreenStats.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
         [Display(Name = "安装日期")]
         public DateTime? InstallDate { get; set; }
+        public bool? IsInspected { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
+        [Display(Name = "巡检日期")]
+        public DateTime? InspectionDate { get; set; }
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime SaveTime { get; set; }
@@ -57,6 +69,7 @@ namespace DispatchScreenStats.Models
         public string PaymentStatus { get; set; }
         public Materials Materials { get; set; }
         public string ExtraRemark { get; set; }
+        public bool IsLog { get; set; }
     }
 
     public class ScreenLog
@@ -101,6 +114,22 @@ namespace DispatchScreenStats.Models
         public string UnitBoard { get; set; }
         public string Canopy { get; set; }
         public string Remark { get; set; }
+    }
+
+    public class ScreenRepairs
+    {
+        public int _id { get; set; }
+        public DateTime RepairsDate { get; set; }
+        public string LineName { get; set; }
+        public string Station { get; set; }
+        public string Owner { get; set; }
+        public string RepairsSoucre { get; set; }
+        public string Accepter { get; set; }
+        public string Handler { get; set; }
+        public string HitchType { get; set; }
+        public string Status { get; set; }
+        public string HitchContent { get; set; }
+        public string Solution { get; set; }
     }
 
 }

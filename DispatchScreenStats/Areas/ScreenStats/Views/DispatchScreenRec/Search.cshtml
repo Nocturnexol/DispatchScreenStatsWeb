@@ -36,6 +36,7 @@
                   .ShowHeader(false)
                   .Items(
                       F.TextBox().ID("tbDevNum").Label("屏号").EmptyText("屏号"),
+                              F.DropDownList().Items(ViewBag.Owners).ID("ddlOwner").Label("营运公司").EmptyText("营运公司"),
                       F.Panel()
                           .ID("Panel2")
                           .ShowHeader(false)
@@ -56,7 +57,8 @@
                                   ),
                       F.NumberBox().ID("nbCount").Label("屏数").EmptyText("屏数").NoNegative(true),
                               F.DropDownList().Items(ViewBag.ScreenTypes).ID("tbType").Label("屏幕类型").EmptyText("屏幕类型"),
-                              F.DatePicker().MaxDate(DateTime.Today).ID("tbDate").Label("安装日期").EmptyText("安装日期")
+                              F.DatePicker().MaxDate(DateTime.Today).ID("tbDate").Label("安装日期").EmptyText("安装日期"),
+                              F.DropDownList().Items(ViewBag.ddlIsInspected).ID("ddlIsInspected").Label("是否巡检")
                       //F.TextBox().ID("tbRemark").Label("备注").EmptyText("备注")
                   )
           ))
@@ -71,12 +73,14 @@
             var queryRowId = F.queryString('rowid');
             var values = {
                 'tbDevNum': F.ui.tbDevNum.getValue(),
+                'ddlOwner':F.ui.ddlOwner.getValue(),
                 'tbLine': F.ui.tbLine.getValue(),
                 'cbIsFuzzyLine': F.ui.cbIsFuzzyLine.getValue(),
                 'tbStation': F.ui.tbStation.getValue(),
                 'cbIsFuzzyStation': F.ui.cbIsFuzzyStation.getValue(),
                 'tbType': F.ui.tbType.getValue(),
                 'nbCount': F.ui.nbCount.getValue(),
+                'ddlIsInspected': F.ui.ddlIsInspected.getValue(),
                 //'tbRemark': F.ui.tbRemark.getValue()
             };
             if (F.ui.tbDate.getValue()) {

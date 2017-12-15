@@ -43,14 +43,14 @@
               //            )
               //    ),
               F.Grid()
-                  .BoxFlex(1)
+                  .BoxFlex(2)
                   .ShowHeader(false)
                   .ShowBorder(true)
                   .ID("Grid1")
                   .DataIDField("_id")
                   .DataTextField("DeviceNum")
                   .EnableCheckBoxSelect(true)
-                  .AllowPaging(true)
+                          .AllowPaging(true).AllowSorting(true).OnSort(Url.Action("DoSearch"), "Grid1")
                   .AllowCellEditing(true).ClicksToEdit(2)
                   .PageSize(ViewBag.PageSize)
                   .IsDatabasePaging(true)
@@ -59,16 +59,30 @@
                       F.Toolbar()
                           .Items(
                               F.Button().Listener("click", "onBtnClick").Icon(Icon.SystemSearch).Text("搜索"),
-                            isAuthorized?  F.Button()
+                              isAuthorized ? F.Button()
                                   .ID("btnDeleteSelected")
                                   .Icon(Icon.Delete)
                                   .Text("删除选中记录")
-                                          .Listener("click", "onDeleteSelectedClick") : F.Button().Hidden(true),
-                           isAuthorized? F.Button()
+                                  .Listener("click", "onDeleteSelectedClick") : F.Button().Hidden(true),
+                                          isAuthorized ? F.Button()
+                                          .ID("btnDeleteAll")
+                                          .Icon(Icon.Delete)
+                                          .Text("删除全部")
+                                          .Listener("click", "onDeleteAllClick") : F.Button().Hidden(true),
+                              isAuthorized ? F.Button()
                                   .ID("btnImport")
                                   .Icon(Icon.PageExcel)
                                   .Text("导入")
-                                  .Listener("click", "onImportClick"):F.Button().Hidden(true),
+                                          .Listener("click", "onImportClick") : F.Button().Hidden(true),
+                                      isAuthorized ? F.Button()
+                                          .ID("btnExport")
+                                          .Icon(Icon.PageExcel)
+                                          .Text("导出").Listener("click", "onExportClick") : F.Button().Hidden(true),
+                              isAuthorized ? F.Button()
+                                  .ID("btnInspectionImport")
+                                  .Icon(Icon.PageExcel)
+                                  .Text("巡检导入")
+                                  .Listener("click", "onInspectionImportClick") : F.Button().Hidden(true),
                               F.Button()
                                   .Icon(Icon.Map)
                                   .Text("查看地图")
@@ -97,38 +111,44 @@
                   .Columns(
                       F.RowNumberField(),
                       F.RenderField()
-                          .HeaderText("设备编号").Width(80)
+                                          .HeaderText("设备编号").Width(80).SortField("DeviceNum")
                           .DataField("DeviceNum").Editor(F.TextBox().ID("tbxDeviceNum").Required(true)),
                       F.RenderField()
-                          .HeaderText("营运公司").Width(80)
+                                          .HeaderText("营运公司").Width(80).SortField("Owner")
                           .DataField("Owner").FieldType(FieldType.Int)
                           .Editor(F.TextBox().ID("tbxOwner")),
                       F.RenderField()
                           .HeaderText("安装线路")
-                          .DataField("LineName").Width(180)
-                          .Editor(F.TextBox().ID("tbxLineName").Required(true)),
+                                          .DataField("LineName").Width(180).SortField("LineName")
+                                  .Editor(F.TextBox().ID("tbxLineName").Required(true)),
+                              F.RenderField()
+                                  .HeaderText("同屏线路")
+                                  .DataField("LinesInSameScreen").Width(120),
+                                    F.RenderField()
+                                  .HeaderText("施工类型")
+                                  .DataField("ConstructionType").Width(120),
                       F.RenderField()
-                          .HeaderText("屏幕类型").FieldType(FieldType.Int)
+                                          .HeaderText("屏幕类型").FieldType(FieldType.Int).SortField("ScreenType")
                           .DataField("ScreenType").Width(120).RendererFunction("renderScreenType"),
                       F.RenderField()
-                          .HeaderText("同屏线路")
-                          .DataField("LinesInSameScreen").Width(120),
-                      F.RenderField()
-                          .HeaderText("屏数")
+                                          .HeaderText("屏数").SortField("ScreenCount")
                           .DataField("ScreenCount").Width(60).FieldType(FieldType.Int)
                           .Editor(F.NumberBox().ID("nbxScreenCount").NoDecimal(true).NoNegative(true).MinValue(0)),
                       F.RenderField()
-                          .HeaderText("安装站点")
+                                          .HeaderText("安装站点").SortField("InstallStation")
                           .DataField("InstallStation").Width(120)
                           .Editor(F.TextBox().ID("tbxInstallStation").Required(true)),
                       F.RenderField()
-                          .HeaderText("安装日期")
+                                          .HeaderText("安装日期").SortField("InstallDate")
                           .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
                           .Editor(
                               F.DatePicker()
                                   .ID("dpInstallDate").MaxDate(DateTime.Today)
                                   .Required(true)
                           ),
+                      F.RenderCheckField().HeaderText("是否巡检").RenderAsStaticField(true)
+                                          .DataField("IsInspected").SortField("IsInspected"),
+                                                  F.RenderField().HeaderText("巡检日期").DataField("InspectionDate").SortField("InspectionDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
                       F.RenderField()
                           .HeaderText("保存时间").Width(150)
                           .DataField("SaveTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd HH:mm:ss"),
@@ -422,15 +442,30 @@
     }
 
     function onImportClick(parameters) {
-        F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Import")', '导入Excel');
+        F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Import")', '导入');
     }
-
+        function onInspectionImportClick(parameters) {
+            F.ui.Window1.show('@Url.Content("~/ScreenStats/DispatchScreenRec/InspectionImport")', '巡检导入');
+        }
+        function onExportClick() {
+            window.location.href = '@Url.Action("Export")';
+        }
     function deleteSelectedRows(selectedRows) {
         // 触发后台事件
         F.doPostBack('@Url.Action("Delete")',
             'Form1,Grid1',
             {
                 'selectedRows': selectedRows
+            });
+    }
+
+        function onDeleteAllClick() {
+            F.confirm({
+                message: '你确定要删除所有数据吗？',
+                target: '_top',
+                ok: function() {
+                    F.doPostBack('@Url.Action("DeleteAll")', 'Form1,Grid1');
+                }
             });
     }
 
