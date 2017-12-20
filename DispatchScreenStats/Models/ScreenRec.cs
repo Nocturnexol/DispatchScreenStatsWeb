@@ -24,14 +24,10 @@ namespace DispatchScreenStats.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
         [Display(Name = "安装日期")]
         public DateTime? InstallDate { get; set; }
-        public bool? IsInspected { get; set; }
-        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
-        [Display(Name = "巡检日期")]
-        public DateTime? InspectionDate { get; set; }
         public Materials Materials { get; set; }
         public string ExtraRemark { get; set; }
         public bool IsLog { get; set; }
+        public double Price { get; set; }
     }
 
     public class ScreenRecDetail
@@ -55,14 +51,10 @@ namespace DispatchScreenStats.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
         [Display(Name = "安装日期")]
         public DateTime? InstallDate { get; set; }
-        public bool? IsInspected { get; set; }
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
         [Display(Name = "巡检日期")]
-        public DateTime? InspectionDate { get; set; }
-
-        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-        public DateTime SaveTime { get; set; }
+        public DateTime? Date { get; set; }
 
         public string HandlingType { get; set; }
         public string ChargeType { get; set; }
@@ -70,6 +62,8 @@ namespace DispatchScreenStats.Models
         public Materials Materials { get; set; }
         public string ExtraRemark { get; set; }
         public bool IsLog { get; set; }
+        public string LogType { get; set; }
+        public double Price { get; set; }
     }
 
     public class ScreenLog

@@ -36,6 +36,7 @@
                   .ShowHeader(false)
                   .Items(
                       F.TextBox().ID("tbDevNum").Label("屏号").EmptyText("屏号"),
+                              F.DropDownList().Items(ViewBag.Owners).ID("ddlOwner").Label("营运公司").EmptyText("营运公司"),
                       F.Panel()
                           .ID("Panel2")
                           .ShowHeader(false)
@@ -43,12 +44,14 @@
                           .ShowBorder(false)
                           .Layout(LayoutType.Column)
                           .Items(
-                              F.TextBox().ID("tbDetails").Label("线路/站点").EmptyText("线路/站点").Width(420),
+                              F.TextBox().ID("tbDetails").Label("线路/站点").EmptyText("线路/站点").Width(400),
                               F.CheckBox().ID("cbIsFuzzy").Label("是否模糊搜索").MarginLeft(36)
                           ),
                       
                       F.TextBox().ID("tbType").Label("施工类型").EmptyText("施工类型"),
                       F.DatePicker().MaxDate(DateTime.Today).ID("tbDate").Label("施工日期").EmptyText("施工日期"),
+                              F.NumberBox().ID("nbCount").Label("屏数").EmptyText("屏数").NoNegative(true),
+                                      F.DropDownList().Items(ViewBag.ScreenTypes).ID("tbSType").Label("屏幕类型").EmptyText("屏幕类型"),
                       F.TextBox().ID("tbRemark").Label("备注").EmptyText("备注")
                   )
           ))
@@ -63,10 +66,13 @@
             var queryRowId = F.queryString('rowid');
             var values = {
                 'tbDevNum': F.ui.tbDevNum.getValue(),
+                'ddlOwner':F.ui.ddlOwner.getValue(),
                 'tbDetails': F.ui.tbDetails.getValue(),
                 'tbType': F.ui.tbType.getValue(),
                 'tbRemark': F.ui.tbRemark.getValue(),
-                'cbIsFuzzy':F.ui.cbIsFuzzy.getValue()
+                'cbIsFuzzy': F.ui.cbIsFuzzy.getValue(),
+                'tbSType': F.ui.tbSType.getValue(),
+                'nbCount': F.ui.nbCount.getValue()
             };
             if (F.ui.tbDate.getValue()) {
                 values.tbDate = F.ui.tbDate.getValue().Format("yyyy-MM-dd");

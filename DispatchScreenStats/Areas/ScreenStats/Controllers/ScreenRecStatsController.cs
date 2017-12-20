@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
+using DispatchScreenStats.Common;
 using DispatchScreenStats.Controllers;
 using DispatchScreenStats.Enums;
 using DispatchScreenStats.IRepository;
@@ -21,6 +22,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
     public class ScreenRecStatsController : BaseController
     {
         private readonly IMongoRepository<ScreenRec> _rep = new MongoRepository<ScreenRec>();
+        private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
+
         private static SortTypeEnum _sortType = SortTypeEnum.Default;
 
         private static readonly SortDefinition<ScreenRec> Sort =
@@ -59,6 +62,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var type = values["tbType"];
             var date = values["tbDate"];
             var remark = values["tbRemark"];
+            var screenType = values["tbSType"];
+            var screenCount = values["nbCount"];
+            var owner = values["ddlOwner"];
 
             var filter = new List<FilterDefinition<ScreenRec>>();
             if (!string.IsNullOrWhiteSpace(devNum))
@@ -104,7 +110,24 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         Builders<ScreenRec>.Filter.Regex(t => t.ExtraRemark,
                             new BsonRegularExpression(new Regex(remark.Trim())))));
             }
-
+            if (!string.IsNullOrWhiteSpace(owner))
+            {
+                filter.Add(Builders<ScreenRec>.Filter.Eq(t => t.Owner, int.Parse(owner)));
+            }
+            if (!string.IsNullOrWhiteSpace(screenType))
+            {
+                var m = _repDetail.Find(t => t.ScreenType == (ScreenTypeEnum)Enum.Parse(typeof(ScreenTypeEnum), screenType)).ToList().Select(t=>t.DeviceNum).ToList();
+                if(m.Any())
+                    filter.Add(Builders<ScreenRec>.Filter.In(t => t.DeviceNum, m));
+            }
+            if (!string.IsNullOrWhiteSpace(screenCount))
+            {
+                int c;
+                if (int.TryParse(screenCount, out c))
+                {
+                    filter.Add(Builders<ScreenRec>.Filter.Eq(t => t.ScreenCount, c));
+                }
+            }
             var list =
                 _rep.QueryByPage(0, int.MaxValue, out count,
                     filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null, Sort).Select(Map).ToList();
@@ -113,6 +136,13 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
         public ViewResult Search()
         {
+            ViewBag.ScreenTypes = CommonHelper.GetEnumSelectList(typeof(ScreenTypeEnum));
+            var owners = new List<ListItem>
+            {
+                new ListItem("全部", "")
+            };
+            owners.AddRange(_rep.Distinct(t => t.Owner).OrderBy(t => t).Select(t => new ListItem(t.ToString(), t.ToString())));
+            ViewBag.Owners = owners.ToArray();
             return View();
         }
 
@@ -159,15 +189,15 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             {
                 if (type != SortTypeEnum.Date)
                 {
-                    var devNumList = list.GroupBy(t => new {t.DeviceNum, t.Details}).Select(t => t.Key).ToList();
                     if (type == SortTypeEnum.Line)
-                        devNumList = devNumList.OrderBy(t => t.Details).ToList();
+                        list = list.OrderBy(t => t.Details).ToList();
+                    var devNumList = list.GroupBy(t => t.DeviceNum).Select(t => t.Key).ToList();
                     var no = 0;
                     foreach (var devNum in devNumList)
                     {
                         no++;
-                        var num = devNum.DeviceNum;
-                        var recs = list.Where(t => t.DeviceNum == num && t.Details == devNum.Details).ToList();
+                        var num = devNum;
+                        var recs = list.Where(t => t.DeviceNum == num).ToList();
                         var rec = recs.First();
                         var recCount = recs.Count;
                         if (recCount > 1)

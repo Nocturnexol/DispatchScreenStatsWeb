@@ -145,13 +145,10 @@
                               F.DatePicker()
                                   .ID("dpInstallDate").MaxDate(DateTime.Today)
                                   .Required(true)
-                          ),
-                      F.RenderCheckField().HeaderText("是否巡检").RenderAsStaticField(true)
-                                          .DataField("IsInspected").SortField("IsInspected"),
-                                                  F.RenderField().HeaderText("巡检日期").DataField("InspectionDate").SortField("InspectionDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
-                      F.RenderField()
-                          .HeaderText("保存时间").Width(150)
-                          .DataField("SaveTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd HH:mm:ss"),
+                                  ), 
+                                  F.RenderField()
+                                                  .HeaderText("金额").SortField("Price")
+                                                  .DataField("Price").Editor(F.TextBox().ID("tbxPr")),
                       F.RenderField()
                           .HeaderText("备注")
                           .DataField("Materials.Remark").ExpandUnusedSpace(true)
@@ -227,27 +224,12 @@
                           .HeaderText("设备编号").Width(80)
                           .DataField("DeviceNum"),
                       F.RenderField()
-                          .HeaderText("营运公司").Width(80)
-                          .DataField("Owner").FieldType(FieldType.Int),
-                      F.RenderField()
-                          .HeaderText("安装线路")
-                          .DataField("LineName").Width(180),
-                      F.RenderField()
-                          .HeaderText("屏数")
-                          .DataField("ScreenCount").Width(60).FieldType(FieldType.Int),
-                      F.RenderField()
-                          .HeaderText("安装站点")
-                          .DataField("InstallStation").Width(120),
-                      F.RenderField()
-                          .HeaderText("安装日期").Editor(
-                              F.DatePicker()
-                                  .ID("dpInstallDate2").MaxDate(DateTime.Today)
-                                  .Required(true)
-                          )
-                          .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
-                      F.RenderField()
-                          .HeaderText("保存时间").Width(150)
-                          .DataField("SaveTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd HH:mm:ss"),
+                          .HeaderText("日期")
+                          .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                          .Editor(F.DatePicker().ID("dpDate")),
+                                   F.RenderField()
+                                  .HeaderText("日志类型")
+                                                  .DataField("LogType").Editor(F.DropDownList().Required(true).Items(ViewBag.LogTypes)),
                       F.RenderField()
                           .HeaderText("处理类型")
                           .DataField("HandlingType").Editor(F.DropDownList().Items(ViewBag.HandlingTypes)),
@@ -257,9 +239,12 @@
                       F.RenderField()
                           .HeaderText("付款状态")
                                           .DataField("PaymentStatus").Editor(F.DropDownList().Items(ViewBag.PaymentStatuses)),
+                                           F.RenderField()
+                          .HeaderText("金额")
+                                          .DataField("Price").Editor(F.TextBox().ID("tbxPrice")),
                       F.RenderField()
                           .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
-                          .DataField("Materials.Remark").Width(180),
+                          .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
                       F.RenderField()
                           .Width(50)
                           .EnableHeaderMenu(false)
@@ -368,13 +353,7 @@
             var data = $.parseJSON(rowData);
             // 新增一行（返回新增行的ID）
             var addedRowId = grid2.addNewRecord({
-                'DeviceNum': data["DeviceNum"],
-                'Owner': data["Owner"],
-                'LineName': data["LineName"],
-                'ScreenCount': data["ScreenCount"],
-                'InstallStation': data["InstallStation"],
-                'InstallDate':data["InstallDate"],
-                'SaveTime': new Date()
+                'DeviceNum': data["DeviceNum"]
             },
                 true,
                 'Materials_Remark');

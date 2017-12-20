@@ -55,6 +55,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             ViewBag.HandlingTypes = GetBasicDdlByName("处理类型");
             ViewBag.ChargeTypes = GetBasicDdlByName("收费类型");
             ViewBag.PaymentStatuses = GetBasicDdlByName("付款状态");
+            ViewBag.LogTypes = GetBasicDdlByName("日志类型");
 
             return View(list);
         }
@@ -78,6 +79,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             }
             else
             {
+                var sb = new StringBuilder();
                 IWorkbook wb;
                 if (fileType == "xls") wb = new HSSFWorkbook(file.InputStream);
                 else wb = new XSSFWorkbook(file.InputStream);
@@ -151,8 +153,27 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         if (model.Owner == 0 && string.IsNullOrEmpty(model.InstallStation) &&
                             model.InstallDate < DateTime.Parse("1970/1/1")) continue;
 
+                        if (model.ConstructionType == "线路更变")
+                        {
+                            model.IsLog = true;
+                            if (model.Materials.Remark.Contains("改为"))
+                            {
+                                var roads = model.Materials.Remark.Split(new[] {'改', '为'},
+                                    StringSplitOptions.RemoveEmptyEntries);
+                                var dev=
+                                    list.FirstOrDefault(
+                                        t => t.LineName == roads[0] && t.InstallStation == model.InstallStation);
+                                if (dev != null)
+                                    model.DeviceNum = dev.DeviceNum;
+                            }
+                        }
+
                         if (model.Materials.Remark.Contains("设备编号"))
                         {
+                            if (model.Materials.Remark.Replace("设备编号：", "").Replace("设备编号:", "").Length > 6)
+                            {
+                                sb.AppendLine("第" + (i + 1) + "行设备编号后有无法识别的数据");
+                            }
                             var numStr = model.Materials.Remark.Replace("设备编号：", "");
                             int num;
                             if (int.TryParse(numStr, out num)) model.DeviceNum = num.ToString();
@@ -219,10 +240,25 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                             }
                         }
 
+                        if (list.Any(t => t.DeviceNum == model.DeviceNum && !t.IsLog && !model.IsLog))
+                        {
+                            sb.AppendLine("第" + (i + 1) + "行数据设备编号重复");
+                        }
+                        if (model.Materials.Remark.Contains("原") || model.Materials.Remark.Contains("搬") ||
+                            model.Materials.Remark.Contains("从") || (model.Materials.Remark.Contains("改") && Regex.IsMatch(model.Materials.Remark,"[0-9]*")))
+                        {
+                            sb.AppendLine("第" + (i + 1) + "行有无法识别的数据");
+                        }
                         list.Add(model);
                         _rep.Add(model);
                     }
 
+                    System.IO.File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "/problems.txt", sb.ToString());
+
+                    //if (sb.Length>0)
+                    //{
+                    //    Confirm.Show("存在未识别的数据，是否仍要导入？","提示",MessageBoxIcon.Warning,"","");
+                    //}
                     if (list.Any())
                     {
                         foreach (var rec in list)
@@ -242,7 +278,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 detail.InstallDate = rec.InstallDate;
                                 detail.ScreenCount = rec.ScreenCount;
                                 detail.DeviceNum = rec.DeviceNum;
-                                detail.SaveTime = DateTime.Now;
 
                                 detail.ExtraRemark = rec.ExtraRemark;
                                 detail.IsLog = rec.IsLog;
@@ -333,18 +368,28 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         var inspectionDate = row.GetCell(5).DateCellValue;
                         var remark = row.GetCell(13).StringCellValue;
 
-                        _rep.Update(
+                      var model=  _rep.Get(
                             t =>
                                 t.Owner == owner && t.LineName == lineName && t.InstallStation == installStation &&
-                                t.InstallDate == installDate,
-                            new UpdateDefinitionBuilder<ScreenRec>().Set(t => t.IsInspected, true)
-                                .Set(t => t.InspectionDate, inspectionDate));
-                        _repDetail.Update(Builders<ScreenRecDetail>.Filter.And(
-                                Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallStation, installStation),
-                                Builders<ScreenRecDetail>.Filter.In(t => t.LineName,
-                                    lineName.Replace("、", "/").Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries))),
-                            new UpdateDefinitionBuilder<ScreenRecDetail>().Set(t => t.IsInspected, true)
-                                .Set(t => t.InspectionDate, inspectionDate));
+                                t.InstallDate == installDate);
+                        if (model != null)
+                        {
+                            _repDetail.Add(new ScreenRecDetail
+                            {
+                                DeviceNum = model.DeviceNum,
+                                IsLog = true,
+                                LogType = LogType.服务类型.ToString(),
+                                Date = inspectionDate,
+                                HandlingType = "巡检",
+                                Materials = new Materials {Remark = remark}
+                            });
+                        }
+                        //_repDetail.Update(Builders<ScreenRecDetail>.Filter.And(
+                        //        Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallStation, installStation),
+                        //        Builders<ScreenRecDetail>.Filter.In(t => t.LineName,
+                        //            lineName.Replace("、", "/").Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries))),
+                        //    new UpdateDefinitionBuilder<ScreenRecDetail>().Set(t => t.IsInspected, true)
+                        //        .Set(t => t.InspectionDate, inspectionDate));
                     }
 
                     // 关闭本窗体（触发窗体的关闭事件）
@@ -412,14 +457,13 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var pageSize = Convert.ToInt32(values["Grid1_pageSize"] ?? "0");
 
             var devNum = values["tbDevNum"];
-            var owner = values["ddlOwner"];
+            var owner = values["ddlOwner"] != null && values["ddlOwner"]!="[]" ? JArray.Parse(values["ddlOwner"]) : null;
             var line = values["tbLine"];
             var isFuzzyLine = values["cbIsFuzzyLine"];
             var station = values["tbStation"];
             var isFuzzyStation = values["cbIsFuzzyStation"];
             var screenType = values["tbType"];
             var screenCount = values["nbCount"];
-            var ddlInspected = values["ddlIsInspected"];
             //var remark = values["tbRemark"];
 
             var sortField = values["Grid1_sortField"];
@@ -449,10 +493,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.DeviceNum, devNum));
                 filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.DeviceNum, devNum));
             }
-            if (!string.IsNullOrWhiteSpace(owner))
+            if (owner!=null)
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.Owner, int.Parse(owner)));
-                filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.Owner, int.Parse(owner)));
+                filter.Add(Builders<ScreenRecDetail>.Filter.In(t => t.Owner,owner));
+                filterRec.Add(Builders<ScreenRec>.Filter.In(t => t.Owner, owner));
             }
             if (!string.IsNullOrWhiteSpace(line))
             {
@@ -498,23 +542,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.ScreenCount, c));
                 }
             }
-            if (!string.IsNullOrWhiteSpace(ddlInspected))
-            {
-                bool isInspected;
-                if (bool.TryParse(ddlInspected, out isInspected))
-                {
-                    if (isInspected)
-                    {
-                        filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.IsInspected, true));
-                        filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.IsInspected, true));
-                    }
-                    else
-                    {
-                        filter.Add(Builders<ScreenRecDetail>.Filter.Or(Builders<ScreenRecDetail>.Filter.Eq(t => t.IsInspected, false), Builders<ScreenRecDetail>.Filter.Eq(t => t.IsInspected, null)));
-                        filterRec.Add(Builders<ScreenRec>.Filter.Or(Builders<ScreenRec>.Filter.Eq(t => t.IsInspected, false), Builders<ScreenRec>.Filter.Eq(t => t.IsInspected, null)));
-                    }
-                }
-            }
             //if (!string.IsNullOrWhiteSpace(remark))
             //{
             //    filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.Materials.Remark,
@@ -543,12 +570,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             ViewBag.ScreenTypes = CommonHelper.GetEnumSelectList(typeof(ScreenTypeEnum));
             var owners = new List<ListItem>
             {
-                new ListItem("全部", "")
+                //new ListItem("全部", "")
             };
-            owners.AddRange(_rep.Distinct(t => t.Owner).OrderBy(t=>t).Select(t => new ListItem(t.ToString(), t.ToString())));
+            owners.AddRange(
+                _rep.Distinct(t => t.Owner).OrderBy(t => t).Select(t => new ListItem(t.ToString(), t.ToString(), false)));
             ViewBag.Owners = owners.ToArray();
-            ViewBag.ddlIsInspected = new[]
-                {new ListItem("全部", ""), new ListItem("是", "true"), new ListItem("否", "false")};
             return View();
         }
 
@@ -661,6 +687,13 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     var lambda =
                         Expression.Lambda<Func<ScreenRecDetail, object>>(Expression.Convert(body, typeof(object)), param);
                     _repDetail.Update(t => t._id == rowId, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
+
+                    _repDetail.Add(new ScreenRecDetail
+                    {
+                        IsLog = true,
+                        DeviceNum = modifiedRow.Value<string>("text"),
+                        Materials = new Materials {Remark = "修改主记录"}
+                    });
                 }
             }
 
@@ -680,7 +713,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 if (status == "newadded")
                 {
                     var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
-                if (!rowDic.ContainsKey("InstallDate") || !rowDic.ContainsKey("Materials_Remark"))
+                if (!rowDic.ContainsKey("Materials_Remark"))
                 {
                     Alert.Show("备注不能为空！");
                     return UIHelper.Result();
@@ -703,12 +736,21 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         {
                             prop.SetValue(model,Convert.ToDateTime(p.Value));
                         }
+                        else if (prop.PropertyType == typeof(double))
+                        {
+                            double d;
+                            if (double.TryParse(p.Value.ToString(), out d))
+                            {
+                                prop.SetValue(model, d);
+                            }
+                        }
                         else if (prop.PropertyType != typeof(int?))
                         {
                             prop.SetValue(model, p.Value);
                         }
                     }
                 }
+                    model.IsLog = true;
                 _repDetail.Add(model);
                 }
                 else if (status == "deleted")
