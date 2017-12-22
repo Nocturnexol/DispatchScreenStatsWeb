@@ -112,7 +112,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             }
             if (!string.IsNullOrWhiteSpace(owner))
             {
-                filter.Add(Builders<ScreenRec>.Filter.Eq(t => t.Owner, int.Parse(owner)));
+                filter.Add(Builders<ScreenRec>.Filter.Eq(t => t.Owner, owner));
             }
             if (!string.IsNullOrWhiteSpace(screenType))
             {

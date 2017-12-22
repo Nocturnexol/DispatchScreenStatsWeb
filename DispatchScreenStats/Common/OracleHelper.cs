@@ -55,7 +55,7 @@ namespace DispatchScreenStats.Common
                             new
                             {
                                 rec = t,
-                                line = t.LineName.Split(new[] {'、'}, StringSplitOptions.RemoveEmptyEntries)[0]
+                                line = t.LineName.Contains("、")? t.LineName.Split(new[] {'、'}, StringSplitOptions.RemoveEmptyEntries)[0]:t.LineName
                             })
                     .ToList();
             string inStr;

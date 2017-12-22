@@ -14,7 +14,7 @@ namespace DispatchScreenStats.Models
 
         public int _id { get; set; }
         public string DeviceNum { get; set; }
-        public int Owner { get; set; }
+        public string Owner { get; set; }
         public string LineName { get; set; }
         public string ConstructionType { get; set; }
         public int? ScreenCount { get; set; }
@@ -39,7 +39,7 @@ namespace DispatchScreenStats.Models
 
         public int _id { get; set; }
         public string DeviceNum { get; set; }
-        public int Owner { get; set; }
+        public string Owner { get; set; }
         public string LineName { get; set; }
         public string LinesInSameScreen { get; set; }
         public string ConstructionType { get; set; }

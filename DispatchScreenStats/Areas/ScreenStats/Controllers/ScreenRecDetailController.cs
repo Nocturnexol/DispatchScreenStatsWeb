@@ -49,12 +49,12 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         new BsonRegularExpression(new Regex(key, RegexOptions.IgnoreCase)))
                 };
 
-                int keyInt;
-                if (int.TryParse(key, out keyInt))
-                {
-                    Expression<Func<ScreenRecDetail, bool>> exp = t => t.Owner == keyInt || t.ScreenCount == keyInt;
-                    filters.Add(exp);
-                }
+                //int keyInt;
+                //if (int.TryParse(key, out keyInt))
+                //{
+                //    Expression<Func<ScreenRecDetail, bool>> exp = t => t.Owner == keyInt || t.ScreenCount == keyInt;
+                //    filters.Add(exp);
+                //}
 
                 filter.Add(Builders<ScreenRecDetail>.Filter.Or(filters));
             }

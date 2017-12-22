@@ -36,7 +36,7 @@
                   .ShowHeader(false)
                   .Items(
                       F.TextBox().ID("tbDevNum").Label("屏号").EmptyText("屏号"),
-                              F.DropDownList().EnableMultiSelect(true).Items(ViewBag.Owners).ID("ddlOwner").Label("营运公司").EmptyText("营运公司"),
+                                      F.DropDownList().EnableMultiSelect(true).AutoSelectFirstItem(false).ForceSelection(false).Items(ViewBag.Owners).ID("ddlOwner").Label("营运公司").EmptyText("营运公司"),
                       F.Panel()
                           .ID("Panel2")
                           .ShowHeader(false)
