@@ -16,7 +16,7 @@
           .BodyPadding(5)
           .ShowBorder(false)
           .ShowHeader(false)
-          .Layout(LayoutType.VBox)
+          .Layout(LayoutType.Region)
           .IsViewPort(true)
           .Items(
               //F.Form()
@@ -43,7 +43,8 @@
               //            )
               //    ),
               F.Grid()
-                  .BoxFlex(2)
+                  //.BoxFlex(2)
+                          .RegionPosition(Position.Center)
                   .ShowHeader(false)
                   .ShowBorder(true)
                   .ID("Grid1")
@@ -115,7 +116,7 @@
                           .DataField("DeviceNum").Editor(F.TextBox().ID("tbxDeviceNum").Required(true)),
                       F.RenderField()
                                           .HeaderText("营运公司").Width(80).SortField("Owner")
-                          .DataField("Owner").FieldType(FieldType.Int)
+                          .DataField("Owner")
                           .Editor(F.TextBox().ID("tbxOwner")),
                       F.RenderField()
                           .HeaderText("安装线路")
@@ -212,12 +213,45 @@
 
                   F.TabStrip()
                 .ID("TabStrip1")
-                                  .BoxFlex(1)
+                                  //.BoxFlex(1)
+                                           .RegionPosition(Position.Bottom)
+                        .RegionSplit(true)
+                        //.EnableCollapse(true)
+                        .RegionPercent("30%")
                 .ShowBorder(true).MarginTop(10)
         .TabPosition(TabPosition.Top)
         .EnableTabCloseMenu(false)
         .ActiveTabIndex(0)
         .Tabs(
+            F.Tab()
+                .Title("日志类型")
+                        .BodyPadding(5).Layout(LayoutType.Fit)
+                .Items(
+                            F.Grid()
+                                  .ShowHeader(false)
+                                  .ShowBorder(true)
+                                  .ID("Grid4").Listener("datachange", "onGridDataChange")
+                                  .DataIDField("_id")
+                                  .DataTextField("DeviceNum").AllowCellEditing(true).ClicksToEdit(2)
+            //.EnableCheckBoxSelect(true)
+                                  .Columns(
+                                      F.RowNumberField(),
+                                      F.RenderField()
+                                          .HeaderText("设备编号").Width(80)
+                                          .DataField("DeviceNum"),
+                                      F.RenderField()
+                                          .HeaderText("日期")
+                                          .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                          .Editor(F.DatePicker().ID("dpDate")),
+                                      F.RenderField()
+                                          .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
+                                          .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
+                                      F.RenderField()
+                                          .Width(50)
+                                          .EnableHeaderMenu(false)
+                                          .RendererFunction("renderActions")
+                                  )
+                ),
             F.Tab()
                 .Title("服务类型")
                 .BodyPadding(5)
@@ -284,35 +318,6 @@
                                                            F.RenderField()
                                           .HeaderText("金额")
                                                           .DataField("Price").Editor(F.TextBox().ID("tbxPrice")),
-                                      F.RenderField()
-                                          .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
-                                          .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
-                                      F.RenderField()
-                                          .Width(50)
-                                          .EnableHeaderMenu(false)
-                                          .RendererFunction("renderActions")
-                                  )
-                ),
-            F.Tab()
-                .Title("日志类型")
-                        .BodyPadding(5).Layout(LayoutType.Fit)
-                .Items(
-                            F.Grid()
-                                  .ShowHeader(false)
-                                  .ShowBorder(true)
-                                  .ID("Grid4").Listener("datachange", "onGridDataChange")
-                                  .DataIDField("_id")
-                                  .DataTextField("DeviceNum").AllowCellEditing(true).ClicksToEdit(2)
-            //.EnableCheckBoxSelect(true)
-                                  .Columns(
-                                      F.RowNumberField(),
-                                      F.RenderField()
-                                          .HeaderText("设备编号").Width(80)
-                                          .DataField("DeviceNum"),
-                                      F.RenderField()
-                                          .HeaderText("日期")
-                                          .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
-                                          .Editor(F.DatePicker().ID("dpDate")),
                                       F.RenderField()
                                           .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
                                           .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),

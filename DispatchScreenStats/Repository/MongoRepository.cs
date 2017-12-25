@@ -107,6 +107,11 @@ namespace DispatchScreenStats.Repository
             var res = _collection.FindOneAndUpdate(filter, update);
             return res;
         }
+
+        public long UpdateMany(Expression<Func<T, bool>> filter, UpdateDefinition<T> update)
+        {
+            return _collection.UpdateMany(filter, update).ModifiedCount;
+        }
         public T Update(FilterDefinition<T> filter, UpdateDefinition<T> update)
         {
             var res = _collection.FindOneAndUpdate(filter, update);

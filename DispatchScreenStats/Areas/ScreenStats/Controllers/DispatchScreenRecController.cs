@@ -343,84 +343,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return UIHelper.Result();
         }
 
-        public ViewResult InspectionImport()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public ActionResult InspectionImport(HttpPostedFileBase file)
-        {
-            if (file == null || file.ContentLength == 0) return UIHelper.Result();
-            var fileName = file.FileName;
-            var fileType = GetFileType(fileName);
-            if (!ValidFileTypes.Contains(fileType))
-            {
-                // 清空文件上传组件
-                UIHelper.FileUpload("file").Reset();
-                ShowNotify("无效的文件类型！");
-            }
-            else
-            {
-                try
-                {
-                    IWorkbook wb;
-                    if (fileType == "xls") wb = new HSSFWorkbook(file.InputStream);
-                    else wb = new XSSFWorkbook(file.InputStream);
-                    var sheet = wb.GetSheetAt(0);
-                    for (var i = 1; i <= sheet.LastRowNum; i++)
-                    {
-                        var row = sheet.GetRow(i);
-                        row.GetCell(0).SetCellType(CellType.String);
-                        var owner = row.GetCell(0).StringCellValue;
-                        row.GetCell(1).SetCellType(CellType.String);
-                        var lineName = row.GetCell(1).StringCellValue;
-                        var installStation = row.GetCell(3).StringCellValue;
-                        var installDate = row.GetCell(4).DateCellValue;
-                        var inspectionDate = row.GetCell(5).DateCellValue;
-                        var remark = row.GetCell(13).StringCellValue;
-
-                      var model=  _rep.Get(
-                            t =>
-                                t.Owner == owner && t.LineName == lineName && t.InstallStation == installStation &&
-                                t.InstallDate == installDate);
-                        if (model != null)
-                        {
-                            _repDetail.Add(new ScreenRecDetail
-                            {
-                                DeviceNum = model.DeviceNum,
-                                IsLog = true,
-                                LogType = LogType.服务类型.ToString(),
-                                Date = inspectionDate,
-                                HandlingType = "巡检",
-                                Materials = new Materials {Remark = remark}
-                            });
-                        }
-                        //_repDetail.Update(Builders<ScreenRecDetail>.Filter.And(
-                        //        Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallStation, installStation),
-                        //        Builders<ScreenRecDetail>.Filter.In(t => t.LineName,
-                        //            lineName.Replace("、", "/").Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries))),
-                        //    new UpdateDefinitionBuilder<ScreenRecDetail>().Set(t => t.IsInspected, true)
-                        //        .Set(t => t.InspectionDate, inspectionDate));
-                    }
-
-                    // 关闭本窗体（触发窗体的关闭事件）
-                    PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
-                    ShowNotify("导入成功");
-                }
-                catch (Exception e)
-                {
-                    Alert.Show(e.Message, MessageBoxIcon.Warning);
-                    return UIHelper.Result();
-                }
-                finally
-                {
-                    file.InputStream.Close();
-                }
-            }
-            return UIHelper.Result();
-        }
-
         public FileResult Export()
         {
             var filter = (List<FilterDefinition<ScreenRecDetail>>) Session["filter"];
@@ -476,6 +398,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var isFuzzyStation = values["cbIsFuzzyStation"];
             var screenType = values["tbType"];
             var screenCount = values["nbCount"];
+            var inStallDate = values["tbDate"];
             //var remark = values["tbRemark"];
 
             var sortField = values["Grid1_sortField"];
@@ -553,6 +476,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ScreenCount, c));
                     filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.ScreenCount, c));
                 }
+            }
+            if (!string.IsNullOrWhiteSpace(inStallDate))
+            {
+                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallDate, DateTime.Parse(inStallDate)));
+                filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.InstallDate, DateTime.Parse(inStallDate)));
             }
             //if (!string.IsNullOrWhiteSpace(remark))
             //{
@@ -691,6 +619,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
                 if (status != "modified") continue;
                 var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
+                var sb = new StringBuilder("修改主记录：");
+                var srcDetail = _repDetail.Get(t => t._id == rowId);
                 foreach (var p in rowDic)
                 {
                     var param = Expression.Parameter(typeof(ScreenRecDetail), "x");
@@ -698,17 +628,18 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     var body = paramArr.Length > 1 ? Expression.Property(Expression.Property(param, typeof(ScreenRecDetail), paramArr[0]), typeof(Materials), paramArr[1]) : Expression.Property(param, typeof(ScreenRecDetail), paramArr[0]);
                     var lambda =
                         Expression.Lambda<Func<ScreenRecDetail, object>>(Expression.Convert(body, typeof(object)), param);
-                    _repDetail.Update(t => t._id == rowId, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
-
-                    _repDetail.Add(new ScreenRecDetail
-                    {
-                        IsLog = true,
-                        LogType = "日志类型",
-                        Date = DateTime.Now,
-                        DeviceNum = modifiedRow.Value<string>("text"),
-                        Materials = new Materials {Remark = "修改主记录"}
-                    });
+                    _repDetail.Update(t => t.DeviceNum == srcDetail.DeviceNum, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
+                    sb.AppendFormat("{0}由{1}改为{2}；", paramArr.Length > 1 ? "备注" : typeof(ScreenRecDetail).GetCName(p.Key), paramArr.Length > 1 ? srcDetail.Materials.Remark : typeof(ScreenRecDetail).GetProperty(p.Key).GetValue(srcDetail), p.Value);
                 }
+
+                _repDetail.Add(new ScreenRecDetail
+                {
+                    IsLog = true,
+                    LogType = "日志类型",
+                    Date = DateTime.Now,
+                    DeviceNum = srcDetail.DeviceNum,
+                    Materials = new Materials { Remark = sb.ToString() }
+                });
             }
 
             int count;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -158,6 +159,14 @@ namespace DispatchScreenStats.Common
                 ts.Add(t);
             }
             return ts;
+        }
+
+        public static string GetCName(this Type type,string key)
+        {
+            var prop = type.GetProperty(key);
+            if (prop == null) return null;
+            var attr = prop.GetCustomAttribute(typeof(DisplayAttribute)) as DisplayAttribute;
+                return attr != null ? attr.Name : key;
         }
 
     }

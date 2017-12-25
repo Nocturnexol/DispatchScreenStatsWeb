@@ -197,9 +197,12 @@
     <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\Index.cshtml" />
     <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\Authorize.cshtml" />
     <Content Include="Areas\ComfortDegree\Views\ComfortDegreeStats\CompareImg.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\InspectionImport.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenInspection\InspectionImport.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRepairs\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRepairs\RepairsImport.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenInspection\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenInspection\Search.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenInspection\Locate.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2034,6 +2037,7 @@
     <Compile Include="Areas\ScreenStats\Controllers\AccessoryController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\BasicDataController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\DispatchScreenRecController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenInspectionController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenLogController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecDetailController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecStatsController.cs" />

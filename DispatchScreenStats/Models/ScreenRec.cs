@@ -38,13 +38,20 @@ namespace DispatchScreenStats.Models
         }
 
         public int _id { get; set; }
+         [Display(Name = "设备编号")]
         public string DeviceNum { get; set; }
+         [Display(Name = "营运公司")]
         public string Owner { get; set; }
+         [Display(Name = "线路名")]
         public string LineName { get; set; }
         public string LinesInSameScreen { get; set; }
+         [Display(Name = "施工类型")]
         public string ConstructionType { get; set; }
+         [Display(Name = "屏幕类型")]
         public ScreenTypeEnum? ScreenType { get; set; }
+         [Display(Name = "屏数")]
         public int? ScreenCount { get; set; }
+         [Display(Name = "安装站点")]
         public string InstallStation { get; set; }
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
@@ -63,6 +70,7 @@ namespace DispatchScreenStats.Models
         public string ExtraRemark { get; set; }
         public bool IsLog { get; set; }
         public string LogType { get; set; }
+         [Display(Name = "金额")]
         public double Price { get; set; }
     }
 
@@ -107,6 +115,7 @@ namespace DispatchScreenStats.Models
         public string Power { get; set; }
         public string UnitBoard { get; set; }
         public string Canopy { get; set; }
+         [Display(Name = "备注")]
         public string Remark { get; set; }
     }
 
