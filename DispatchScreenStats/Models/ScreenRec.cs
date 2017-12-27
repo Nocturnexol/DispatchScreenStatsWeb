@@ -28,6 +28,8 @@ namespace DispatchScreenStats.Models
         public string ExtraRemark { get; set; }
         public bool IsLog { get; set; }
         public double Price { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime? ChargeTime { get; set; }
     }
 
     public class ScreenRecDetail
@@ -72,6 +74,8 @@ namespace DispatchScreenStats.Models
         public string LogType { get; set; }
          [Display(Name = "金额")]
         public double Price { get; set; }
+         [BsonDateTimeOptions(Kind = DateTimeKind.Local), Display(Name = "收费时间")]
+         public DateTime? ChargeTime { get; set; }
     }
 
     public class ScreenLog
@@ -97,6 +101,25 @@ namespace DispatchScreenStats.Models
         public string Details { get; set; }
         public string ConstructionType { get; set; }
         public DateTime? Date { get; set; }
+        public string Remark { get; set; }
+    }
+
+    public class ScreenPriceStats
+    {
+        public string DeviceNum { get; set; }
+        public string Details { get; set; }
+        public string Price { get; set; }
+        public DateTime? ChargeTime { get; set; }
+    }
+    public class ScreenDetailPriceStats
+    {
+        public string DeviceNum { get; set; }
+        public string Details { get; set; }
+        public string Price { get; set; }
+        public DateTime? ChargeTime { get; set; }
+        public string HandlingType { get; set; }
+        public string ChargeType { get; set; }
+        public string PaymentStatus { get; set; }
         public string Remark { get; set; }
     }
 

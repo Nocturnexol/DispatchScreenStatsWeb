@@ -203,6 +203,9 @@
     <Content Include="Areas\ScreenStats\Views\ScreenInspection\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenInspection\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenInspection\Locate.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenPriceStats\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenPrice\Index.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\web.config" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2034,11 +2037,15 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Areas\ComfortDegree\ComfortDegreeAreaRegistration.cs" />
     <Compile Include="Areas\ComfortDegree\Controllers\ComfortDegreeStatsController.cs" />
+    <Compile Include="Areas\ScreenPrice\Controllers\ScreenPriceStatsController.cs" />
+    <Compile Include="Areas\ScreenPrice\ScreenPriceAreaRegistration.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\AccessoryController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\BasicDataController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\DispatchScreenRecController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenInspectionController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenLogController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenPriceController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenPriceStatsController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecDetailController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecStatsController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRepairsController.cs" />
@@ -2083,6 +2090,9 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Areas\ComfortDegree\Models\" />
+    <Folder Include="Areas\ScreenPrice\Models\" />
+    <Folder Include="Areas\ScreenPrice\Views\ScreenPriceStats\" />
+    <Folder Include="Areas\ScreenPrice\Views\Shared\" />
     <Folder Include="Areas\ScreenStats\Models\" />
     <Folder Include="res\images\themes\border\" />
     <Folder Include="res\js\" />

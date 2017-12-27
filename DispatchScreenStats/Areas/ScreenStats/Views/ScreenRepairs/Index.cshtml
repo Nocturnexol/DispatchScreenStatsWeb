@@ -1,8 +1,10 @@
 ﻿@{
     ViewBag.Title = "Index";
     var F = Html.F();
+    var isAuthorized = CommonHelper.User == "admin";
 }
 
+@using DispatchScreenStats.Common
 @model IEnumerable<ScreenRepairs>
 
 
@@ -22,7 +24,7 @@
                   .ShowBorder(true)
                   .ID("Grid1")
                   .DataIDField("_id")
-                  .EnableCheckBoxSelect(true)
+                  .EnableCheckBoxSelect(false)
                   .AllowPaging(true)
                   .PageSize(ViewBag.PageSize)
                   .IsDatabasePaging(true)
@@ -30,16 +32,21 @@
                   .Toolbars(
                       F.Toolbar()
                           .Items(
-                              F.Button()
-                                  .ID("btnDeleteSelected")
-                                  .Icon(Icon.Delete)
-                                  .Text("删除选中记录")
-                                  .Listener("click", "onDeleteSelectedClick"),
-                              F.Button()
+                              //isAuthorized ?F.Button()
+                              //    .ID("btnDeleteSelected")
+                              //    .Icon(Icon.Delete)
+                              //    .Text("删除选中记录")
+                              //    .Listener("click", "onDeleteSelectedClick") : F.Button().Hidden(true),
+                                           isAuthorized ? F.Button()
+                                          .ID("btnDeleteAll")
+                                          .Icon(Icon.Delete)
+                                          .Text("删除全部")
+                                          .Listener("click", "onDeleteAllClick") : F.Button().Hidden(true),
+                            isAuthorized ?  F.Button()
                                   .ID("btnImport")
                                   .Icon(Icon.PageExcel)
                                   .Text("导入")
-                                  .Listener("click", "onImportClick")
+                                          .Listener("click", "onImportClick") : F.Button().Hidden(true)
                           )
                   )
                   .Columns(
@@ -84,7 +91,29 @@
                           .TextAlign(TextAlign.Center)
                           .EnableHeaderMenu(false)
                           .EnableColumnHide(false)
-                  )
+                          ).PageItems(
+                              F.ToolbarSeparator(),
+                              F.ToolbarText()
+                                  .Text("每页记录数："),
+                              F.DropDownList()
+                                  .ID("ddlPageSize")
+                                  .Width(80)
+                                  .Listener("change", "onDdlPageSizeChange")
+                                  .Items(
+                                      F.ListItem()
+                                          .Text("20")
+                                          .Value("20"),
+                                      F.ListItem()
+                                          .Text("50")
+                                          .Value("50"),
+                                      F.ListItem()
+                                          .Text("100")
+                                          .Value("100"),
+                                      F.ListItem()
+                                          .Text("200")
+                                          .Value("200")
+                                  )
+                          )
                   .RecordCount(ViewBag.RecordCount)
                   .DataSource(Model)
 
@@ -110,7 +139,26 @@
 @section script {
 
     <script>
+        function onDdlPageSizeChange(event) {
+            var grid1 = F.ui.Grid1;
 
+            // 触发后台事件
+            F.doPostBack('@Url.Action("DoSearch")',
+            {
+                Grid1_fields: grid1.fields,
+                Grid1_pageIndex: grid1.pageIndex,
+                Grid1_pageSize: F.ui.ddlPageSize.getValue()
+            });
+        }
+        function onDeleteAllClick(event) {
+            F.confirm({
+                message: '确定删除全部？',
+                target: '_top',
+                ok: function () {
+                    F.doPostBack('@Url.Action("DeleteAll")', 'Form1,Grid1');
+                }
+            });
+        }
     function renderDeleteField(value, params) {
         return '<a href="javascript:;" class="deletefield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/delete.png")"></a>';
     }

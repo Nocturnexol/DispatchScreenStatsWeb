@@ -150,6 +150,14 @@
                                   F.RenderField()
                                                   .HeaderText("金额").SortField("Price")
                                                   .DataField("Price").Editor(F.TextBox().ID("tbxPr")),
+                                                          F.RenderField()
+                                                  .HeaderText("收费时间").SortField("ChargeTime")
+                                          .DataField("ChargeTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                  .Editor(
+                                      F.DatePicker()
+                                                  .ID("dpChargeTime").MaxDate(DateTime.Today)
+                                          .Required(true)
+                                          ), 
                       F.RenderField()
                           .HeaderText("备注")
                           .DataField("Materials.Remark").ExpandUnusedSpace(true)
@@ -431,11 +439,11 @@
         if (rowData) {
             var activeTabIndex = F.ui.TabStrip1.getActiveTabIndex();
             if (activeTabIndex == 0) {
-                grid = F.ui.Grid2;
-            }else if (activeTabIndex == 1) {
-                grid = F.ui.Grid3;
-            }else if (activeTabIndex == 2) {
                 grid = F.ui.Grid4;
+            }else if (activeTabIndex == 1) {
+                grid = F.ui.Grid2;
+            }else if (activeTabIndex == 2) {
+                grid = F.ui.Grid3;
             }
             var data = $.parseJSON(rowData);
             // 新增一行（返回新增行的ID）

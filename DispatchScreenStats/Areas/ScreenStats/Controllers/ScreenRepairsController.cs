@@ -49,7 +49,12 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             UpdateGrid(values);
             return UIHelper.Result();
         }
-
+        public ActionResult DeleteAll(FormCollection values)
+        {
+            _rep.Delete(t => true);
+            UpdateGrid(values);
+            return UIHelper.Result();
+        }
         public ActionResult Delete(JArray selectedRows, FormCollection values)
         {
             var ids = selectedRows.Select(Convert.ToInt32).ToList();
