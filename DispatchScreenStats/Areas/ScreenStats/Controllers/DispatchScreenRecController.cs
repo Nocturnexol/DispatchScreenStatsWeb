@@ -604,7 +604,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return UIHelper.Result();
         }
 
-        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex, int Grid1_pageSize, JArray Grid2_modifiedData, JArray Grid2_fields, JArray Grid3_modifiedData, JArray Grid4_modifiedData)
+        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex, int Grid1_pageSize, JArray Grid2_modifiedData, JArray Grid2_fields, JArray Grid3_modifiedData, JArray Grid4_modifiedData, JArray Grid5_modifiedData)
         {
             if (!Grid1_modifiedData.Any() && !Grid2_modifiedData.Any() && !Grid3_modifiedData.Any() && !Grid4_modifiedData.Any())
             {
@@ -818,32 +818,91 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             }
 
 
+            foreach (var jToken in Grid5_modifiedData)
+            {
+                var modifiedRow = (JObject)jToken;
+                string status = modifiedRow.Value<string>("status");
+                var rowId = modifiedRow.Value<string>("id");
+
+                if (status == "newadded")
+                {
+                    var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
+                    if (!rowDic.ContainsKey("Materials_Remark"))
+                    {
+                        Alert.Show("备注不能为空！");
+                        return UIHelper.Result();
+                    }
+
+                    var model = new ScreenRecDetail();
+                    model._id = (int)(_repDetail.Max(t => t._id) ?? 0) + 1;
+                    foreach (var p in rowDic)
+                    {
+                        var paramArr = p.Key.Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (paramArr.Length > 1)
+                            typeof(Materials).GetProperty(paramArr[1])
+                                .SetValue(typeof(ScreenRecDetail).GetProperty(paramArr[0]).GetValue(model), p.Value);
+                        else
+                        {
+                            var prop = typeof(ScreenRecDetail).GetProperty(paramArr[0]);
+                            if (prop.PropertyType == typeof(int))
+                                prop.SetValue(model, Convert.ToInt32(p.Value));
+                            else if (prop.PropertyType == typeof(DateTime?) || prop.PropertyType == typeof(DateTime))
+                            {
+                                prop.SetValue(model, Convert.ToDateTime(p.Value));
+                            }
+                            else if (prop.PropertyType == typeof(double))
+                            {
+                                double d;
+                                if (double.TryParse(p.Value.ToString(), out d))
+                                {
+                                    prop.SetValue(model, d);
+                                }
+                            }
+                            else if (prop.PropertyType != typeof(int?))
+                            {
+                                prop.SetValue(model, p.Value);
+                            }
+                        }
+                    }
+                    model.IsLog = true;
+                    model.LogType = "巡检类型";
+                    _repDetail.Add(model);
+                }
+                else if (status == "deleted")
+                {
+                    _repDetail.Delete(t => t._id == int.Parse(rowId));
+                }
+            }
+
+
             ShowNotify("数据保存成功！");
 
             return UIHelper.Result();
         }
 
         [HttpPost]
-        public ActionResult Grid1_RowClick(string rowText, JArray Grid2_fields, JArray Grid3_fields, JArray Grid4_fields)
+        public ActionResult Grid1_RowClick(string rowText, JArray Grid2_fields, JArray Grid3_fields, JArray Grid4_fields, JArray Grid5_fields)
         {
             UIHelper.Grid("Grid2").DataSource(
                 _repDetail.Find(t => t.DeviceNum == rowText && t.IsLog&&t.LogType=="服务类型")
                     .Sort(
-                        new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName)
-                            .Descending(t => t.ScreenCount))
+                        new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName))
                     .ToList(), Grid2_fields);
             UIHelper.Grid("Grid3").DataSource(
                 _repDetail.Find(t => t.DeviceNum == rowText && t.IsLog && t.LogType == "收费类型")
                     .Sort(
-                        new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName)
-                            .Descending(t => t.ScreenCount))
+                        new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName))
                     .ToList(), Grid3_fields);
             UIHelper.Grid("Grid4").DataSource(
                 _repDetail.Find(t => t.DeviceNum == rowText && t.IsLog && t.LogType == "日志类型")
                     .Sort(
-                        new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName)
-                            .Descending(t => t.ScreenCount))
+                        new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName))
                     .ToList(), Grid4_fields);
+            UIHelper.Grid("Grid5").DataSource(
+               _repDetail.Find(t => t.DeviceNum == rowText && t.IsLog && t.LogType == "巡检类型")
+                   .Sort(
+                       new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName))
+                   .ToList(), Grid5_fields);
             return UIHelper.Result();
         }
 

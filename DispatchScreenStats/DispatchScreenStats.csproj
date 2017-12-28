@@ -206,6 +206,15 @@
     <Content Include="Areas\ScreenStats\Views\ScreenPriceStats\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenPrice\Index.cshtml" />
     <Content Include="Areas\ScreenPrice\Views\web.config" />
+    <Content Include="Areas\ScreenPrice\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\Shared\_Layout.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenPriceStats\Index.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenDetailPriceStats\Index.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenDetailPrice\Index.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenPrice\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRepairs\Search.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenService\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenService\Search.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2037,6 +2046,9 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Areas\ComfortDegree\ComfortDegreeAreaRegistration.cs" />
     <Compile Include="Areas\ComfortDegree\Controllers\ComfortDegreeStatsController.cs" />
+    <Compile Include="Areas\ScreenPrice\Controllers\ScreenDetailPriceController.cs" />
+    <Compile Include="Areas\ScreenPrice\Controllers\ScreenDetailPriceStatsController.cs" />
+    <Compile Include="Areas\ScreenPrice\Controllers\ScreenPriceController.cs" />
     <Compile Include="Areas\ScreenPrice\Controllers\ScreenPriceStatsController.cs" />
     <Compile Include="Areas\ScreenPrice\ScreenPriceAreaRegistration.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\AccessoryController.cs" />
@@ -2049,6 +2061,7 @@
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecDetailController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecStatsController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRepairsController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenServiceController.cs" />
     <Compile Include="Areas\ScreenStats\ScreenStatsAreaRegistration.cs" />
     <Compile Include="Common\CommonHelper.cs" />
     <Compile Include="Common\OracleHelper.cs" />
@@ -2091,8 +2104,6 @@
     <Folder Include="App_Data\" />
     <Folder Include="Areas\ComfortDegree\Models\" />
     <Folder Include="Areas\ScreenPrice\Models\" />
-    <Folder Include="Areas\ScreenPrice\Views\ScreenPriceStats\" />
-    <Folder Include="Areas\ScreenPrice\Views\Shared\" />
     <Folder Include="Areas\ScreenStats\Models\" />
     <Folder Include="res\images\themes\border\" />
     <Folder Include="res\js\" />

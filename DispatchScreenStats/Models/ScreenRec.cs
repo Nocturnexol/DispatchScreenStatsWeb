@@ -28,6 +28,7 @@ namespace DispatchScreenStats.Models
         public string ExtraRemark { get; set; }
         public bool IsLog { get; set; }
         public double Price { get; set; }
+        public string PaymentStatus { get; set; }
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime? ChargeTime { get; set; }
     }

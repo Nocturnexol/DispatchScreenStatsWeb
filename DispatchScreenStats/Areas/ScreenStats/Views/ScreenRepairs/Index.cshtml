@@ -32,6 +32,7 @@
                   .Toolbars(
                       F.Toolbar()
                           .Items(
+                                    F.Button().Listener("click", "onBtnClick").Icon(Icon.SystemSearch).Text("搜索"),
                               //isAuthorized ?F.Button()
                               //    .ID("btnDeleteSelected")
                               //    .Icon(Icon.Delete)
@@ -46,7 +47,11 @@
                                   .ID("btnImport")
                                   .Icon(Icon.PageExcel)
                                   .Text("导入")
-                                          .Listener("click", "onImportClick") : F.Button().Hidden(true)
+                                          .Listener("click", "onImportClick") : F.Button().Hidden(true),
+                                           isAuthorized ? F.Button()
+                                          .ID("btnExport")
+                                          .Icon(Icon.PageExcel)
+                                          .Text("导出").Listener("click", "onExportClick") : F.Button().Hidden(true)
                           )
                   )
                   .Columns(
@@ -83,14 +88,14 @@
                           .DataField("HitchContent"),
                       F.RenderField()
                           .HeaderText("解决方法")
-                          .DataField("Solution").ExpandUnusedSpace(true),
-                      F.RenderField()
-                          .HeaderText("")
-                          .Width(60)
-                          .RendererFunction("renderDeleteField")
-                          .TextAlign(TextAlign.Center)
-                          .EnableHeaderMenu(false)
-                          .EnableColumnHide(false)
+                          .DataField("Solution").ExpandUnusedSpace(true)
+                      //F.RenderField()
+                      //    .HeaderText("")
+                      //    .Width(60)
+                      //    .RendererFunction("renderDeleteField")
+                      //    .TextAlign(TextAlign.Center)
+                      //    .EnableHeaderMenu(false)
+                      //    .EnableColumnHide(false)
                           ).PageItems(
                               F.ToolbarSeparator(),
                               F.ToolbarText()
@@ -122,8 +127,8 @@
 
     @(F.Window()
           .ID("Window1")
-          .Width(600)
-          .Height(300)
+          .Width(650)
+          .Height(350)
           .IsModal(true)
           .Hidden(true)
           .Target(Target.Top)
@@ -139,6 +144,10 @@
 @section script {
 
     <script>
+        function onBtnClick() {
+            F.ui.Window1.show('@Url.Action("Search")', '搜索');
+        }
+
         function onDdlPageSizeChange(event) {
             var grid1 = F.ui.Grid1;
 
@@ -166,7 +175,9 @@
         function onImportClick(event) {
             F.ui.Window1.show('@Url.Content("~/ScreenStats/ScreenRepairs/RepairsImport")', '导入');
         }
-
+        function onExportClick() {
+            window.location.href = '@Url.Action("Export")';
+        }
 
         function deleteSelectedRows(selectedRows) {
             // 触发后台事件
@@ -195,7 +206,9 @@
             }
         });
     }
-
+    function doSearch(values) {
+        F.doPostBack('@Url.Action("DoSearch")', 'Grid1', values);
+    }
     F.ready(function () {
 
         var grid1 = F.ui.Grid1;

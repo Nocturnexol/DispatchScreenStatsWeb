@@ -79,11 +79,7 @@
                                           .ID("btnExport")
                                           .Icon(Icon.PageExcel)
                                           .Text("导出").Listener("click", "onExportClick") : F.Button().Hidden(true),
-                              isAuthorized ? F.Button()
-                                  .ID("btnInspectionImport")
-                                  .Icon(Icon.PageExcel)
-                                  .Text("巡检导入")
-                                  .Listener("click", "onInspectionImportClick") : F.Button().Hidden(true),
+                            
                               F.Button()
                                   .Icon(Icon.Map)
                                   .Text("查看地图")
@@ -101,7 +97,7 @@
                               F.Button()
                                   .ID("btnSubmit").Enabled(false)
                                   .Text("保存数据").Icon(Icon.SystemSave)
-                                  .OnClick(Url.Action("btnSubmit_Click"), "Grid1,Grid2,Grid3,Grid4")
+                                          .OnClick(Url.Action("btnSubmit_Click"), "Grid1,Grid2,Grid3,Grid4,Grid5")
                           //F.Button()
                           //    .ID("btnCreate")
                           //    .Icon(Icon.Add)
@@ -150,6 +146,9 @@
                                   F.RenderField()
                                                   .HeaderText("金额").SortField("Price")
                                                   .DataField("Price").Editor(F.TextBox().ID("tbxPr")),
+                                                          F.RenderField()
+                                                          .HeaderText("付款状态").SortField("PaymentStatus")
+                                                                          .DataField("PaymentStatus").Editor(F.DropDownList().Items(ViewBag.PaymentStatuses)),
                                                           F.RenderField()
                                                   .HeaderText("收费时间").SortField("ChargeTime")
                                           .DataField("ChargeTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
@@ -334,7 +333,37 @@
                                           .EnableHeaderMenu(false)
                                           .RendererFunction("renderActions")
                                   )
-                )
+                ),
+                        F.Tab()
+                        .Title("巡检类型")
+                        .BodyPadding(5)
+                        .Layout(LayoutType.Fit)
+                        .Items(
+                              F.Grid()
+                                  .ShowHeader(false)
+                                  .ShowBorder(true)
+                                  .ID("Grid5").Listener("datachange", "onGridDataChange")
+                                  .DataIDField("_id")
+                                  .DataTextField("DeviceNum").AllowCellEditing(true).ClicksToEdit(2)
+            //.EnableCheckBoxSelect(true)
+                                  .Columns(
+                                      F.RowNumberField(),
+                                      F.RenderField()
+                                          .HeaderText("设备编号").Width(80)
+                                          .DataField("DeviceNum"),
+                                      F.RenderField()
+                                          .HeaderText("巡检日期")
+                                          .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                          .Editor(F.DatePicker().ID("dpDate")),
+                                      F.RenderField()
+                                          .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark"))
+                                          .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
+                                      F.RenderField()
+                                          .Width(50)
+                                          .EnableHeaderMenu(false)
+                                          .RendererFunction("renderActions")
+                                  )
+                        )
         )
                   
           ))
@@ -444,6 +473,8 @@
                 grid = F.ui.Grid2;
             }else if (activeTabIndex == 2) {
                 grid = F.ui.Grid3;
+            }else if (activeTabIndex == 3) {
+                grid = F.ui.Grid5;
             }
             var data = $.parseJSON(rowData);
             // 新增一行（返回新增行的ID）
@@ -468,6 +499,7 @@
                 F.ui.Grid2.rejectChanges();
                 F.ui.Grid3.rejectChanges();
                 F.ui.Grid4.rejectChanges();
+                F.ui.Grid5.rejectChanges();
             }
         });
     }
@@ -478,8 +510,10 @@
         var grid2 = F.ui.Grid2;
         var grid3 = F.ui.Grid3;
         var grid4 = F.ui.Grid4;
+        var grid5 = F.ui.Grid5;
         // 如果没有删除行，没有新增行，没有修改的数据
-        if (!grid1.getModifiedData().length && !grid2.getModifiedData().length&& !grid3.getModifiedData().length&& !grid4.getModifiedData().length) {
+        if (!grid1.getModifiedData().length && !grid2.getModifiedData().length&& !grid3.getModifiedData().length&& !grid4.getModifiedData().length
+            && !grid5.getModifiedData().length) {
             btnSubmit.disable();
         } else {
             btnSubmit.enable();
@@ -493,7 +527,7 @@
         F.ui.rowClicked.setValue(JSON.stringify(rowData.values));
         // 触发后台事件
         F.doPostBack('@Url.Action("Grid1_RowClick")',
-            'Grid2,Grid3,Grid4',
+            'Grid2,Grid3,Grid4,Grid5',
             {
                 rowId: rowData.id,
                 rowText: rowData.text,
@@ -606,6 +640,20 @@
                 target: '_top',
                 ok: function () {
                     grid4.deleteRow(rowData);
+                }
+            });
+        });
+
+        var grid5 = F.ui.Grid5;
+        grid5.el.on('click', 'a.action-btn.delete', function (event) {
+            var cnode = $(this);
+            var rowData = grid5.getRowData(cnode.closest('.f-grid-row'));
+
+            F.confirm({
+                message: '删除选中行？',
+                target: '_top',
+                ok: function () {
+                    grid5.deleteRow(rowData);
                 }
             });
         });
