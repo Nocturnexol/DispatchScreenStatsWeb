@@ -215,6 +215,11 @@
     <Content Include="Areas\ScreenStats\Views\ScreenRepairs\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenService\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenService\Search.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\Index.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenPrice\Search.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenDetailPrice\Search.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenPriceStats\Search.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenDetailPriceStats\Search.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2059,6 +2064,7 @@
     <Compile Include="Areas\ScreenStats\Controllers\ScreenPriceController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenPriceStatsController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecDetailController.cs" />
+    <Compile Include="Areas\ScreenStats\Controllers\ScreenRecIFrameController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRecStatsController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenRepairsController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\ScreenServiceController.cs" />

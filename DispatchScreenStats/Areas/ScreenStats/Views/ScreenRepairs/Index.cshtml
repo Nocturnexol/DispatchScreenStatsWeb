@@ -25,7 +25,7 @@
                   .ID("Grid1")
                   .DataIDField("_id")
                   .EnableCheckBoxSelect(false)
-                  .AllowPaging(true)
+                  .AllowPaging(true).AllowCellEditing(true)
                   .PageSize(ViewBag.PageSize)
                   .IsDatabasePaging(true)
                   .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
@@ -51,17 +51,38 @@
                                            isAuthorized ? F.Button()
                                           .ID("btnExport")
                                           .Icon(Icon.PageExcel)
-                                          .Text("导出").Listener("click", "onExportClick") : F.Button().Hidden(true)
+                                          .Text("导出").Listener("click", "onExportClick") : F.Button().Hidden(true),
+                                                      F.ToolbarFill(),
+                                            isAuthorized ? F.Button()
+                                                  .ID("btnNew")
+                                                  .Text("新增")
+                                                  .Icon(Icon.Add)
+                                                  .Listener("click", "onNewClick") : F.Button().Hidden(true),
+                                             isAuthorized ? F.Button()
+                                                  .ID("btnReset")
+                                                  .Text("重置表格数据")
+                                                  .Listener("click", "onResetClick") : F.Button().Hidden(true),
+                                             isAuthorized ? F.Button()
+                                                  .ID("btnSubmit").Enabled(false)
+                                                  .Text("保存数据").Icon(Icon.SystemSave)
+                                                          .OnClick(Url.Action("btnSubmit_Click"), "Grid1") : F.Button().Hidden(true)
                           )
                   )
                   .Columns(
                       F.RowNumberField(),
                       F.RenderField()
-                          .HeaderText("报修日期")
+                          .HeaderText("报修日期").Editor(F.DatePicker())
                           .DataField("RepairsDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
-                      F.RenderField()
+                              F.RenderField()
+                                  .HeaderText("设备编号")
+                                  .DataField("DeviceNum").Hidden(true),
+                          F.RenderField()
                           .HeaderText("线路")
-                          .DataField("LineName"),
+                                  .DataField("LineName").Editor(
+                            F.TriggerBox()
+                                .TriggerIcon(TriggerIcon.Search)
+                                .Listener("triggerclick", "onNameSearchTriggerClick")
+                        ),
                       F.RenderField()
                           .HeaderText("站点")
                           .DataField("Station"),
@@ -70,25 +91,25 @@
                           .DataField("Owner"),
                       F.RenderField()
                           .HeaderText("报修来源")
-                          .DataField("RepairsSoucre"),
+                          .DataField("RepairsSoucre").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障接报人")
-                          .DataField("Accepter"),
+                                  .DataField("Accepter").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障处理人")
-                          .DataField("Handler"),
+                                  .DataField("Handler").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障类型")
-                          .DataField("HitchType"),
+                                  .DataField("HitchType").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障状态")
-                          .DataField("Status"),
+                                  .DataField("Status").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障问题")
-                          .DataField("HitchContent"),
+                                  .DataField("HitchContent").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("解决方法")
-                          .DataField("Solution").ExpandUnusedSpace(true)
+                                  .DataField("Solution").ExpandUnusedSpace(true).Editor(F.TextBox())
                       //F.RenderField()
                       //    .HeaderText("")
                       //    .Width(60)
@@ -120,7 +141,7 @@
                                   )
                           )
                   .RecordCount(ViewBag.RecordCount)
-                  .DataSource(Model)
+                          .DataSource(Model).Listener("datachange", "onGridDataChange")
 
           ))
 
@@ -144,6 +165,56 @@
 @section script {
 
     <script>
+        function onGridDataChange() {
+            var grid1 = F.ui.Grid1;
+            var btnSubmit = F.ui.btnSubmit;
+            // 如果没有删除行，没有新增行，没有修改的数据
+            if (!grid1.getModifiedData().length) {
+                btnSubmit.disable();
+            } else {
+                btnSubmit.enable();
+            }
+        }
+        // 供子页面调用
+        function updateGridRow(rowId, values) {
+            var grid1 = F.ui.Grid1;
+
+            // cancelEdit用来取消编辑
+            grid1.cancelEdit();
+
+            grid1.updateCellValue(rowId, values);
+        }
+
+
+        function onNameSearchTriggerClick(event) {
+            var grid1 = F.ui.Grid1;
+            var selectedCell = grid1.getSelectedCell();
+            if (selectedCell) {
+                var iframeWindowUrl = '@Url.Action("Index","ScreenRecIFrame","选择")';
+                F.ui.Window1.show(iframeWindowUrl + '?rowid=' + selectedCell[0]);
+            }
+        }
+
+        function onNewClick(event) {
+            var grid = F.ui.Grid1;
+            // 新增一行（返回新增行的ID）
+            var addedRowId = grid.addNewRecord({},
+                true,
+                'LineName');
+            // 选中新增的那一行
+            grid.selectRow(addedRowId);
+        }
+
+        function onResetClick(event) {
+            F.confirm({
+                message: '确定要重置表格数据？',
+                ok: function () {
+                    F.ui.Grid1.rejectChanges();
+                }
+            });
+        }
+
+
         function onBtnClick() {
             F.ui.Window1.show('@Url.Action("Search")', '搜索');
         }

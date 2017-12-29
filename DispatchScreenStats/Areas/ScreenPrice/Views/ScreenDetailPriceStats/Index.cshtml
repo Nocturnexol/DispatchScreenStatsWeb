@@ -74,6 +74,7 @@
     </style>
 }
 @section body{
+@f.Button().Listener("click", "onBtnClick").Icon(Icon.SystemSearch).Text("搜索").CssStyle("left:8px")
     @*@f.Button().Listener("click", "exportToExcel").Text("导出").Icon(Icon.PageExcel).CssStyle("margin-left:10px")*@
     <div style="border-top: 0; left: 0; width: inherit; height: inherit; position: absolute;">
         <div style="width: 1058px; height: 1122px; border: none;">
@@ -95,7 +96,6 @@
           .EnableMaximize(true)
           .EnableIFrame(true)
           .IFrameUrl(Url.Content("about:blank"))
-          .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
     )
 }
 
@@ -110,6 +110,9 @@
                 function(result) {
                     $("#tableDiv").html(result.escape());
                 });
+        }
+        function onBtnClick() {
+            F.ui.Window1.show('@Url.Action("Search")', '搜索');
         }
 
         function exportToExcel() {

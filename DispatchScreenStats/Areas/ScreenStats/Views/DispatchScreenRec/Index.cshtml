@@ -278,15 +278,21 @@
                                   .HeaderText("设备编号").Width(80)
                                   .DataField("DeviceNum"),
                               F.RenderField()
-                                  .HeaderText("日期")
-                                  .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                  .HeaderText("报修日期")
+                                          .DataField("RepairsDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
                                   .Editor(F.DatePicker().ID("dpDate")),
-                              F.RenderField()
-                                  .HeaderText("处理类型")
-                                  .DataField("HandlingType").Editor(F.DropDownList().Items(ViewBag.HandlingTypes)),
-                              F.RenderField()
-                                  .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
-                                  .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
+                               F.RenderField()
+                          .HeaderText("故障类型")
+                                  .DataField("HitchType").Editor(F.TextBox()),
+                      F.RenderField()
+                          .HeaderText("故障状态")
+                                  .DataField("Status").Editor(F.TextBox()),
+                      F.RenderField()
+                          .HeaderText("故障问题")
+                                  .DataField("HitchContent").Editor(F.TextBox()),
+                      F.RenderField()
+                          .HeaderText("解决方法")
+                                  .DataField("Solution").ExpandUnusedSpace(true),
                               F.RenderField()
                                   .Width(50)
                                   .EnableHeaderMenu(false)
@@ -310,10 +316,6 @@
                                           .HeaderText("设备编号").Width(80)
                                           .DataField("DeviceNum"),
                                       F.RenderField()
-                                          .HeaderText("日期")
-                                          .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
-                                          .Editor(F.DatePicker().ID("dpDate")),
-                                      F.RenderField()
                                           .HeaderText("处理类型")
                                           .DataField("HandlingType").Editor(F.DropDownList().Items(ViewBag.HandlingTypes)),
                                       F.RenderField()
@@ -325,6 +327,14 @@
                                                            F.RenderField()
                                           .HeaderText("金额")
                                                           .DataField("Price").Editor(F.TextBox().ID("tbxPrice")),
+                                                                       F.RenderField()
+                                                                  .HeaderText("发生时间")
+                                                                  .DataField("OccurredTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                                                                  .Editor(F.DatePicker()),
+                                              F.RenderField()
+                                                  .HeaderText("收费时间")
+                                                  .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                                  .Editor(F.DatePicker()),
                                       F.RenderField()
                                           .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
                                           .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
@@ -479,7 +489,8 @@
             var data = $.parseJSON(rowData);
             // 新增一行（返回新增行的ID）
             var addedRowId = grid.addNewRecord({
-                'DeviceNum': data["DeviceNum"]
+                'DeviceNum': data["DeviceNum"],
+                'ChargeType':'免费'
             },
                 true,
                 'Materials_Remark');

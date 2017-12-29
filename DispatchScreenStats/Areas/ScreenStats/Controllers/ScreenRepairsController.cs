@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -183,7 +184,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         model.HitchContent = row.GetCell(10).StringCellValue;
                         model.Solution = row.GetCell(11).StringCellValue;
 
-                        list.Add(model);
 
                         var lines = model.LineName.Replace("、", "/")
                             .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
@@ -197,7 +197,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         var devs =
                             logs.Where(
                                 t =>
-                                    (t.InstallStation == model.Station ||
+                                    (t.InstallStation == model.Station || model.Station.Contains(t.InstallStation)||
                                      t.InstallStation.Contains(model.Station??"")) &&
                                     (model.LineName.Contains(t.LineName) || t.LineName == model.LineName)).ToList();
                         if (devs.Any())
@@ -206,19 +206,22 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                             foreach (var dev in devs)
                             {
                                 if (!devNums.Add(dev.DeviceNum)) continue;
-                                var log = new ScreenRecDetail();
-                                log._id = maxLogId;
-                                maxLogId++;
-                                log.DeviceNum = dev.DeviceNum;
-                                log.LogType = "服务类型";
-                                log.HandlingType = "维修";
-                                log.Date = model.RepairsDate;
-                                log.IsLog = true;
-                                log.Materials.Remark = string.Format("故障问题：{0}；解决方法：{1}", model.HitchContent,
-                                    model.Solution);
-                                listLog.Add(log);
+                                //var log = new ScreenRecDetail();
+                                //log._id = maxLogId;
+                                //maxLogId++;
+                                //log.DeviceNum = dev.DeviceNum;
+                                //log.LogType = "服务类型";
+                                //log.HandlingType = "维修";
+                                //log.Date = model.RepairsDate;
+                                //log.IsLog = true;
+                                //log.Materials.Remark = string.Format("故障问题：{0}；解决方法：{1}", model.HitchContent,
+                                //    model.Solution);
+                                //listLog.Add(log);
+
+                                model.DeviceNum = dev.DeviceNum;
                             }
                         }
+                        list.Add(model);
                     }
                     if(list.Any())_rep.BulkInsert(list);
                     if(listLog.Any())_repDetail.BulkInsert(listLog);
@@ -287,6 +290,75 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/excel", "发车屏维修列表.xls");
         }
 
+        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex,
+            int Grid1_pageSize)
+        {
+            if (!Grid1_modifiedData.Any())
+            {
+                ShowNotify("无修改数据！");
+                return UIHelper.Result();
+            }
+            foreach (var jToken in Grid1_modifiedData)
+            {
+                var modifiedRow = (JObject)jToken;
+                string status = modifiedRow.Value<string>("status");
+                var rowId = modifiedRow.Value<string>("id");
+
+                if (status == "newadded")
+                {
+                    var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
+                    var model = new ScreenRepairs();
+                    model._id = (int)(_repDetail.Max(t => t._id) ?? 0) + 1;
+                    foreach (var p in rowDic)
+                    {
+                            var prop = typeof(ScreenRepairs).GetProperty(p.Key);
+                            if (prop.PropertyType == typeof(int))
+                                prop.SetValue(model, Convert.ToInt32(p.Value));
+                            else if (prop.PropertyType == typeof(DateTime?) || prop.PropertyType == typeof(DateTime))
+                            {
+                                prop.SetValue(model, Convert.ToDateTime(p.Value));
+                            }
+                            else if (prop.PropertyType == typeof(double))
+                            {
+                                double d;
+                                if (double.TryParse(p.Value.ToString(), out d))
+                                {
+                                    prop.SetValue(model, d);
+                                }
+                            }
+                            else if (prop.PropertyType != typeof(int?))
+                            {
+                                prop.SetValue(model, p.Value);
+                            }
+                        
+                    }
+                    _rep.Add(model);
+                }
+                else if (status == "modified")
+                {
+                    var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
+                    foreach (var p in rowDic)
+                    {
+                        var param = Expression.Parameter(typeof(ScreenRepairs), "x");
+                        var body = Expression.Property(param, typeof(ScreenRepairs),p.Key);
+                        var lambda =
+                            Expression.Lambda<Func<ScreenRepairs, object>>(Expression.Convert(body, typeof(object)), param);
+                        _rep.Update(t => t._id == int.Parse(rowId), Builders<ScreenRepairs>.Update.Set(lambda, p.Value));
+                    }
+                }
+                else if (status == "deleted")
+                {
+                    _rep.Delete(t => t._id == int.Parse(rowId));
+                }
+            }
+            ShowNotify("数据保存成功！");
+            int count;
+            var source = _rep.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count);
+            var grid1 = UIHelper.Grid("Grid1");
+            grid1.RecordCount(count);
+            grid1.DataSource(source, Grid1_fields);
+            return UIHelper.Result();
+        }
 
 	}
 }

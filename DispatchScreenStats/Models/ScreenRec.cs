@@ -16,6 +16,7 @@ namespace DispatchScreenStats.Models
         public string DeviceNum { get; set; }
         public string Owner { get; set; }
         public string LineName { get; set; }
+        public ScreenTypeEnum? ScreenType { get; set; }
         public string ConstructionType { get; set; }
         public int? ScreenCount { get; set; }
         public string InstallStation { get; set; }
@@ -77,6 +78,7 @@ namespace DispatchScreenStats.Models
         public double Price { get; set; }
          [BsonDateTimeOptions(Kind = DateTimeKind.Local), Display(Name = "收费时间")]
          public DateTime? ChargeTime { get; set; }
+         public DateTime? OccurredTime { get; set; }
     }
 
     public class ScreenLog
@@ -109,7 +111,10 @@ namespace DispatchScreenStats.Models
     {
         public string DeviceNum { get; set; }
         public string Details { get; set; }
+        public ScreenTypeEnum? ScreenType { get; set; }
         public string Price { get; set; }
+        public string PaymentStatus { get; set; }
+        public DateTime? OccurredTime { get; set; }
         public DateTime? ChargeTime { get; set; }
     }
     public class ScreenDetailPriceStats
@@ -146,6 +151,7 @@ namespace DispatchScreenStats.Models
     public class ScreenRepairs
     {
         public int _id { get; set; }
+        public string DeviceNum { get; set; }
         public DateTime RepairsDate { get; set; }
         public string LineName { get; set; }
         public string Station { get; set; }

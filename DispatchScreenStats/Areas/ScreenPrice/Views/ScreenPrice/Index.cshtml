@@ -5,6 +5,7 @@
 }
 
 @using DispatchScreenStats.Common
+@using DispatchScreenStats.Enums
 @model IEnumerable<DispatchScreenStats.Models.ScreenRec>
 
 
@@ -32,6 +33,7 @@
                   .Toolbars(
                       F.Toolbar()
                           .Items(
+                                   F.Button().Listener("click", "onBtnClick").Icon(Icon.SystemSearch).Text("搜索"),
                     isAuthorized ? F.Button()
                         .ID("btnDeleteSelected")
                         .Icon(Icon.Delete)
@@ -63,13 +65,34 @@
                                 F.RenderField()
                                                   .HeaderText("设备编号").Width(80)
                                                           .DataField("DeviceNum"),
-                                                                   F.RenderField()
-                                                  .HeaderText("金额")
-                                                                          .DataField("Price").Editor(F.TextBox().ID("tbxPrice")),
-                                                      F.RenderField()
-                                                          .HeaderText("收费时间")
-                                                          .DataField("ChargeTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
-                                                          .Editor(F.DatePicker().ID("dpDate")),
+                                                          F.RenderField()
+                                                  .HeaderText("营运公司").Width(80)
+                                  .DataField("Owner"),
+                              F.RenderField()
+                                  .HeaderText("安装线路")
+                                                  .DataField("LineName"),
+                              F.RenderField()
+                                                  .HeaderText("屏幕类型").FieldType(FieldType.Int)
+                                  .DataField("ScreenType").Width(120).RendererFunction("renderScreenType"),
+                              F.RenderField()
+                                                  .HeaderText("安装站点").SortField("InstallStation")
+                                  .DataField("InstallStation").Width(120),
+                              F.RenderField()
+                                                  .HeaderText("安装日期").SortField("InstallDate")
+                                  .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
+                                          F.RenderField()
+                                                          .HeaderText("金额").SortField("Price")
+                                                          .DataField("Price").Editor(F.TextBox().ID("tbxPr")),
+                                                                  F.RenderField()
+                                                                  .HeaderText("付款状态").SortField("PaymentStatus")
+                                                                                  .DataField("PaymentStatus").Editor(F.DropDownList().Items(ViewBag.PaymentStatuses)),
+                                                                  F.RenderField()
+                                                          .HeaderText("收费时间").SortField("ChargeTime")
+                                                  .DataField("ChargeTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                          .Editor(
+                                              F.DatePicker()
+                                                          .ID("dpChargeTime")
+                                                  ),
                                               F.RenderField()
                                                   .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark"))
                                                   .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
@@ -111,8 +134,8 @@
 
     @(F.Window()
           .ID("Window1")
-          .Width(600)
-          .Height(300)
+          .Width(650)
+          .Height(350)
           .IsModal(true)
           .Hidden(true)
           .Target(Target.Top)
@@ -128,6 +151,26 @@
 @section script {
 
     <script>
+        function onBtnClick() {
+            F.ui.Window1.show('@Url.Action("Search")', '搜索');
+        }
+        function doSearch(values) {
+            F.doPostBack('@Url.Action("DoSearch")', 'Grid1', values);
+        }
+        function renderScreenType(val) {
+            switch (val) {
+                case @((int) ScreenTypeEnum.标准单线屏):
+                    return "@ScreenTypeEnum.标准单线屏";
+                case @((int) ScreenTypeEnum.七行双线屏):
+                    return "@ScreenTypeEnum.七行双线屏";
+                case @((int) ScreenTypeEnum.定制双线屏):
+                    return "@ScreenTypeEnum.定制双线屏";
+                case @((int) ScreenTypeEnum.表格定制屏):
+                    return "@ScreenTypeEnum.表格定制屏";
+                default:
+                    return "";
+            }
+        }
         function onGridDataChange() {
             var grid1 = F.ui.Grid1;
             var btnSubmit = F.ui.btnSubmit;

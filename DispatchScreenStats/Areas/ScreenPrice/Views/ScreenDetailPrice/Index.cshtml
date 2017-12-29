@@ -31,7 +31,8 @@
                   .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
                   .Toolbars(
                       F.Toolbar()
-                          .Items(
+                                  .Items(
+                                  F.Button().Listener("click", "onBtnClick").Icon(Icon.SystemSearch).Text("搜索"),
                     isAuthorized ? F.Button()
                         .ID("btnDeleteSelected")
                         .Icon(Icon.Delete)
@@ -62,11 +63,18 @@
                       F.RowNumberField(),
                                 F.RenderField()
                                                   .HeaderText("设备编号").Width(80)
-                                                          .DataField("DeviceNum").Editor(F.DropDownList().EnableEdit(true).Items(ViewBag.Nums)),
-                                              F.RenderField()
-                                                  .HeaderText("日期")
-                                                  .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
-                                                  .Editor(F.DatePicker().ID("dpDate")),
+                                                                  .DataField("DeviceNum").Editor(F.TriggerBox()
+                                        .TriggerIcon(TriggerIcon.Search)
+                                        .Listener("triggerclick", "onNameSearchTriggerClick")),
+                                                          F.RenderField()
+                                                            .HeaderText("营运公司").Width(80)
+                                  .DataField("Owner"),
+                              F.RenderField()
+                                  .HeaderText("安装线路")
+                                                  .DataField("LineName"),
+                              F.RenderField()
+                                                  .HeaderText("安装站点").SortField("InstallStation")
+                                  .DataField("InstallStation"),
                                               F.RenderField()
                                                   .HeaderText("处理类型")
                                                   .DataField("HandlingType").Editor(F.DropDownList().Items(ViewBag.HandlingTypes)),
@@ -78,10 +86,18 @@
                                                                   .DataField("PaymentStatus").Editor(F.DropDownList().Items(ViewBag.PaymentStatuses)),
                                                                    F.RenderField()
                                                   .HeaderText("金额")
-                                                                  .DataField("Price").Editor(F.TextBox().ID("tbxPrice")),
+                                                                          .DataField("Price").Editor(F.TextBox()),
+                                                      F.RenderField()
+                                                          .HeaderText("发生时间")
+                                                          .DataField("OccurredTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                                                  .Editor(F.DatePicker()),
+                                                      F.RenderField()
+                                                          .HeaderText("收费时间")
+                                                          .DataField("Date").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                                          .Editor(F.DatePicker()),
                                               F.RenderField()
-                                                  .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
-                                                  .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
+                                                  .HeaderText("备注").Editor(F.TextBox())
+                                                  .DataField("Materials.Remark").ExpandUnusedSpace(true),
                       F.RenderField()
                           .HeaderText("")
                           .Width(60)
@@ -131,12 +147,46 @@
           .IFrameUrl(Url.Content("about:blank"))
           .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
     )
-
+@(F.Window()
+          .ID("Window2")
+          .Width(700)
+          .Height(400)
+          .IsModal(true)
+          .Hidden(true)
+          .Target(Target.Top)
+          .EnableResize(true)
+          .EnableMaximize(true)
+          .EnableIFrame(true)
+          .IFrameUrl(Url.Content("about:blank"))
+)
 }
 
 @section script {
 
     <script>
+        function onBtnClick() {
+            F.ui.Window1.show('@Url.Action("Search")', '搜索');
+        }
+        function doSearch(values) {
+            F.doPostBack('@Url.Action("DoSearch")', 'Grid1', values);
+        }
+        function updateGridRow(rowId, values) {
+            var grid1 = F.ui.Grid1;
+
+            // cancelEdit用来取消编辑
+            grid1.cancelEdit();
+
+            grid1.updateCellValue(rowId, values);
+        }
+
+        function onNameSearchTriggerClick(event) {
+            var grid1 = F.ui.Grid1;
+            var selectedCell = grid1.getSelectedCell();
+            if (selectedCell) {
+                var iframeWindowUrl = '@Url.Content("~/ScreenStats/ScreenRecIFrame")';
+                F.ui.Window2.show(iframeWindowUrl + '?rowid=' + selectedCell[0],"选择");
+            }
+        }
         function onGridDataChange() {
             var grid1 = F.ui.Grid1;
             var btnSubmit = F.ui.btnSubmit;
@@ -150,7 +200,7 @@
         function onNewClick(event) {
             var grid = F.ui.Grid1;
             // 新增一行（返回新增行的ID）
-            var addedRowId = grid.addNewRecord({},
+            var addedRowId = grid.addNewRecord({'ChargeType':'免费'},
                 true,
                 'DeviceNum');
             // 选中新增的那一行

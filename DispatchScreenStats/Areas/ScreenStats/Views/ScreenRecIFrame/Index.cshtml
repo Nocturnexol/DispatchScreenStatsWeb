@@ -1,0 +1,94 @@
+﻿@{
+    var F = Html.F();
+    ViewBag.Title = "选择";
+}
+@model IEnumerable<ScreenRec>
+
+@section body {
+
+    @(F.Grid()
+          .ID("Grid1")
+          .ShowBorder(false)
+          .ShowHeader(false)
+          .EnableCollapse(true)
+          .DataIDField("_id")
+          .DataTextField("DeviceNum")
+          .EnableCheckBoxSelect(true)
+          .EnableMultiSelect(false)
+          .IsViewPort(true).AllowPaging(true)
+          .PageSize(ViewBag.PageSize)
+          .IsDatabasePaging(true)
+          .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
+          .Columns(
+              F.RowNumberField(),
+              F.RenderField()
+                  .HeaderText("设备编号").Width(80)
+                  .DataField("DeviceNum"),
+              F.RenderField()
+                  .HeaderText("营运公司")
+                  .DataField("Owner"),
+              F.RenderField()
+                  .HeaderText("线路")
+                  .DataField("LineName").Width(180),
+              F.RenderField()
+                  .HeaderText("站点")
+                  .DataField("InstallStation").Width(120),
+              F.RenderField()
+                  .HeaderText("安装日期")
+                  .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+          )
+          .Toolbars(
+              F.Toolbar()
+                  .Position(ToolbarPosition.Top)
+                  .Items(
+                      F.Button()
+                          .ID("btnClose")
+                          .Text("关闭")
+                          .Icon(Icon.SystemClose)
+                          .Listener("click", "F.activeWindow.hide();"),
+                      F.Button()
+                          .ID("btnSaveClose")
+                          .Text("选择后关闭")
+                          .Icon(Icon.SystemSaveClose)
+                          .Listener("click", "onGrid1RowSelect")
+                  )
+          )
+          .Listener("rowdblclick", "onGrid1RowSelect")
+          .RecordCount(ViewBag.RecordCount)
+          .DataSource(Model)
+
+          )
+
+
+}
+
+@section script {
+    <script>
+
+        function onGrid1RowSelect(event) {
+            // 返回当前活动Window对象（浏览器窗口对象通过F.getActiveWindow().window获取）
+            var activeWindow = F.getActiveWindow();
+
+            // 选中行数据
+            var rowData = F.ui.Grid1.getSelectedRow(true);
+            var rowValue = rowData.values;
+
+            var queryRowId = F.queryString('rowid');
+            var selectedValues = {
+                'DeviceNum': rowValue['DeviceNum'],
+                'Owner': rowValue['Owner'],
+                'LineName': rowValue['LineName'],
+                'Station': rowValue['InstallStation'],
+                'InstallStation': rowValue['InstallStation']
+            };
+
+            // 隐藏弹出窗体
+            activeWindow.hide();
+
+            // 调用父页面的 updateGridRow 函数
+            activeWindow.window.updateGridRow(queryRowId, selectedValues);
+        }
+
+
+    </script>
+}

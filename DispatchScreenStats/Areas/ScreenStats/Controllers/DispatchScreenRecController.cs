@@ -28,6 +28,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenRec> _rep = new MongoRepository<ScreenRec>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         private readonly IMongoRepository<BasicData> _repBasic = new MongoRepository<BasicData>();
+        private readonly IMongoRepository<ScreenRepairs> _repRepairs = new MongoRepository<ScreenRepairs>();
         private readonly Expression<Func<ScreenRecDetail, bool>> _filter = t => !t.IsLog;
         private readonly Expression<Func<ScreenRec, bool>> _f = t => !t.IsLog;
         //
@@ -261,7 +262,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     //}
                     if (list.Any())
                     {
-                        _rep.BulkInsert(list);
                         var detailList=new List<ScreenRecDetail>();
                         var maxDetailId = (int)(_repDetail.Max(t => t._id) ?? 0) + 1;
                         foreach (var rec in list)
@@ -306,6 +306,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 else if (lines.Length == 1)
                                     detail.ScreenType = ScreenTypeEnum.标准单线屏;
 
+                                rec.ScreenType = detail.ScreenType;
                                 detailList.Add(detail);
 
                                 //if (rec.ScreenCount.HasValue) continue;
@@ -322,6 +323,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                             }
 
                         }
+                        _rep.BulkInsert(list);
                         if (detailList.Any()) _repDetail.BulkInsert(detailList);
                     }
                     // 关闭本窗体（触发窗体的关闭事件）
@@ -629,6 +631,15 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     var lambda =
                         Expression.Lambda<Func<ScreenRecDetail, object>>(Expression.Convert(body, typeof(object)), param);
                     _repDetail.Update(t => t.DeviceNum == srcDetail.DeviceNum, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
+                    if (p.Key == "Price"||p.Key=="PaymentStatus"||p.Key=="ChargeTime")
+                    {   
+                        var paramRec = Expression.Parameter(typeof(ScreenRec));
+                        var bodyRec = Expression.Property(paramRec, typeof(ScreenRec), p.Key);
+                          var lambdaRec =
+                        Expression.Lambda<Func<ScreenRec, object>>(Expression.Convert(bodyRec, typeof(object)), paramRec);
+                        _rep.Update(t => t.DeviceNum == srcDetail.DeviceNum,
+                            Builders<ScreenRec>.Update.Set(lambdaRec, p.Value));
+                    }
                     sb.AppendFormat("{0}由{1}改为{2}；", paramArr.Length > 1 ? "备注" : typeof(ScreenRecDetail).GetCName(p.Key), paramArr.Length > 1 ? srcDetail.Materials.Remark : typeof(ScreenRecDetail).GetProperty(p.Key).GetValue(srcDetail), p.Value);
                 }
 
@@ -651,35 +662,24 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
             foreach (var jToken in Grid2_modifiedData)
             {
-                var modifiedRow = (JObject)jToken;
+                var modifiedRow = (JObject) jToken;
                 string status = modifiedRow.Value<string>("status");
                 var rowId = modifiedRow.Value<string>("id");
 
                 if (status == "newadded")
                 {
                     var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
-                if (!rowDic.ContainsKey("Materials_Remark"))
-                {
-                    Alert.Show("备注不能为空！");
-                    return UIHelper.Result();
-                }
 
-                var model = new ScreenRecDetail();
-                model._id = (int) (_repDetail.Max(t => t._id) ?? 0) + 1;
-                foreach (var p in rowDic)
-                {
-                    var paramArr = p.Key.Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (paramArr.Length > 1)
-                        typeof(Materials).GetProperty(paramArr[1])
-                            .SetValue(typeof(ScreenRecDetail).GetProperty(paramArr[0]).GetValue(model), p.Value);
-                    else
+                    var model = new ScreenRepairs();
+                    model._id = (int) (_repRepairs.Max(t => t._id) ?? 0) + 1;
+                    foreach (var p in rowDic)
                     {
-                        var prop =typeof(ScreenRecDetail).GetProperty(paramArr[0]);
-                        if(prop.PropertyType==typeof(int))
+                        var prop = typeof(ScreenRepairs).GetProperty(p.Key);
+                        if (prop.PropertyType == typeof(int))
                             prop.SetValue(model, Convert.ToInt32(p.Value));
                         else if (prop.PropertyType == typeof(DateTime?) || prop.PropertyType == typeof(DateTime))
                         {
-                            prop.SetValue(model,Convert.ToDateTime(p.Value));
+                            prop.SetValue(model, Convert.ToDateTime(p.Value));
                         }
                         else if (prop.PropertyType == typeof(double))
                         {
@@ -694,14 +694,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                             prop.SetValue(model, p.Value);
                         }
                     }
-                }
-                    model.IsLog = true;
-                    model.LogType = LogType.服务类型.ToString();
-                _repDetail.Add(model);
+                    _repRepairs.Add(model);
                 }
                 else if (status == "deleted")
                 {
-                    _repDetail.Delete(t => t._id == int.Parse(rowId));
+                    _repRepairs.Delete(t => t._id == int.Parse(rowId));
                 }
             }
 
@@ -714,11 +711,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 if (status == "newadded")
                 {
                     var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
-                    if (!rowDic.ContainsKey("Materials_Remark"))
-                    {
-                        Alert.Show("备注不能为空！");
-                        return UIHelper.Result();
-                    }
 
                     var model = new ScreenRecDetail();
                     model._id = (int)(_repDetail.Max(t => t._id) ?? 0) + 1;
@@ -753,6 +745,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     }
                     model.IsLog = true;
                     model.LogType = LogType.收费类型.ToString();
+
+                    var rec = _rep.Get(t => t.DeviceNum == model.DeviceNum && !t.IsLog);
+                    model.Owner = rec.Owner;
+                    model.InstallStation = rec.InstallStation;
+                    model.LineName = rec.LineName;
                     _repDetail.Add(model);
                 }
                 else if (status == "deleted")
@@ -884,9 +881,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         public ActionResult Grid1_RowClick(string rowText, JArray Grid2_fields, JArray Grid3_fields, JArray Grid4_fields, JArray Grid5_fields)
         {
             UIHelper.Grid("Grid2").DataSource(
-                _repDetail.Find(t => t.DeviceNum == rowText && t.IsLog&&t.LogType=="服务类型")
+                _repRepairs.Find(t => t.DeviceNum == rowText)
                     .Sort(
-                        new SortDefinitionBuilder<ScreenRecDetail>().Descending(t => t.LineName))
+                        new SortDefinitionBuilder<ScreenRepairs>().Descending(t => t.LineName))
                     .ToList(), Grid2_fields);
             UIHelper.Grid("Grid3").DataSource(
                 _repDetail.Find(t => t.DeviceNum == rowText && t.IsLog && t.LogType == "收费类型")
