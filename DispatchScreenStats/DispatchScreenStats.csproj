@@ -220,6 +220,8 @@
     <Content Include="Areas\ScreenPrice\Views\ScreenDetailPrice\Search.cshtml" />
     <Content Include="Areas\ScreenPrice\Views\ScreenPriceStats\Search.cshtml" />
     <Content Include="Areas\ScreenPrice\Views\ScreenDetailPriceStats\Search.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenRecall\Index.cshtml" />
+    <Content Include="Areas\ScreenPrice\Views\ScreenRecall\Search.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2055,6 +2057,7 @@
     <Compile Include="Areas\ScreenPrice\Controllers\ScreenDetailPriceStatsController.cs" />
     <Compile Include="Areas\ScreenPrice\Controllers\ScreenPriceController.cs" />
     <Compile Include="Areas\ScreenPrice\Controllers\ScreenPriceStatsController.cs" />
+    <Compile Include="Areas\ScreenPrice\Controllers\ScreenRecallController.cs" />
     <Compile Include="Areas\ScreenPrice\ScreenPriceAreaRegistration.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\AccessoryController.cs" />
     <Compile Include="Areas\ScreenStats\Controllers\BasicDataController.cs" />

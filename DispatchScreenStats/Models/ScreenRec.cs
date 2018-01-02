@@ -20,6 +20,7 @@ namespace DispatchScreenStats.Models
         public string ConstructionType { get; set; }
         public int? ScreenCount { get; set; }
         public string InstallStation { get; set; }
+        public bool IsWireLess { get; set; }
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
@@ -57,6 +58,7 @@ namespace DispatchScreenStats.Models
         public int? ScreenCount { get; set; }
          [Display(Name = "安装站点")]
         public string InstallStation { get; set; }
+         public bool IsWireLess { get; set; }
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
@@ -104,6 +106,16 @@ namespace DispatchScreenStats.Models
         public string Details { get; set; }
         public string ConstructionType { get; set; }
         public DateTime? Date { get; set; }
+        public string Remark { get; set; }
+    }
+
+    public class ScreenRecallStats
+    {
+        public string DeviceNum { get; set; }
+        public string Details { get; set; }
+        public string HandlingType { get; set; }
+        public string Price { get; set; }
+        public DateTime? OccurredTime { get; set; }
         public string Remark { get; set; }
     }
 

@@ -116,17 +116,18 @@
                           .Editor(F.TextBox().ID("tbxOwner")),
                       F.RenderField()
                           .HeaderText("安装线路")
-                                          .DataField("LineName").Width(180).SortField("LineName")
+                                          .DataField("LineName").SortField("LineName")
                                   .Editor(F.TextBox().ID("tbxLineName").Required(true)),
                               F.RenderField()
                                   .HeaderText("同屏线路")
                                   .DataField("LinesInSameScreen").Width(120),
                                     F.RenderField()
                                   .HeaderText("施工类型")
-                                  .DataField("ConstructionType").Width(120),
+                                  .DataField("ConstructionType"),
                       F.RenderField()
                                           .HeaderText("屏幕类型").FieldType(FieldType.Int).SortField("ScreenType")
                           .DataField("ScreenType").Width(120).RendererFunction("renderScreenType"),
+                          F.RenderCheckField().HeaderText("是否无线屏").DataField("IsWireLess").RenderAsStaticField(true),
                       F.RenderField()
                                           .HeaderText("屏数").SortField("ScreenCount")
                           .DataField("ScreenCount").Width(60).FieldType(FieldType.Int)

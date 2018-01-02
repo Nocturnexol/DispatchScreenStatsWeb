@@ -169,7 +169,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                     model.DeviceNum = dev.DeviceNum;
                             }
                         }
-
                         if (model.Materials.Remark.Contains("设备编号"))
                         {
                             if (model.Materials.Remark.Replace("设备编号：", "").Replace("设备编号:", "").Length > 6)
@@ -251,6 +250,19 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         {
                             sb.AppendLine("第" + (i + 1) + "行有无法识别的数据");
                         }
+
+
+
+                        if (model.Materials.Remark.Contains("无线"))
+                        {
+                            model.IsWireLess = true;
+                            foreach (var screenRec in list.Where(t=>t.DeviceNum==model.DeviceNum))
+                            {
+                                screenRec.IsWireLess = true;
+                            }
+                        }
+
+
                         list.Add(model);
                     }
 
@@ -307,6 +319,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                     detail.ScreenType = ScreenTypeEnum.标准单线屏;
 
                                 rec.ScreenType = detail.ScreenType;
+                                detail.IsWireLess = rec.IsWireLess;
                                 detailList.Add(detail);
 
                                 //if (rec.ScreenCount.HasValue) continue;
@@ -679,7 +692,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                             prop.SetValue(model, Convert.ToInt32(p.Value));
                         else if (prop.PropertyType == typeof(DateTime?) || prop.PropertyType == typeof(DateTime))
                         {
-                            prop.SetValue(model, Convert.ToDateTime(p.Value));
+                            if(!string.IsNullOrEmpty(p.Value.ToString()))
+                                prop.SetValue(model, DateTime.Parse(p.Value.ToString()));
                         }
                         else if (prop.PropertyType == typeof(double))
                         {
@@ -727,7 +741,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 prop.SetValue(model, Convert.ToInt32(p.Value));
                             else if (prop.PropertyType == typeof(DateTime?) || prop.PropertyType == typeof(DateTime))
                             {
-                                prop.SetValue(model, Convert.ToDateTime(p.Value));
+                                if (!string.IsNullOrEmpty(p.Value.ToString()))
+                                    prop.SetValue(model, DateTime.Parse(p.Value.ToString()));
                             }
                             else if (prop.PropertyType == typeof(double))
                             {
@@ -788,7 +803,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 prop.SetValue(model, Convert.ToInt32(p.Value));
                             else if (prop.PropertyType == typeof(DateTime?) || prop.PropertyType == typeof(DateTime))
                             {
-                                prop.SetValue(model, Convert.ToDateTime(p.Value));
+                                if (!string.IsNullOrEmpty(p.Value.ToString()))
+                                    prop.SetValue(model, DateTime.Parse(p.Value.ToString()));
                             }
                             else if (prop.PropertyType == typeof(double))
                             {
@@ -845,7 +861,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 prop.SetValue(model, Convert.ToInt32(p.Value));
                             else if (prop.PropertyType == typeof(DateTime?) || prop.PropertyType == typeof(DateTime))
                             {
-                                prop.SetValue(model, Convert.ToDateTime(p.Value));
+                                if (!string.IsNullOrEmpty(p.Value.ToString()))
+                                    prop.SetValue(model, DateTime.Parse(p.Value.ToString()));
                             }
                             else if (prop.PropertyType == typeof(double))
                             {
