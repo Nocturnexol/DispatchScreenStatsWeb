@@ -222,6 +222,7 @@
     <Content Include="Areas\ScreenPrice\Views\ScreenDetailPriceStats\Search.cshtml" />
     <Content Include="Areas\ScreenPrice\Views\ScreenRecall\Index.cshtml" />
     <Content Include="Areas\ScreenPrice\Views\ScreenRecall\Search.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Upload.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />

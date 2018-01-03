@@ -107,6 +107,13 @@ namespace DispatchScreenStats.Areas.ScreenPrice.Controllers
             var list = _rep.Find(filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null).ToList().OrderBy(t => t.DeviceNum).Select(Map).ToList();
             return Json(GetHtmlStr(list).Replace("border=\"1\"", ""));
         }
+        public FileResult Export()
+        {
+            int count;
+            var list = _rep.QueryByPage(0, int.MaxValue, out count).OrderBy(t => t.DeviceNum).Select(Map).ToList();
+            var str = GetHtmlStr(list).Replace("<tr style=\"height: 10px;\"></tr>", "");
+            return File(Encoding.UTF8.GetBytes(str), "application/excel", "整屏费用报表.xls");
+        }
         private string GetHtmlStr(List<ScreenPriceStats> list)
         {
             var htmlStr = new StringBuilder(

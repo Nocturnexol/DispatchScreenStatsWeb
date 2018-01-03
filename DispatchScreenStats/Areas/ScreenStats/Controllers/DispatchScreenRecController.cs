@@ -357,7 +357,42 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
             return UIHelper.Result();
         }
+        public ViewResult Upload()
+        {
+            return View();
+        }
 
+        [HttpPost]
+        public ActionResult Upload(HttpPostedFileBase file)
+        {
+            if (file == null || file.ContentLength == 0) return UIHelper.Result();
+            try
+            {
+                var fileName = file.FileName;
+                var fileType = GetFileType(fileName);
+                if (!ValidPicTypes.Contains(fileType))
+                {
+                    // 清空文件上传组件
+                    UIHelper.FileUpload("file").Reset();
+                    ShowNotify("无效的文件类型！");
+                }
+                else
+                {
+                    Alert.Show(file.FileName);
+                }
+            }
+            catch (Exception e)
+            {
+                Alert.Show(e.Message, MessageBoxIcon.Warning);
+                return UIHelper.Result();
+            }
+            finally
+            {
+                file.InputStream.Close();
+            }
+
+            return UIHelper.Result();
+        }
         public FileResult Export()
         {
             var filter = (List<FilterDefinition<ScreenRecDetail>>) Session["filter"];

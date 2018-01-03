@@ -38,6 +38,10 @@
                         .Icon(Icon.Delete)
                         .Text("删除选中记录")
                         .Listener("click", "onDeleteSelectedClick") : F.Button().Hidden(true),
+                                  isAuthorized ? F.Button()
+                                                          .ID("btnExport")
+                                                          .Icon(Icon.PageExcel)
+                                                          .Text("导出").Listener("click", "onExportClick") : F.Button().Hidden(true),
                                    F.ToolbarFill(),
                                       F.Button()
                                           .ID("btnNew")
@@ -164,6 +168,9 @@
 @section script {
 
     <script>
+        function onExportClick() {
+            window.location.href = '@Url.Action("Export")';
+        }
         function onBtnClick() {
             F.ui.Window1.show('@Url.Action("Search")', '搜索');
         }

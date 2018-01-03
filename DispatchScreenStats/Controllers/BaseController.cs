@@ -55,7 +55,13 @@ namespace DispatchScreenStats.Controllers
             "xls",
             "xlsx"
         };
-
+        protected readonly IList<string> ValidPicTypes = new[]
+        {
+            "jpg",
+            "jpeg",
+            "png",
+            "bmp"
+        };
         protected string GetFileType(string fileName)
         {
             var fileType = string.Empty;
