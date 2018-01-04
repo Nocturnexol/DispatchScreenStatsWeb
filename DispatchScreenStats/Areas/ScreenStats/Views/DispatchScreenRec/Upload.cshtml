@@ -1,0 +1,96 @@
+﻿
+@{
+    ViewBag.Title = "Upload";
+    var F = Html.F();
+}
+
+@section body{
+    <input type="file" id="file" name="file"  />
+    @( F.Button()
+                .ID("btnSubmit")
+                                        .OnClick(Url.Content("~/ScreenStats/DispatchScreenRec/Upload"), "file")
+                .ValidateForms("SimpleForm1")
+                .Text("上传"))
+    @*<input type=" file" id="file_input" multiple="" webkitdirectory="">*@
+    @*@(F.SimpleForm()
+        .ID("SimpleForm1")
+        .BodyPadding(5)
+        .Width(550)
+        .EnableCollapse(true)
+        .ShowBorder(true)
+        .ShowHeader(false)
+        .Items(
+            F.FileUpload()
+                .ID("file")
+                .EmptyText("请选择图片")
+                .Label("文件")
+                .Listener("ontextchanged","onFileChange")
+                .Required(true)
+                .ShowRedStar(true),
+            F.Button()
+                .ID("btnSubmit")
+                                        .OnClick(Url.Content("~/ScreenStats/DispatchScreenRec/Upload"), "SimpleForm1")
+                .ValidateForms("SimpleForm1")
+                .Text("上传")
+        )
+)*@
+
+}
+
+@section script{
+
+    <script>
+
+        $(function() {
+            $('#file-inputEl').attr('name', 'file-inputEl');
+        });
+
+        function onFileChange(node) {
+            var imgURL = "";
+            try {
+                var file = null;
+                if (node.files && node.files[0]) {
+                    file = node.files[0];
+                } else if (node.files && node.files.item(0)) {
+                    file = node.files.item(0);
+                }
+                //Firefox 因安全性问题已无法直接通过input[file].value 获取完整的文件路径  
+                try {
+                    //Firefox7.0   
+                    imgURL = file.getAsDataURL();
+                    //alert("//Firefox7.0"+imgRUL);                           
+                } catch (e) {
+                    //Firefox8.0以上                                
+                    imgURL = window.URL.createObjectURL(file);
+                    //alert("//Firefox8.0以上"+imgRUL);  
+                }
+            } catch (e) { //这里不知道怎么处理了，如果是遨游的话会报这个异常                   
+                //支持html5的浏览器,比如高版本的firefox、chrome、ie10  
+                if (node.files && node.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        imgURL = e.target.result;
+                    };
+                    reader.readAsDataURL(node.files[0]);
+                }
+            }
+            //return imgURL;
+            console.log(imgURL);
+        }
+
+
+        $("input[type='file']").change(function () {
+            var file = this.files[0];
+            console.log(file.getAsDataURL());
+            //if (window.FileReader) {
+            //    var reader = new FileReader();
+            //    reader.readAsDataURL(file);
+            //    //监听文件读取结束后事件    
+            //    reader.onloadend = function (e) {
+            //        console.log(e.target.result);
+            //        //$(".img").attr("src", e.target.result);    //e.target.result就是最后的路径地址
+            //    };
+            //}
+        });
+    </script>
+}
