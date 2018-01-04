@@ -252,16 +252,16 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         }
 
 
+                            var flag = model.Materials.Remark.Contains("无线");
 
-                        if (model.Materials.Remark.Contains("无线"))
+                            model.IsWireLess = flag;
+                        if (model.IsLog)
                         {
-                            model.IsWireLess = true;
-                            foreach (var screenRec in list.Where(t=>t.DeviceNum==model.DeviceNum))
+                            foreach (var screenRec in list.Where(t => t.DeviceNum == model.DeviceNum))
                             {
-                                screenRec.IsWireLess = true;
+                                screenRec.IsWireLess = flag;
                             }
                         }
-
 
                         list.Add(model);
                     }
@@ -449,7 +449,12 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var screenType = values["tbType"];
             var screenCount = values["nbCount"];
             var inStallDate = values["tbDate"];
-            //var remark = values["tbRemark"];
+            var chargeDate = values["dpDate"];
+            var lower = values["nbLower"];
+            var upper = values["nbUpper"];
+            var paymentStatus = values["ddlStatus"];
+            var isWireless = values["ddlIsWireless"];
+            var remark = values["tbRemark"];
 
             var sortField = values["Grid1_sortField"];
             var sortDirection = values["Grid1_sortDirection"];
@@ -532,11 +537,48 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallDate, DateTime.Parse(inStallDate)));
                 filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.InstallDate, DateTime.Parse(inStallDate)));
             }
-            //if (!string.IsNullOrWhiteSpace(remark))
-            //{
-            //    filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.Materials.Remark,
-            //        new BsonRegularExpression(new Regex(remark.Trim()))));
-            //}
+            if (!string.IsNullOrWhiteSpace(chargeDate))
+            {
+                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ChargeTime, DateTime.Parse(chargeDate)));
+                filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.ChargeTime, DateTime.Parse(chargeDate)));
+            }
+            if (!string.IsNullOrWhiteSpace(lower))
+            {
+                double d;
+                if (double.TryParse(lower, out d) && !double.IsNaN(d))
+                {
+                    filter.Add(Builders<ScreenRecDetail>.Filter.Gte(t => t.Price, d));
+                    filterRec.Add(Builders<ScreenRec>.Filter.Gte(t => t.Price, d));
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(upper))
+            {
+                double d;
+                if (double.TryParse(upper, out d)&&!double.IsNaN(d))
+                {
+                    filter.Add(Builders<ScreenRecDetail>.Filter.Lte(t => t.Price, d));
+                    filterRec.Add(Builders<ScreenRec>.Filter.Lte(t => t.Price,d));
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(paymentStatus))
+            {
+                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.PaymentStatus, paymentStatus));
+                filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.PaymentStatus, paymentStatus));
+            }
+            if (!string.IsNullOrWhiteSpace(isWireless))
+            {
+                bool r;
+                if (bool.TryParse(isWireless, out r))
+                {
+                        filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.IsWireLess, r));
+                        filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.IsWireLess, r));
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(remark))
+            {
+                filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.Materials.Remark,
+                    new BsonRegularExpression(new Regex(remark.Trim(),RegexOptions.IgnoreCase))));
+            }
             Session["filter"] = filter;
             Session["filterRec"] = filterRec;
 
@@ -565,6 +607,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             owners.AddRange(
                 _rep.Distinct(t => t.Owner).OrderBy(t => t).Select(t => new ListItem(t.ToString(), t.ToString(), false)));
             ViewBag.Owners = owners.ToArray();
+            var l = GetBasicDdlByName("付款状态").ToList(); l.Insert(0, new ListItem("全部", ""));
+            ViewBag.ddlStatus = l.ToArray();
+            ViewBag.ddlIsWireless = new[]
+                {new ListItem("全部", ""), new ListItem("是", "true"), new ListItem("否", "false")};
             return View();
         }
 
@@ -679,7 +725,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     var lambda =
                         Expression.Lambda<Func<ScreenRecDetail, object>>(Expression.Convert(body, typeof(object)), param);
                     _repDetail.Update(t => t.DeviceNum == srcDetail.DeviceNum, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
-                    if (p.Key == "Price"||p.Key=="PaymentStatus"||p.Key=="ChargeTime")
+                    if (p.Key == "Price" || p.Key == "PaymentStatus" || p.Key == "ChargeTime" || p.Key == "IsWireLess")
                     {   
                         var paramRec = Expression.Parameter(typeof(ScreenRec));
                         var bodyRec = Expression.Property(paramRec, typeof(ScreenRec), p.Key);
@@ -687,6 +733,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         Expression.Lambda<Func<ScreenRec, object>>(Expression.Convert(bodyRec, typeof(object)), paramRec);
                         _rep.Update(t => t.DeviceNum == srcDetail.DeviceNum,
                             Builders<ScreenRec>.Update.Set(lambdaRec, p.Value));
+                        _repDetail.UpdateMany(t => t.DeviceNum == srcDetail.DeviceNum, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
                     }
                     sb.AppendFormat("{0}由{1}改为{2}；", paramArr.Length > 1 ? "备注" : typeof(ScreenRecDetail).GetCName(p.Key), paramArr.Length > 1 ? srcDetail.Materials.Remark : typeof(ScreenRecDetail).GetProperty(p.Key).GetValue(srcDetail), p.Value);
                 }

@@ -37,11 +37,16 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var pageIndex = Convert.ToInt32(values["Grid1_pageIndex"] ?? "0");
             var pageSize = Convert.ToInt32(values["Grid1_pageSize"] ?? "0");
 
+            var devNum = values["tbDevNum"];
             var line = values["tbLine"];
             var owner = values["ddlOwner"] != null && values["ddlOwner"] != "[]" ? JArray.Parse(values["ddlOwner"]) : null;
             var station = values["tbStation"];
             var filter = new List<FilterDefinition<ScreenRec>> { _filter };
-
+            if (!string.IsNullOrWhiteSpace(devNum))
+            {
+                filter.Add(Builders<ScreenRec>.Filter.Regex(t =>t.DeviceNum,
+                    new BsonRegularExpression(new Regex(devNum.Trim(),RegexOptions.IgnoreCase))));
+            }
             if (owner != null)
             {
                 filter.Add(Builders<ScreenRec>.Filter.In(t => t.Owner, owner));

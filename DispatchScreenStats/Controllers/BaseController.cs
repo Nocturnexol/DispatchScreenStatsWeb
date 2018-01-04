@@ -7,7 +7,7 @@ namespace DispatchScreenStats.Controllers
 {
     public class BaseController : Controller
     {
-        protected const int PageSize = 20;
+        protected const int PageSize = 200;
         /// <summary>
         /// 显示通知对话框
         /// </summary>

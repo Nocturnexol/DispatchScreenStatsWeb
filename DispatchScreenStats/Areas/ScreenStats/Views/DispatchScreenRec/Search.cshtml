@@ -40,25 +40,38 @@
                       F.Panel()
                           .ID("Panel2")
                           .ShowHeader(false)
-                          .ShowBorder(false)
-                          .Layout(LayoutType.Column)
+                                  .ShowBorder(false).BoxConfigChildMargin("0 10 5 0")
+                          .Layout(LayoutType.HBox)
                           .Items(
-                                      F.TextBox().ID("tbLine").Label("安装线路").EmptyText("安装线路").Width(420),
-                              F.CheckBox().ID("cbIsFuzzyLine").Label("是否模糊搜索").MarginLeft(36)
+                                              F.TextBox().ID("tbLine").Label("安装线路").EmptyText("安装线路").BoxFlex(3),
+                                              F.CheckBox().ID("cbIsFuzzyLine").Label("是否模糊搜索").BoxFlex(1)
                           ),
                                    F.Panel()
                                   .ID("Panel3")
                                   .ShowHeader(false)
                                   .ShowBorder(false)
-                                  .Layout(LayoutType.Column)
+                                  .Layout(LayoutType.HBox).BoxConfigChildMargin("0 10 5 0")
                                   .Items(
-                                                      F.TextBox().ID("tbStation").Label("安装站点").EmptyText("安装站点").Width(420),
-                                      F.CheckBox().ID("cbIsFuzzyStation").Label("是否模糊搜索").MarginLeft(36)
+                                                              F.TextBox().ID("tbStation").Label("安装站点").EmptyText("安装站点").BoxFlex(3),
+                                                      F.CheckBox().ID("cbIsFuzzyStation").Label("是否模糊搜索").BoxFlex(1)
                                   ),
                       F.NumberBox().ID("nbCount").Label("屏数").EmptyText("屏数").NoNegative(true),
                               F.DropDownList().Items(ViewBag.ScreenTypes).ID("tbType").Label("屏幕类型").EmptyText("屏幕类型"),
-                              F.DatePicker().MaxDate(DateTime.Today).ID("tbDate").Label("安装日期").EmptyText("安装日期")
-                      //F.TextBox().ID("tbRemark").Label("备注").EmptyText("备注")
+                              F.DatePicker().ID("tbDate").Label("安装日期").EmptyText("安装日期"),
+                                      F.DatePicker().ID("dpDate").Label("收费日期").EmptyText("收费日期"),
+                                                         F.Panel()
+                                          .ShowHeader(false)
+                                          .ShowBorder(false)
+                                          .Layout(LayoutType.Column).Items(
+                                          F.NumberBox().NoNegative(true).ID("nbLower").Label("金额").ColumnWidth("30%"),
+                                          F.Label().Text(" ~ "),
+                                                                          F.NumberBox().NoNegative(true).ID("nbUpper").ColumnWidth("12%").CompareControl("nbLower")
+                .CompareOperator(Operator.GreaterThanEqual)
+                .CompareMessage("金额上限应该大于等于金额下限!")
+                                          ),
+                                                                                   F.DropDownList().Items(ViewBag.ddlStatus).ID("ddlStatus").Label("付款状态").EmptyText("付款状态"),
+                                                                                                    F.DropDownList().Items(ViewBag.ddlIsWireless).ID("ddlIsWireless").Label("是否无线屏"),
+                      F.TextBox().ID("tbRemark").Label("备注").EmptyText("备注")
                   )
           ))
 }
@@ -79,10 +92,17 @@
                 'cbIsFuzzyStation': F.ui.cbIsFuzzyStation.getValue(),
                 'tbType': F.ui.tbType.getValue(),
                 'nbCount': F.ui.nbCount.getValue(),
-                //'tbRemark': F.ui.tbRemark.getValue()
+                'nbLower': F.ui.nbLower.getValue(),
+                'nbUpper': F.ui.nbUpper.getValue(),
+                'ddlStatus': F.ui.ddlStatus.getValue(),
+                'ddlIsWireless': F.ui.ddlIsWireless.getValue(),
+                'tbRemark': F.ui.tbRemark.getValue()
             };
             if (F.ui.tbDate.getValue()) {
                 values.tbDate = F.ui.tbDate.getValue().Format("yyyy-MM-dd");
+            }
+            if (F.ui.dpDate.getValue()) {
+                values.dpDate = F.ui.dpDate.getValue().Format("yyyy-MM-dd");
             }
             // 隐藏弹出窗体
             activeWindow.hide();

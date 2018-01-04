@@ -37,7 +37,7 @@
     bm.addControl(new BMap.NavigationControl());
     bm.enableScrollWheelZoom(true);
     $.post("@Url.Action("GetPoints")",
-    { },
+    { range:'@Model'},
     function (res) {
         $.each(res, function (index, value, array) {
             //GPS坐标

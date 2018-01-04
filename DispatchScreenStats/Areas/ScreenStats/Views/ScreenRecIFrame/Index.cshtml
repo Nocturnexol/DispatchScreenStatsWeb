@@ -6,9 +6,37 @@
 
 @section body {
 
-    @(F.Grid()
+    @(F.Panel()
+        .ID("Panel1")
+        .BodyPadding(5)
+        .ShowBorder(false)
+        .ShowHeader(false)
+        .Layout(LayoutType.VBox)
+        .IsViewPort(true)
+        .Items(
+             F.Form()
+                        .ID("Form1")
+                        .ShowHeader(false)
+                        .ShowBorder(false)
+                        .Rows(
+                            F.FormRow()
+                                .Items(
+                                            F.TextBox().ID("tbDevNum").EmptyText("设备编号"),
+                                    F.TextBox()
+                                        .ID("tbLine")
+                                        .EmptyText("线路"),
+                                                F.TextBox()
+                                                        .ID("tbStation")
+                                                .EmptyText("安装站点"),
+                                    F.Button()
+                                        .ID("btnSearch")
+                                        .Text("检索")
+                                        .OnClick(Url.Action("DoSearch"), "Form1,Grid1")
+                                )
+                        ),
+    F.Grid()
           .ID("Grid1")
-          .ShowBorder(false)
+          .ShowBorder(true)
           .ShowHeader(false)
           .EnableCollapse(true)
           .DataIDField("_id")
@@ -57,7 +85,7 @@
           .RecordCount(ViewBag.RecordCount)
           .DataSource(Model)
 
-          )
+          ))
 
 
 }
