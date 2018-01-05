@@ -91,7 +91,7 @@
                           .DataField("Owner"),
                       F.RenderField()
                           .HeaderText("报修来源")
-                          .DataField("RepairsSoucre").Editor(F.TextBox()),
+                          .DataField("RepairsSource").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障接报人")
                                   .DataField("Accepter").Editor(F.TextBox()),
@@ -109,7 +109,14 @@
                                   .DataField("HitchContent").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("解决方法")
-                                  .DataField("Solution").ExpandUnusedSpace(true).Editor(F.TextBox())
+                                  .DataField("Solution").ExpandUnusedSpace(true).Editor(F.TextBox()),
+                                    F.RenderField()
+                                  .HeaderText("")
+                                  .Width(30)
+                                  .RendererFunction("renderEditField")
+                                  .TextAlign(TextAlign.Center)
+                                  .EnableHeaderMenu(false)
+                                  .EnableColumnHide(false)
                       //F.RenderField()
                       //    .HeaderText("")
                       //    .Width(60)
@@ -159,7 +166,19 @@
           .IFrameUrl(Url.Content("about:blank"))
           .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
           )
-
+@(F.Window()
+          .ID("Window2")
+          .Width(700)
+          .Height(480)
+          .IsModal(true)
+          .Hidden(true)
+          .Target(Target.Top)
+          .EnableResize(true)
+          .EnableMaximize(true)
+          .EnableIFrame(true)
+          .IFrameUrl(Url.Content("about:blank"))
+          .OnClose(Url.Action("DoSearch"), "Form1,Grid1")
+)
 }
 
 @section script {
@@ -191,7 +210,7 @@
             var selectedCell = grid1.getSelectedCell();
             if (selectedCell) {
                 var iframeWindowUrl = '@Url.Action("Index","ScreenRecIFrame","选择")';
-                F.ui.Window1.show(iframeWindowUrl + '?rowid=' + selectedCell[0]);
+                F.ui.Window1.show(iframeWindowUrl + '?rowid=' + selectedCell[0], "选择");
             }
         }
 
@@ -242,7 +261,9 @@
     function renderDeleteField(value, params) {
         return '<a href="javascript:;" class="deletefield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/delete.png")"></a>';
     }
-
+        function renderEditField(value, params) {
+            return '<a href="javascript:;" class="editfield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/pencil.png")"></a>';
+        }
         function onImportClick(event) {
             F.ui.Window1.show('@Url.Content("~/ScreenStats/ScreenRepairs/RepairsImport")', '导入');
         }
@@ -298,6 +319,16 @@
                     }
                 });
             });
+
+
+        grid1.el.on('click',
+               'a.editfield',
+               function (event) {
+                   var rowEl = $(this).closest('.f-grid-row');
+                   var rowData = grid1.getRowData(rowEl);
+
+                   F.ui.Window2.show('@Url.Action("AddOrEdit")?id=' + rowData.id, '编辑');
+               });
 
     });
 

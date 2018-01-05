@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -29,6 +30,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         private readonly IMongoRepository<BasicData> _repBasic = new MongoRepository<BasicData>();
         private readonly IMongoRepository<ScreenRepairs> _repRepairs = new MongoRepository<ScreenRepairs>();
+        private readonly IMongoRepository<Accessory> _repAcc = new MongoRepository<Accessory>();
+        private readonly IMongoRepository<ScreenImage> _repImg = new MongoRepository<ScreenImage>();
         private readonly Expression<Func<ScreenRecDetail, bool>> _filter = t => !t.IsLog;
         private readonly Expression<Func<ScreenRec, bool>> _f = t => !t.IsLog;
         //
@@ -162,7 +165,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 model.IsLog = true;
                                 var roads = model.Materials.Remark.Split(new[] {'改', '为'},
                                     StringSplitOptions.RemoveEmptyEntries);
-                                var dev=
+                                var dev =
                                     list.FirstOrDefault(
                                         t => t.LineName == roads[0] && t.InstallStation == model.InstallStation);
                                 if (dev != null)
@@ -212,11 +215,13 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 list.FirstOrDefault(
                                     t =>
                                         (t.LineName.Replace("、", "/")
-                                            .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries).OrderBy(x=>x)
-                                            .SequenceEqual(model.LineName.Replace("、", "/")
-                                                .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries).OrderBy(x=>x)) ||
-                                        t.LineName == model.LineName||t.LineName.Replace("、", "/")
-                                            .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries).Contains(model.LineName)) &&
+                                             .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries).OrderBy(x => x)
+                                             .SequenceEqual(model.LineName.Replace("、", "/")
+                                                 .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries)
+                                                 .OrderBy(x => x)) ||
+                                         t.LineName == model.LineName || t.LineName.Replace("、", "/")
+                                             .Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries)
+                                             .Contains(model.LineName)) &&
                                         (t.InstallStation == model.InstallStation ||
                                          t.InstallStation.Contains(model.InstallStation) ||
                                          model.InstallStation.Contains(t.InstallStation)));
@@ -246,15 +251,16 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                             sb.AppendLine("第" + (i + 1) + "行数据设备编号重复");
                         }
                         if (model.Materials.Remark.Contains("原") || model.Materials.Remark.Contains("搬") ||
-                            model.Materials.Remark.Contains("从") || (model.Materials.Remark.Contains("改") && Regex.IsMatch(model.Materials.Remark,"[0-9]*")))
+                            model.Materials.Remark.Contains("从") ||
+                            (model.Materials.Remark.Contains("改") && Regex.IsMatch(model.Materials.Remark, "[0-9]*")))
                         {
                             sb.AppendLine("第" + (i + 1) + "行有无法识别的数据");
                         }
 
 
-                            var flag = model.Materials.Remark.Contains("无线");
+                        var flag = model.Materials.Remark.Contains("无线");
 
-                            model.IsWireLess = flag;
+                        model.IsWireLess = flag;
                         if (model.IsLog)
                         {
                             foreach (var screenRec in list.Where(t => t.DeviceNum == model.DeviceNum))
@@ -274,8 +280,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     //}
                     if (list.Any())
                     {
-                        var detailList=new List<ScreenRecDetail>();
-                        var maxDetailId = (int)(_repDetail.Max(t => t._id) ?? 0) + 1;
+                        var detailList = new List<ScreenRecDetail>();
+                        var accList = new List<Accessory>();
+                        var maxDetailId = (int) (_repDetail.Max(t => t._id) ?? 0) + 1;
+                        var maxAccId = (int) (_repAcc.Max(t => t._id) ?? 0) + 1;
                         foreach (var rec in list)
                         {
                             rec.LineName = rec.LineName.Replace("、", "/");
@@ -333,11 +341,23 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 //log.SaveTime = DateTime.Now;
                                 //log.OperContent = rec.Materials.Remark;
                                 //_repLog.Add(log);
+
                             }
 
+                            accList.AddRange(from prop in typeof(Materials).GetProperties()
+                                let val = prop.GetValue(rec.Materials).ToString()
+                                where !string.IsNullOrWhiteSpace(val) && prop.Name != "Remark"
+                                select new Accessory
+                                {
+                                    _id = maxAccId++,
+                                    Count = val,
+                                    DevNum = rec.DeviceNum,
+                                    Name = prop.GetCName()
+                                });
                         }
                         _rep.BulkInsert(list);
                         if (detailList.Any()) _repDetail.BulkInsert(detailList);
+                        if (accList.Any()) _repAcc.BulkInsert(accList);
                     }
                     // 关闭本窗体（触发窗体的关闭事件）
                     PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
@@ -352,18 +372,20 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 {
                     file.InputStream.Dispose();
                 }
-               
+
             }
 
             return UIHelper.Result();
         }
-        public ViewResult Upload()
+
+        public ViewResult Upload(string devNum)
         {
+            ViewBag.devNum = devNum;
             return View();
         }
 
         [HttpPost]
-        public ActionResult Upload(HttpPostedFileBase file)
+        public ActionResult Upload(HttpPostedFileBase file, string devNum)
         {
             if (file == null || file.ContentLength == 0) return UIHelper.Result();
             try
@@ -378,7 +400,25 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 }
                 else
                 {
-                    Alert.Show(file.FileName);
+                    var md5 = file.InputStream.GetMd5();
+                    if (_repImg.Get(t => t.Md5 == md5) != null)
+                    {
+                        Alert.Show("文件已存在", MessageBoxIcon.Warning);
+                        return UIHelper.Result();
+                    }
+                    var name = file.FileName;
+                    if (_repImg.Get(t => t.DevNum == devNum && t.Name == file.FileName) != null)
+                    {
+                        name = file.FileName + "_" + Guid.NewGuid();
+                    }
+                    var path = Server.MapPath("~/screenImgs/") + devNum;
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    var imgPath = Path.Combine(path, name);
+                    file.SaveAs(imgPath);
+                    _repImg.Add(new ScreenImage(devNum, name, imgPath,md5));
                 }
             }
             catch (Exception e)
@@ -389,9 +429,22 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             finally
             {
                 file.InputStream.Close();
-            }
-
+            }   
+            // 关闭本窗体（触发窗体的关闭事件）
+            PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
+            ShowNotify("上传成功!");
             return UIHelper.Result();
+        }
+
+        public ViewResult ViewImage(string devNum)
+        {
+            ViewBag.devNum = devNum;
+            var imgs = _repImg.Find(t => t.DevNum == devNum).ToList();
+            return View(imgs);
+        }
+        public ActionResult GetImg(string path)
+        {
+            return File(System.IO.File.OpenRead(path), "image/jpeg");
         }
         public FileResult Export()
         {

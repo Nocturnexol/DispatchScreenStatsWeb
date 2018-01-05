@@ -163,6 +163,7 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\marker.png" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\viewer.min.css" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
@@ -223,6 +224,8 @@
     <Content Include="Areas\ScreenPrice\Views\ScreenRecall\Index.cshtml" />
     <Content Include="Areas\ScreenPrice\Views\ScreenRecall\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Upload.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRepairs\AddOrEdit.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\ViewImage.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />
@@ -2028,6 +2031,8 @@
     <Content Include="res\languages\zh_UEY.js" />
     <Content Include="res\themes\bootstrap_pure\theme.css" />
     <Content Include="res\themes\custom_default\theme.css" />
+    <Content Include="screenImgs\C018\5.jpg" />
+    <Content Include="screenImgs\C018\6.jpg" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
@@ -2038,6 +2043,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
+    <Content Include="Scripts\viewer.min.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

@@ -54,6 +54,30 @@ namespace DispatchScreenStats.Common
         }
 
         /// <summary>
+        /// 获取md5
+        /// </summary>
+        /// <param name="inputStream">输入流</param>
+        /// <returns></returns>
+        public static string GetMd5(this Stream inputStream)
+        {
+            try
+            {
+                var md5 = new MD5CryptoServiceProvider();
+                byte[] retVal = md5.ComputeHash(inputStream);
+                StringBuilder sb = new StringBuilder();
+                foreach (byte t in retVal)
+                {
+                    sb.Append(t.ToString("x2"));
+                }
+                return sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("GetMD5() failed,error:" + ex.Message);
+            }
+        }
+
+        /// <summary>
         /// Http发送Post请求方法
         /// </summary>
         /// <param name="url"></param>
@@ -168,6 +192,11 @@ namespace DispatchScreenStats.Common
             var attr = prop.GetCustomAttribute(typeof(DisplayAttribute)) as DisplayAttribute;
                 return attr != null ? attr.Name : key;
         }
-
+        public static string GetCName(this PropertyInfo prop)
+        {
+            if (prop == null) return null;
+            var attr = prop.GetCustomAttribute(typeof(DisplayAttribute)) as DisplayAttribute;
+            return attr != null ? attr.Name : prop.Name;
+        }
     }
 }

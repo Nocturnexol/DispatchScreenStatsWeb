@@ -33,7 +33,75 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             ViewBag.PageSize = PageSize;
             return View(list);
         }
-
+        public ActionResult AddOrEdit(int? id)
+        {
+            ViewBag.hTypes = _rep.Distinct(t => t.HitchType).Where(t=>!string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
+            ViewBag.hStatuses = _rep.Distinct(t => t.Status).Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
+            if (id == null) return View();
+            var model = _rep.Get(t => t._id ==id);
+            if (model == null)
+            {
+                return HttpNotFound();
+            }
+            return View(model);
+        }
+        [HttpPost]
+        public ActionResult AddOrEdit(ScreenRepairs model)
+        {
+            if (!ModelState.IsValid)
+            {
+                Alert.Show(ModelState.ToString());
+                return UIHelper.Result();
+            }
+            try
+            {
+                var isStatusInput = Request["Status_isUserInput"];
+                var isTypeInput = Request["HitchType_isUserInput"];
+                if (!string.IsNullOrEmpty(isStatusInput))
+                {
+                    if (bool.Parse(isStatusInput))
+                    {
+                        model.Status = Request["Status_text"];
+                    }
+                }
+                if (!string.IsNullOrEmpty(isTypeInput))
+                {
+                    if (bool.Parse(isTypeInput))
+                    {
+                        model.HitchType = Request["HitchType_text"];
+                    }
+                }
+                if (model._id == 0)
+                {
+                        model._id = (int)(_rep.Max(t => t._id) ?? 0) + 1;
+                        _rep.Add(model);
+                        // 关闭本窗体（触发窗体的关闭事件）
+                        PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
+                }
+                else
+                {
+                    _rep.Update(t => t._id == model._id,
+                        Builders<ScreenRepairs>.Update.Set(t => t.RepairsDate, model.RepairsDate)
+                            .Set(t => t.LineName, model.LineName)
+                            .Set(t => t.Station, model.Station)
+                            .Set(t => t.Owner, model.Owner)
+                            .Set(t => t.RepairsSource, model.RepairsSource)
+                            .Set(t => t.Accepter, model.Accepter)
+                            .Set(t => t.Handler, model.Handler)
+                            .Set(t => t.HitchType, model.HitchType)
+                            .Set(t => t.Status, model.Status)
+                            .Set(t => t.HitchContent, model.HitchContent)
+                            .Set(t => t.Solution, model.Solution));
+                    // 关闭本窗体（触发窗体的关闭事件）
+                    PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
+                }
+            }
+            catch (Exception ex)
+            {
+                Alert.Show(ex.Message, MessageBoxIcon.Warning);
+            }
+            return UIHelper.Result();
+        }
         private void UpdateGrid(NameValueCollection values)
         {
             var fields = JArray.Parse(values["Grid1_fields"]);
@@ -176,7 +244,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         model.Station = row.GetCell(3).StringCellValue;
                         model.Owner = row.GetCell(4).StringCellValue;
                         row.GetCell(5).SetCellType(CellType.String);
-                        model.RepairsSoucre = row.GetCell(5).StringCellValue;
+                        model.RepairsSource = row.GetCell(5).StringCellValue;
                         model.Accepter = row.GetCell(6).StringCellValue;
                         model.Handler = row.GetCell(7).StringCellValue;
                         model.HitchType = row.GetCell(8).StringCellValue;
@@ -277,7 +345,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 sb.AppendFormat(tdHtml, item.LineName);
                 sb.AppendFormat(tdHtml, item.Station);
                 sb.AppendFormat(tdHtml, item.Owner);
-                sb.AppendFormat(tdHtml, item.RepairsSoucre);
+                sb.AppendFormat(tdHtml, item.RepairsSource);
                 sb.AppendFormat(tdHtml, item.Accepter);
                 sb.AppendFormat(tdHtml, item.Handler);
                 sb.AppendFormat(tdHtml, item.HitchType);

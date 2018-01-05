@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using System.Web.Mvc;
 using DispatchScreenStats.Controllers;
 using DispatchScreenStats.IRepository;
@@ -31,7 +32,40 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 _repBasic.Find(t => t.Type == "配件").ToList().Select(t => new ListItem(t.Name, t.Name)).ToArray();
             return View(list);
         }
+        public FileResult Export(string devNum)
+        {
+            var list = _rep.Find(t => t.DevNum == devNum).ToList();
+            const string thHtml = "<th>{0}</th>";
+            const string tdHtml = "<td style=\"text-align: center;\">{0}</td>";
 
+            var sb = new StringBuilder();
+            sb.Append("<table cellspacing=\"0\" rules=\"all\" border=\"1\" style=\"border-collapse:collapse;\">");
+            sb.Append("<tr>");
+            sb.AppendFormat(thHtml, "");
+            sb.AppendFormat(thHtml, "名称");
+            sb.AppendFormat(thHtml, "数量");
+            sb.AppendFormat(thHtml, "类型");
+            sb.AppendFormat(thHtml, "布局");
+            sb.AppendFormat(thHtml, "价格");
+            sb.AppendFormat(thHtml, "备注");
+            sb.Append("</tr>");
+
+            var rowIndex = 1;
+            foreach (var item in list)
+            {
+                sb.Append("<tr>");
+                sb.AppendFormat(tdHtml, rowIndex++);
+                sb.AppendFormat(tdHtml, item.Name);
+                sb.AppendFormat(tdHtml, item.Count);
+                sb.AppendFormat(tdHtml, item.Type);
+                sb.AppendFormat(tdHtml, item.Layout);
+                sb.AppendFormat(tdHtml, item.Price);
+                sb.AppendFormat(tdHtml, item.Remark);
+                sb.Append("</tr>");
+            }
+            sb.Append("</table>");
+            return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/excel", "配件列表.xls");
+        }
         public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex,
             int Grid1_pageSize)
         {

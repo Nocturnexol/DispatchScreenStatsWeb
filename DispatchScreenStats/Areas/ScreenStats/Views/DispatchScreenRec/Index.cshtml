@@ -167,13 +167,20 @@
                           .HeaderText("备注")
                           .DataField("Materials.Remark").ExpandUnusedSpace(true)
                           .Editor(F.TextBox().ID("tbxInstallStation")),
-                      //F.RenderField()
-                      //    .HeaderText("")
-                      //    .Width(60)
-                      //    .RendererFunction("renderEditField")
-                      //    .TextAlign(TextAlign.Center)
-                      //    .EnableHeaderMenu(false)
-                      //    .EnableColumnHide(false),
+                              F.RenderField()
+                                  .HeaderText("")
+                                  .Width(60)
+                                  .RendererFunction("renderUploadField")
+                                  .TextAlign(TextAlign.Center)
+                                  .EnableHeaderMenu(false)
+                                  .EnableColumnHide(false),
+                                            F.RenderField()
+                                          .HeaderText("")
+                                          .Width(60)
+                                          .RendererFunction("renderImgField")
+                                          .TextAlign(TextAlign.Center)
+                                          .EnableHeaderMenu(false)
+                                          .EnableColumnHide(false),
                       F.RenderField()
                           .HeaderText("")
                           .Width(60)
@@ -476,7 +483,15 @@
         var deleteImageUrl = '@Url.Content("~/res/icon/delete.png")';
         return '<a class="action-btn delete" href="javascript:;"><img class="f-grid-cell-icon" src="' + deleteImageUrl + '"></a>';
     }
-
+        
+        function renderUploadField(value, params) {
+            var deleteImageUrl = '@Url.Content("~/res/icon/disk_upload.png")';
+            return '<a class="uploadfield" href="javascript:;"><img class="f-grid-cell-icon" src="' + deleteImageUrl + '"></a>';
+        }
+        function renderImgField(value, params) {
+            var deleteImageUrl = '@Url.Content("~/res/icon/image_magnify.png")';
+            return '<a class="imgfield" href="javascript:;"><img class="f-grid-cell-icon" src="' + deleteImageUrl + '"></a>';
+        }
     function onNewClick(event) {
         var grid = null;
         //var data = grid2.alldata[0].values;
@@ -712,6 +727,24 @@
                     var rowData = grid1.getRowData(rowEl);
                     F.ui.iframeWindow.show( '@Url.Action("Index","Accessory")?devNum='+rowData.values.DeviceNum);
                 });
+
+        
+        grid1.el.on('click',
+            'a.uploadfield',
+            function(event) {
+                var rowEl = $(this).closest('.f-grid-row');
+                var rowData = grid1.getRowData(rowEl);
+                F.ui.Window1.show( '@Url.Action("Upload")?devNum='+rowData.values.DeviceNum,"上传");
+            });
+
+        grid1.el.on('click',
+           'a.imgfield',
+           function(event) {
+               var rowEl = $(this).closest('.f-grid-row');
+               var rowData = grid1.getRowData(rowEl);
+               F.ui.Window2.show( '@Url.Action("ViewImage")?devNum='+rowData.values.DeviceNum,"查看图片");
+           });
+
         });
 
 

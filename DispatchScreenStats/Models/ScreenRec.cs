@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using DispatchScreenStats.Enums;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace DispatchScreenStats.Models
@@ -35,6 +37,21 @@ namespace DispatchScreenStats.Models
         public DateTime? ChargeTime { get; set; }
     }
 
+    public class ScreenImage
+    {
+        public ScreenImage(string devNum, string name, string path,string md5)
+        {
+            DevNum = devNum;
+            Name = name;
+            Path = path;
+            Md5 = md5;
+        }
+        public ObjectId _id { get; set; }
+        public string DevNum { get; set; }
+        public string Name { get; set; }
+        public string Path { get; set; }
+        public string Md5 { get; set; }
+    }
     public class ScreenRecDetail
     {
         public ScreenRecDetail()
@@ -143,18 +160,31 @@ namespace DispatchScreenStats.Models
 
     public class Materials
     {
+        [Display(Name = "电源线")]
         public string PowerCord { get; set; }
+          [Display(Name = "网线")]
         public string Cable { get; set; }
+          [Display(Name = "网络跳线")]
         public string GridLines { get; set; }
+          [Display(Name = "小交换机")]
         public string SmallExchange { get; set; }
+          [Display(Name = "大交换机")]
         public string BigExchange { get; set; }
+          [Display(Name = "电源接线板")]
         public string PatchBoard { get; set; }
+          [Display(Name = "一分二电源开关")]
         public string OneToTwoSwitch { get; set; }
+          [Display(Name = "USB网卡")]
         public string UsbAdapter { get; set; }
+          [Display(Name = "三线插头")]
         public string ThreePinPlug { get; set; }
+          [Display(Name = "不锈钢方管")]
         public string SquareTube { get; set; }
+          [Display(Name = "电源")]
         public string Power { get; set; }
+          [Display(Name = "单元板")]
         public string UnitBoard { get; set; }
+          [Display(Name = "雨棚")]
         public string Canopy { get; set; }
          [Display(Name = "备注")]
         public string Remark { get; set; }
@@ -164,16 +194,27 @@ namespace DispatchScreenStats.Models
     {
         public int _id { get; set; }
         public string DeviceNum { get; set; }
+        [Display(Name = "报修日期")]
         public DateTime RepairsDate { get; set; }
+        [Display(Name = "线路")]
         public string LineName { get; set; }
+        [Display(Name = "站点")]
         public string Station { get; set; }
+        [Display(Name = "营运公司")]
         public string Owner { get; set; }
-        public string RepairsSoucre { get; set; }
+        [Display(Name = "报修来源")]
+        public string RepairsSource { get; set; }
+        [Display(Name = "故障接报人")]
         public string Accepter { get; set; }
+        [Display(Name = "故障处理人")]
         public string Handler { get; set; }
+        [Display(Name = "故障类型")]
         public string HitchType { get; set; }
+        [Display(Name = "故障状态")]
         public string Status { get; set; }
+        [Display(Name = "故障问题")]
         public string HitchContent { get; set; }
+        [Display(Name = "解决方法")]
         public string Solution { get; set; }
     }
 
