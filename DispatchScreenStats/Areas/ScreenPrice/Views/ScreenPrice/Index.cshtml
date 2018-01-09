@@ -116,18 +116,7 @@
                                   .Width(80)
                                   .Listener("change", "onDdlPageSizeChange")
                                   .Items(
-                                      F.ListItem()
-                                          .Text("20")
-                                          .Value("20"),
-                                      F.ListItem()
-                                          .Text("50")
-                                          .Value("50"),
-                                      F.ListItem()
-                                          .Text("100")
-                                          .Value("100"),
-                                      F.ListItem()
-                                          .Text("200")
-                                          .Value("200")
+                                             CommonHelper.GetPageItems(ViewBag.PageSize)
                                   )
                           )
                   .RecordCount(ViewBag.RecordCount)

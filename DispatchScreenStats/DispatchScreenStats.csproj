@@ -2031,8 +2031,6 @@
     <Content Include="res\languages\zh_UEY.js" />
     <Content Include="res\themes\bootstrap_pure\theme.css" />
     <Content Include="res\themes\custom_default\theme.css" />
-    <Content Include="screenImgs\C018\5.jpg" />
-    <Content Include="screenImgs\C018\6.jpg" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />

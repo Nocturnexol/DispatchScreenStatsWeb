@@ -198,5 +198,17 @@ namespace DispatchScreenStats.Common
             var attr = prop.GetCustomAttribute(typeof(DisplayAttribute)) as DisplayAttribute;
             return attr != null ? attr.Name : prop.Name;
         }
+
+        public static ListItem[] GetPageItems(int pageSize)
+        {
+            return new[]
+            {
+                new ListItem("20", "20", pageSize == 20), new ListItem("50", "50", pageSize == 50),
+                new ListItem("100", "100", pageSize == 100), new ListItem("200", "200", pageSize == 200)
+            };
+        }
+
+
+
     }
 }
