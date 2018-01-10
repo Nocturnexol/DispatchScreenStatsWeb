@@ -33,11 +33,11 @@
                       F.Toolbar()
                           .Items(
                                     F.Button().Listener("click", "onBtnClick").Icon(Icon.SystemSearch).Text("搜索"),
-                              //isAuthorized ?F.Button()
-                              //    .ID("btnDeleteSelected")
-                              //    .Icon(Icon.Delete)
-                              //    .Text("删除选中记录")
-                              //    .Listener("click", "onDeleteSelectedClick") : F.Button().Hidden(true),
+                                      isAuthorized ? F.Button()
+                                          .ID("btnDeleteSelected")
+                                          .Icon(Icon.Delete)
+                                          .Text("删除选中记录")
+                                          .Listener("click", "onDeleteSelectedClick") : F.Button().Hidden(true),
                                            isAuthorized ? F.Button()
                                           .ID("btnDeleteAll")
                                           .Icon(Icon.Delete)
