@@ -54,7 +54,8 @@
                                   .Items(
                                                       F.TextBox().ID("tbStation").Label("安装站点").EmptyText("安装站点").Width(420),
                                       F.CheckBox().ID("cbIsFuzzyStation").Label("是否模糊搜索").MarginLeft(36)
-                                  )
+                                  ),
+                                          F.DropDownList().Items(ViewBag.ddlStatus).ID("ddlStatus").Label("付款状态").EmptyText("付款状态")
                       //F.NumberBox().ID("nbCount").Label("屏数").EmptyText("屏数").NoNegative(true),
                       //        F.DropDownList().Items(ViewBag.ScreenTypes).ID("tbType").Label("屏幕类型").EmptyText("屏幕类型"),
                       //        F.DatePicker().MaxDate(DateTime.Today).ID("tbDate").Label("安装日期").EmptyText("安装日期")
@@ -77,6 +78,7 @@
                 'cbIsFuzzyLine': F.ui.cbIsFuzzyLine.getValue(),
                 'tbStation': F.ui.tbStation.getValue(),
                 'cbIsFuzzyStation': F.ui.cbIsFuzzyStation.getValue(),
+                'ddlStatus': F.ui.ddlStatus.getValue()
                 //'tbRemark': F.ui.tbRemark.getValue()
             };
             //if (F.ui.tbDate.getValue()) {

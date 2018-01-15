@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
+using DispatchScreenStats.Common;
 using DispatchScreenStats.Controllers;
 using DispatchScreenStats.IRepository;
 using DispatchScreenStats.Models;
@@ -25,6 +27,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
     {
         private readonly IMongoRepository<ScreenRepairs> _rep = new MongoRepository<ScreenRepairs>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
+        private readonly IMongoRepository<User> _repUser = new MongoRepository<User>();
         public ActionResult Index()
         {
             int count;
@@ -37,6 +40,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
             ViewBag.hTypes = _rep.Distinct(t => t.HitchType).Where(t=>!string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
             ViewBag.hStatuses = _rep.Distinct(t => t.Status).Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
+            var list = _repUser.Distinct(t => t.UserName).OrderBy(t=>t).Select(t => new ListItem(t, t)).ToArray();
+            ViewBag.Accepters = ViewBag.Handlers = list;
             if (id == null) return View();
             var model = _rep.Get(t => t._id ==id);
             if (model == null)
@@ -71,6 +76,48 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         model.HitchType = Request["HitchType_text"];
                     }
                 }
+                //处理上传附件
+                var file = Request.Files["file"];
+                if (file != null && file.ContentLength != 0)
+                {
+                    var fileName = file.FileName;
+                    var fileType = GetFileType(fileName);
+                    if (!ValidFileTypes.Contains(fileType))
+                    {
+                        // 清空文件上传组件
+                        UIHelper.FileUpload("file").Reset();
+                        ShowNotify("无效的文件类型！");
+                    }
+                    else
+                    {
+                        var md5 = file.InputStream.GetMd5();
+                        var repairModel = _rep.Get(t => t.FileMd5 == md5);
+                        if (repairModel != null)
+                        {
+                            model.FileName = repairModel.FileName;
+                            model.FilePath = repairModel.FilePath;
+                        }
+                        else
+                        {
+                            var name = file.FileName;
+                            if (_rep.Get(t => t.FileName == file.FileName) != null)
+                            {
+                                name = file.FileName + "_" + Guid.NewGuid();
+                            }
+                            var path = Server.MapPath("~/attachments");
+                            if (!Directory.Exists(path))
+                            {
+                                Directory.CreateDirectory(path);
+                            }
+                            var attachPath = Path.Combine(path, name);
+                            file.SaveAs(attachPath);
+                            model.FileName = name;
+                            model.FilePath = attachPath;
+                        }
+                        model.FileMd5 = md5;
+                    }
+                }
+
                 if (model._id == 0)
                 {
                         model._id = (int)(_rep.Max(t => t._id) ?? 0) + 1;
@@ -91,7 +138,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                             .Set(t => t.HitchType, model.HitchType)
                             .Set(t => t.Status, model.Status)
                             .Set(t => t.HitchContent, model.HitchContent)
-                            .Set(t => t.Solution, model.Solution));
+                            .Set(t => t.Solution, model.Solution)
+                            .Set(t=>t.FileName,model.FileName)
+                            .Set(t=>t.FileMd5,model.FileMd5)
+                            .Set(t=>t.FilePath,model.FilePath));
                     // 关闭本窗体（触发窗体的关闭事件）
                     PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
                 }
@@ -102,6 +152,18 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             }
             return UIHelper.Result();
         }
+
+        public FileResult Download(int? id)
+        {
+            var model=_rep.Get(t=>t._id==id);
+            //if (string.IsNullOrEmpty(model.FilePath))
+            //{
+            //    Alert.Show("无附件", MessageBoxIcon.Warning);
+            //    return UIHelper.Result();
+            //}
+            return File(System.IO.File.OpenRead(model.FilePath), "application/excel", model.FileName);
+        }
+
         private void UpdateGrid(NameValueCollection values)
         {
             var fields = JArray.Parse(values["Grid1_fields"]);

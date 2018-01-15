@@ -116,7 +116,16 @@
                                   .RendererFunction("renderEditField")
                                   .TextAlign(TextAlign.Center)
                                   .EnableHeaderMenu(false)
-                                  .EnableColumnHide(false)
+                                  .EnableColumnHide(false),
+                                            F.RenderField()
+                                          .HeaderText("")
+                                          .Width(30)
+                                          .RendererFunction("renderDownloadField")
+                                          .TextAlign(TextAlign.Center)
+                                          .EnableHeaderMenu(false)
+                                          .EnableColumnHide(false),
+                                          F.RenderField().DataField("FileName").Hidden(true),
+                                                  F.RenderField().DataField("FilePath").Hidden(true)
                       //F.RenderField()
                       //    .HeaderText("")
                       //    .Width(60)
@@ -155,8 +164,8 @@
           )
 @(F.Window()
           .ID("Window2")
-          .Width(700)
-          .Height(480)
+          .Width(800)
+          .Height(620)
           .IsModal(true)
           .Hidden(true)
           .Target(Target.Top)
@@ -171,100 +180,105 @@
 @section script {
 
     <script>
-        function onGridDataChange() {
-            var grid1 = F.ui.Grid1;
-            var btnSubmit = F.ui.btnSubmit;
-            // 如果没有删除行，没有新增行，没有修改的数据
-            if (!grid1.getModifiedData().length) {
-                btnSubmit.disable();
-            } else {
-                btnSubmit.enable();
+    function onGridDataChange() {
+        var grid1 = F.ui.Grid1;
+        var btnSubmit = F.ui.btnSubmit;
+        // 如果没有删除行，没有新增行，没有修改的数据
+        if (!grid1.getModifiedData().length) {
+            btnSubmit.disable();
+        } else {
+            btnSubmit.enable();
+        }
+    }
+    // 供子页面调用
+    function updateGridRow(rowId, values) {
+        var grid1 = F.ui.Grid1;
+
+        // cancelEdit用来取消编辑
+        grid1.cancelEdit();
+
+        grid1.updateCellValue(rowId, values);
+    }
+
+
+    function onNameSearchTriggerClick(event) {
+        var grid1 = F.ui.Grid1;
+        var selectedCell = grid1.getSelectedCell();
+        if (selectedCell) {
+            var iframeWindowUrl = '@Url.Action("Index","ScreenRecIFrame","选择")';
+            F.ui.Window1.show(iframeWindowUrl + '?rowid=' + selectedCell[0], "选择");
+        }
+    }
+
+    function onNewClick(event) {
+        //var grid = F.ui.Grid1;
+        //// 新增一行（返回新增行的ID）
+        //var addedRowId = grid.addNewRecord({},
+        //    true,
+        //    'LineName');
+        //// 选中新增的那一行
+        //grid.selectRow(addedRowId);
+        F.ui.Window2.show('@Url.Action("AddOrEdit")', '新增');
+    }
+
+    function onResetClick(event) {
+        F.confirm({
+            message: '确定要重置表格数据？',
+            ok: function () {
+                F.ui.Grid1.rejectChanges();
             }
-        }
-        // 供子页面调用
-        function updateGridRow(rowId, values) {
-            var grid1 = F.ui.Grid1;
-
-            // cancelEdit用来取消编辑
-            grid1.cancelEdit();
-
-            grid1.updateCellValue(rowId, values);
-        }
+        });
+    }
 
 
-        function onNameSearchTriggerClick(event) {
-            var grid1 = F.ui.Grid1;
-            var selectedCell = grid1.getSelectedCell();
-            if (selectedCell) {
-                var iframeWindowUrl = '@Url.Action("Index","ScreenRecIFrame","选择")';
-                F.ui.Window1.show(iframeWindowUrl + '?rowid=' + selectedCell[0], "选择");
+    function onBtnClick() {
+        F.ui.Window1.show('@Url.Action("Search")', '搜索');
+    }
+
+    function onDdlPageSizeChange(event) {
+        var grid1 = F.ui.Grid1;
+
+        // 触发后台事件
+        F.doPostBack('@Url.Action("DoSearch")',
+        {
+            Grid1_fields: grid1.fields,
+            Grid1_pageIndex: grid1.pageIndex,
+            Grid1_pageSize: F.ui.ddlPageSize.getValue()
+        });
+    }
+    function onDeleteAllClick(event) {
+        F.confirm({
+            message: '确定删除全部？',
+            target: '_top',
+            ok: function () {
+                F.doPostBack('@Url.Action("DeleteAll")', 'Form1,Grid1');
             }
-        }
-
-        function onNewClick(event) {
-            var grid = F.ui.Grid1;
-            // 新增一行（返回新增行的ID）
-            var addedRowId = grid.addNewRecord({},
-                true,
-                'LineName');
-            // 选中新增的那一行
-            grid.selectRow(addedRowId);
-        }
-
-        function onResetClick(event) {
-            F.confirm({
-                message: '确定要重置表格数据？',
-                ok: function () {
-                    F.ui.Grid1.rejectChanges();
-                }
-            });
-        }
-
-
-        function onBtnClick() {
-            F.ui.Window1.show('@Url.Action("Search")', '搜索');
-        }
-
-        function onDdlPageSizeChange(event) {
-            var grid1 = F.ui.Grid1;
-
-            // 触发后台事件
-            F.doPostBack('@Url.Action("DoSearch")',
-            {
-                Grid1_fields: grid1.fields,
-                Grid1_pageIndex: grid1.pageIndex,
-                Grid1_pageSize: F.ui.ddlPageSize.getValue()
-            });
-        }
-        function onDeleteAllClick(event) {
-            F.confirm({
-                message: '确定删除全部？',
-                target: '_top',
-                ok: function () {
-                    F.doPostBack('@Url.Action("DeleteAll")', 'Form1,Grid1');
-                }
-            });
-        }
+        });
+    }
     function renderDeleteField(value, params) {
         return '<a href="javascript:;" class="deletefield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/delete.png")"></a>';
     }
-        function renderEditField(value, params) {
-            return '<a href="javascript:;" class="editfield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/pencil.png")"></a>';
-        }
-        function onImportClick(event) {
-            F.ui.Window1.show('@Url.Content("~/ScreenStats/ScreenRepairs/RepairsImport")', '导入');
-        }
-        function onExportClick() {
-            window.location.href = '@Url.Action("Export")';
-        }
+    function renderEditField(value, params) {
+        return '<a href="javascript:;" class="editfield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/pencil.png")"></a>';
+    }
 
-        function deleteSelectedRows(selectedRows) {
-            // 触发后台事件
-            F.doPostBack('@Url.Action("Delete")',
-            'Form1,Grid1',
-            {
-                'selectedRows': selectedRows
-            });
+    function renderDownloadField() {
+        return '<a href="javascript:;" class="downloadfield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/disk_download.png")"></a>';
+    }
+    function onImportClick(event) {
+        F.ui.Window1.show('@Url.Content("~/ScreenStats/ScreenRepairs/RepairsImport")', '导入');
+    }
+    function onExportClick() {
+        window.location.href = '@Url.Action("Export")';
+    }
+
+    function deleteSelectedRows(selectedRows) {
+        // 触发后台事件
+        F.doPostBack('@Url.Action("Delete")',
+        'Form1,Grid1',
+        {
+            'selectedRows': selectedRows
+        });
     }
 
     function onDeleteSelectedClick(event) {
@@ -316,6 +330,18 @@
 
                    F.ui.Window2.show('@Url.Action("AddOrEdit")?id=' + rowData.id, '编辑');
                });
+
+        grid1.el.on('click',
+           'a.downloadfield',
+           function (event) {
+               var rowEl = $(this).closest('.f-grid-row');
+               var rowData = grid1.getRowData(rowEl);
+               if (rowData.values.FilePath && rowData.values.FileName)
+                   window.location.href = '@Url.Action("Download")?id=' + rowData.id;
+               else
+                   F.alert("无附件！");
+           });
+
 
     });
 

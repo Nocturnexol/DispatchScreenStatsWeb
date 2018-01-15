@@ -2,6 +2,7 @@
     var F = Html.F();
 }
 
+@using DispatchScreenStats.Common
 @model ScreenRepairs
 
 @section body {
@@ -46,12 +47,16 @@
                       F.TextBoxFor(m => m.Station).Enabled(false),
                       F.TextBoxFor(t => t.Owner).Enabled(false),
                       F.TextBoxFor(t => t.RepairsSource),
-                      F.TextBoxFor(t => t.Accepter),
-                      F.TextBoxFor(t => t.Handler),
-                      F.DropDownListFor(t => t.HitchType).EnableEdit(true).ForceSelection(false).Items(ViewBag.hTypes),
-                      F.DropDownListFor(t => t.Status).EnableEdit(true).ForceSelection(false).Items(ViewBag.hStatuses),
-                      F.TextAreaFor(t => t.HitchContent).Height(50),
-                      F.TextAreaFor(m => m.Solution).Height(50)
+                                      F.DropDownListFor(t => t.Accepter).Text(CommonHelper.User).EnableEdit(true).ForceSelection(false).Items(ViewBag.Accepters),
+                                      F.DropDownListFor(t => t.Handler).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Handlers),
+                              F.DropDownListFor(t => t.HitchType).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.hTypes),
+                              F.DropDownListFor(t => t.Status).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.hStatuses),
+                      F.TextAreaFor(t => t.HitchContent),
+                      F.TextAreaFor(m => m.Solution),
+                              F.FileUpload()
+                        .ID("file")
+                        .EmptyText("请选择文件")
+                        .Label("上传附件")
                   )
           ))
 

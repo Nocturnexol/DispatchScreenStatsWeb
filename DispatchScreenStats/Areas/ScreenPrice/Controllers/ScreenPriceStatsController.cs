@@ -20,6 +20,7 @@ namespace DispatchScreenStats.Areas.ScreenPrice.Controllers
 {
     public class ScreenPriceStatsController : Controller
     {
+        private readonly IMongoRepository<BasicData> _repBasic = new MongoRepository<BasicData>();
         private readonly IMongoRepository<ScreenRec> _rep = new MongoRepository<ScreenRec>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         private readonly Expression<Func<ScreenRec, bool>> _f = t => !t.IsLog;
@@ -33,7 +34,14 @@ namespace DispatchScreenStats.Areas.ScreenPrice.Controllers
         {
             ViewBag.ScreenTypes = CommonHelper.GetEnumSelectList(typeof(ScreenTypeEnum));
             ViewBag.Owners = _rep.Distinct(t => t.Owner).OrderBy(t => t).Select(t => new ListItem(t.ToString(), t.ToString())).ToArray();
+            var l = GetBasicDdlByName("付款状态").ToList();
+            l.Insert(0, new ListItem("全部", ""));
+            ViewBag.ddlStatus = l.ToArray();
             return View();
+        }
+        private ListItem[] GetBasicDdlByName(string name)
+        {
+            return _repBasic.Find(t => t.Type == name).ToList().Select(t => new ListItem(t.Name, t.Name)).ToArray();
         }
         [HttpPost]
         public JsonResult Search(FormCollection values)
@@ -47,6 +55,8 @@ namespace DispatchScreenStats.Areas.ScreenPrice.Controllers
             var screenType = values["tbType"];
             var screenCount = values["nbCount"];
             var inStallDate = values["tbDate"];
+            var paymentStatus = values["ddlStatus"];
+
             var filter = new List<FilterDefinition<ScreenRec>>
             {
                 _f
@@ -104,6 +114,11 @@ namespace DispatchScreenStats.Areas.ScreenPrice.Controllers
             {
                 filter.Add(Builders<ScreenRec>.Filter.Eq(t => t.InstallDate, DateTime.Parse(inStallDate)));
             }
+            if (!string.IsNullOrWhiteSpace(paymentStatus))
+            {
+                filter.Add(Builders<ScreenRec>.Filter.Eq(t => t.PaymentStatus, paymentStatus));
+            }
+
             var list = _rep.Find(filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null).ToList().OrderBy(t => t.DeviceNum).Select(Map).ToList();
             return Json(GetHtmlStr(list).Replace("border=\"1\"", ""));
         }

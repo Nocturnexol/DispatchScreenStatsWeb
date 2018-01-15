@@ -194,13 +194,13 @@ namespace DispatchScreenStats.Models
     {
         public int _id { get; set; }
         public string DeviceNum { get; set; }
-        [Display(Name = "报修日期")]
+        [Display(Name = "报修日期"),Required]
         public DateTime RepairsDate { get; set; }
-        [Display(Name = "线路")]
+        [Display(Name = "线路"), Required]
         public string LineName { get; set; }
-        [Display(Name = "站点")]
+        [Display(Name = "站点"), Required]
         public string Station { get; set; }
-        [Display(Name = "营运公司")]
+        [Display(Name = "营运公司"), Required]
         public string Owner { get; set; }
         [Display(Name = "报修来源")]
         public string RepairsSource { get; set; }
@@ -216,6 +216,10 @@ namespace DispatchScreenStats.Models
         public string HitchContent { get; set; }
         [Display(Name = "解决方法")]
         public string Solution { get; set; }
+
+        public string FileName { get; set; }
+        public string FilePath { get; set; }
+        public string FileMd5 { get; set; }
     }
 
 }
