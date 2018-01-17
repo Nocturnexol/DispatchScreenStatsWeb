@@ -46,8 +46,9 @@
                       F.TriggerBoxFor(m => m.LineName).TriggerIcon(TriggerIcon.Search).EnableEdit(false).OnClientTriggerClick("onTriggerClick"),
                       F.TextBoxFor(m => m.Station).Enabled(false),
                       F.TextBoxFor(t => t.Owner).Enabled(false),
+                      F.HiddenFieldFor(t=>t.DeviceNum),
                       F.TextBoxFor(t => t.RepairsSource),
-                                      F.DropDownListFor(t => t.Accepter).Text(CommonHelper.User).EnableEdit(true).ForceSelection(false).Items(ViewBag.Accepters),
+                           Model == null ? F.DropDownListFor(t => t.Accepter).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Accepters) : F.DropDownListFor(t => t.Accepter).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Accepters),
                                       F.DropDownListFor(t => t.Handler).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Handlers),
                               F.DropDownListFor(t => t.HitchType).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.hTypes),
                               F.DropDownListFor(t => t.Status).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.hStatuses),
@@ -84,6 +85,7 @@
             F.ui.LineName.setValue(values['LineName']);
             F.ui.Station.setValue(values['Station']);
             F.ui.Owner.setValue(values['Owner']);
+            F.ui.DeviceNum.setValue(values['DeviceNum']);
         }
     </script>
 }

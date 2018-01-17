@@ -28,10 +28,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenRepairs> _rep = new MongoRepository<ScreenRepairs>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         private readonly IMongoRepository<User> _repUser = new MongoRepository<User>();
+        private readonly SortDefinition<ScreenRepairs> _sort = Builders<ScreenRepairs>.Sort.Descending(t => t.Status).Descending(t=>t.RepairsDate);
         public ActionResult Index()
         {
             int count;
-            var list = _rep.QueryByPage(0, PageSize, out count);
+            var list = _rep.QueryByPage(0, PageSize, out count, null, _sort);
             ViewBag.RecordCount = count;
             ViewBag.PageSize = PageSize;
             return View(list);
@@ -118,6 +119,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     }
                 }
 
+                if (string.IsNullOrWhiteSpace(model.Status))
+                {
+                    model.Status = "未解决";
+                }
                 if (model._id == 0)
                 {
                         model._id = (int)(_rep.Max(t => t._id) ?? 0) + 1;
@@ -235,7 +240,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             }
 
             int count;
-            var list = _rep.QueryByPage(pageIndex, pageSize, out count, filter.Any() ? Builders<ScreenRepairs>.Filter.And(filter) : null);
+            var list = _rep.QueryByPage(pageIndex, pageSize, out count,
+                filter.Any() ? Builders<ScreenRepairs>.Filter.And(filter) : null, _sort);
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
             grid1.PageSize(pageSize);
@@ -243,7 +249,12 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         }
         public ViewResult Search()
         {
-            ViewBag.Owners = _rep.Distinct(t => t.Owner).OrderBy(t => t).Select(t => new ListItem(t.ToString(), t.ToString(), false)).ToArray();
+            ViewBag.Owners =
+                _rep.Distinct(t => t.Owner)
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .OrderBy(t => t)
+                    .Select(t => new ListItem(t.ToString(), t.ToString(), false))
+                    .ToArray();
             return View();
         }
         public ActionResult DoSearch(FormCollection values)
@@ -311,6 +322,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         model.Handler = row.GetCell(7).StringCellValue;
                         model.HitchType = row.GetCell(8).StringCellValue;
                         model.Status = row.GetCell(9).StringCellValue;
+                        //if (string.IsNullOrWhiteSpace(model.Status))
+                        //{
+                        //    model.Status = "未解决";
+                        //}
                         model.HitchContent = row.GetCell(10).StringCellValue;
                         model.Solution = row.GetCell(11).StringCellValue;
 

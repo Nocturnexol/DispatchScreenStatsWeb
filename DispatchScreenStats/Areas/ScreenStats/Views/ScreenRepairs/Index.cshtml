@@ -52,12 +52,13 @@
                                           .ID("btnExport")
                                           .Icon(Icon.PageExcel)
                                           .Text("导出").Listener("click", "onExportClick") : F.Button().Hidden(true),
-                                                      F.ToolbarFill(),
-                                            isAuthorized ? F.Button()
+                                                     
+                                         F.Button()
                                                   .ID("btnNew")
                                                   .Text("新增")
                                                   .Icon(Icon.Add)
-                                                  .Listener("click", "onNewClick") : F.Button().Hidden(true),
+                                                  .Listener("click", "onNewClick"),
+                                                           F.ToolbarFill(),
                                              isAuthorized ? F.Button()
                                                   .ID("btnReset")
                                                   .Text("重置表格数据")

@@ -182,10 +182,10 @@
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Import.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRecDetail\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenLog\Index.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Index.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\IndexNew.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\IndexNewBak.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Search.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\ScreenRecStats\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\ScreenRecStats\IndexNew.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\ScreenRecStats\IndexNewBak.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\ScreenRecStats\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Locate.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\LocateAll.cshtml" />
