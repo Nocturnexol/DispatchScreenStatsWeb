@@ -27,22 +27,36 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
     {
         private readonly IMongoRepository<ScreenRepairs> _rep = new MongoRepository<ScreenRepairs>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
-        private readonly IMongoRepository<User> _repUser = new MongoRepository<User>();
+        private readonly IMongoRepository<Auth> _repAuth = new MongoRepository<Auth>();
         private readonly SortDefinition<ScreenRepairs> _sort = Builders<ScreenRepairs>.Sort.Descending(t => t.Status).Descending(t=>t.RepairsDate);
+        private readonly FilterDefinition<ScreenRepairs> _filterRange;
+        public ScreenRepairsController()
+        {
+            var user = CommonHelper.User;
+            if (user != "admin")
+            {
+                var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
+                var range = auth.Range;
+                if (range > 0)
+                    _filterRange = Builders<ScreenRepairs>.Filter.Gte(t => t.RepairsDate, DateTime.Today.AddDays(-range));
+            }
+        }
         public ActionResult Index()
         {
             int count;
-            var list = _rep.QueryByPage(0, PageSize, out count, null, _sort);
+            var list = _rep.QueryByPage(0, PageSize, out count, _filterRange, _sort);
             ViewBag.RecordCount = count;
             ViewBag.PageSize = PageSize;
+            var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
+            ViewBag.isAuth = auth!=null&& auth.Permission == 1;
             return View(list);
         }
         public ActionResult AddOrEdit(int? id)
         {
             ViewBag.hTypes = _rep.Distinct(t => t.HitchType).Where(t=>!string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
             ViewBag.hStatuses = _rep.Distinct(t => t.Status).Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
-            var list = _repUser.Distinct(t => t.UserName).OrderBy(t=>t).Select(t => new ListItem(t, t)).ToArray();
-            ViewBag.Accepters = ViewBag.Handlers = list;
+           ViewBag.Accepters = _rep.Distinct(t => t.Accepter).Where(t => !string.IsNullOrWhiteSpace(t)).OrderBy(t => t).Select(t => new ListItem(t, t)).ToArray();
+           ViewBag.Handlers = _rep.Distinct(t => t.Handler).Where(t => !string.IsNullOrWhiteSpace(t)).OrderBy(t => t).Select(t => new ListItem(t, t)).ToArray(); ;
             if (id == null) return View();
             var model = _rep.Get(t => t._id ==id);
             if (model == null)
@@ -187,6 +201,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var date = values["tbDate"];
 
             var filter = new List<FilterDefinition<ScreenRepairs>>();
+            if (_filterRange != null) filter.Add(_filterRange);
 
             if (!string.IsNullOrWhiteSpace(tbAccepter))
             {

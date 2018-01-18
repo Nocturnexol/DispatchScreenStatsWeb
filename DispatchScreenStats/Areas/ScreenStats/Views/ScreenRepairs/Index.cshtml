@@ -1,7 +1,7 @@
 ﻿@{
     ViewBag.Title = "Index";
     var F = Html.F();
-    var isAuthorized = CommonHelper.User == "admin";
+    var isAuthorized = ViewBag.isAuth is bool && (bool) ViewBag.isAuth;
 }
 
 @using DispatchScreenStats.Common
@@ -24,7 +24,7 @@
                   .ShowBorder(true)
                   .ID("Grid1")
                   .DataIDField("_id")
-                  .EnableCheckBoxSelect(false)
+                  .EnableCheckBoxSelect(true)
                   .AllowPaging(true).AllowCellEditing(true)
                   .PageSize(ViewBag.PageSize)
                   .IsDatabasePaging(true)
@@ -111,13 +111,13 @@
                       F.RenderField()
                           .HeaderText("解决方法")
                                   .DataField("Solution").ExpandUnusedSpace(true).Editor(F.TextBox()),
-                                    F.RenderField()
+                          isAuthorized   ? F.RenderField()
                                   .HeaderText("")
                                   .Width(30)
                                   .RendererFunction("renderEditField")
                                   .TextAlign(TextAlign.Center)
                                   .EnableHeaderMenu(false)
-                                  .EnableColumnHide(false),
+                                  .EnableColumnHide(false):F.RenderField().Hidden(true),
                                             F.RenderField()
                                           .HeaderText("")
                                           .Width(30)

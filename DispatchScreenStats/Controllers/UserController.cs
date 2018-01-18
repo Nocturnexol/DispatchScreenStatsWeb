@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Web.Mvc;
 using DispatchScreenStats.Common;
+using DispatchScreenStats.Enums;
 using DispatchScreenStats.IRepository;
 using DispatchScreenStats.Models;
 using DispatchScreenStats.Repository;
@@ -15,6 +16,7 @@ namespace DispatchScreenStats.Controllers
     public class UserController : BaseController
     {
         private readonly IMongoRepository<User> _rep = new MongoRepository<User>();
+        private readonly IMongoRepository<Auth> _repAuth = new MongoRepository<Auth>();
         //
         // GET: /User/
         public ActionResult Index()
@@ -104,6 +106,51 @@ namespace DispatchScreenStats.Controllers
             var modelDb =_rep.Get(t =>t.LoginName==model.LoginName);
             if (modelDb == null) return true;
             return model._id == modelDb._id;
+        }
+
+
+        public ViewResult Auth(string id)
+        {
+            var userAuth = _repAuth.Get(t => t.UserId == int.Parse(id));
+            ViewBag.cblScreen = CommonHelper.GetMenuEnumList(typeof(MenuScreenEnum));
+            ViewBag.cblPrice = CommonHelper.GetMenuEnumList(typeof(MenuPriceEnum));
+            if (userAuth != null)
+            {
+                ViewBag.cblScreenSelected = userAuth.Values != null
+                    ? userAuth.Values.Select(t => t.ToString()).ToArray()
+                    : new string[] {};
+                ViewBag.cblPriceSelected = userAuth.Values2 != null
+                    ? userAuth.Values2.Select(t => t.ToString()).ToArray()
+                    : new string[] {};
+            }
+            else
+            {
+                ViewBag.cblScreenSelected = new string[] {};
+                ViewBag.cblPriceSelected = new string[] {};
+            }
+            ViewBag.id = id;
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Auth(string id, int[] screen, int[] price, int range, int permission)
+        {
+            var auth = _repAuth.Get(t => t.UserId == int.Parse(id));
+            if (auth == null)
+            {
+                _repAuth.Add(new Auth {UserId = int.Parse(id), Values = screen, Values2 = price, Range = range,Permission = permission});
+            }
+            else
+            {
+                _repAuth.Update(t => t.UserId == int.Parse(id),
+                    Builders<Auth>.Update.Set(t => t.Values, screen)
+                        .Set(t => t.Values2, price)
+                        .Set(t => t.Range, range)
+                        .Set(t => t.Permission, permission));
+            }
+            ShowNotify("授权成功");
+            PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
+            return UIHelper.Result();
         }
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using MongoDB.Bson;
 
 namespace DispatchScreenStats.Models
 {
@@ -25,5 +26,16 @@ namespace DispatchScreenStats.Models
         /// 失败次数
         /// </summary>
         public int FailTimes { set; get; }
+    }
+
+
+    public class Auth
+    {
+        public ObjectId _id { get; set; }
+        public int UserId { get; set; }
+        public int[] Values { get; set; }
+        public int[] Values2 { get; set; }
+        public int Range { get; set; }
+        public int Permission { get; set; }
     }
 }

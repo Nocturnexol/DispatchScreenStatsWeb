@@ -26,6 +26,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 {
     public class DispatchScreenRecController : BaseController
     {
+        private readonly IMongoRepository<Auth> _repAuth = new MongoRepository<Auth>();
         private readonly IMongoRepository<ScreenRec> _rep = new MongoRepository<ScreenRec>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         private readonly IMongoRepository<BasicData> _repBasic = new MongoRepository<BasicData>();
@@ -61,6 +62,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             ViewBag.PaymentStatuses = GetBasicDdlByName("付款状态");
             ViewBag.LogTypes = GetBasicDdlByName("日志类型");
 
+            var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
+            ViewBag.isAuth = auth != null && auth.Permission == 1;
             return View(list);
         }
 

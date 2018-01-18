@@ -128,48 +128,50 @@
                           .ShowBorder(false)
                           .ShowHeader(false)
                           .ID("treeMenu")
-                          .Nodes(F.TreeNode().Text("系统管理").Expanded(true).Nodes(
-                              F.TreeNode().Text("用户管理").NavigateUrl("User")
-                              )
-                              ,
-                              F.TreeNode()
-                                  .Text("发车屏管理")
-                                  .Expanded(true)
-                                  .Nodes(
-                                      F.TreeNode()
-                                          .Text("发车屏记录管理")
-                                          .NavigateUrl("ScreenStats/DispatchScreenRec"),
-                                      F.TreeNode()
-                                          .Text("发车屏记录报表")
-                                          .NavigateUrl("ScreenStats/ScreenRecStats/IndexNew"),
-                                                   F.TreeNode()
-                                                                  .Text("发车屏服务记录")
-                                                                                          .NavigateUrl("ScreenStats/ScreenRepairs"),
-                                                   F.TreeNode()
-                                                          .Text("发车屏巡检记录")
-                                                                  .NavigateUrl("ScreenStats/ScreenInspection"),
-                                      F.TreeNode()
-                                          .Text("基础数据")
-                                          .NavigateUrl("ScreenStats/BasicData")
-                                          ),
-                                                    F.TreeNode()
-                                          .Text("发车屏费用管理")
-                                          .Expanded(true).Nodes(
-                                          F.TreeNode()
-                                                          .Text("主屏费用维护")
-                                                                          .NavigateUrl("ScreenPrice/ScreenPrice"),
-                                                      F.TreeNode()
-                                                  .Text("配件后续费用维护")
-                                                                  .NavigateUrl("ScreenPrice/ScreenDetailPrice"), F.TreeNode()
-                                                          .Text("主屏费用报表")
-                                                                          .NavigateUrl("ScreenPrice/ScreenPriceStats"),
-                                                      F.TreeNode()
-                                                  .Text("配件后续费用报表")
-                                                                  .NavigateUrl("ScreenPrice/ScreenDetailPriceStats"),
-                                                                           F.TreeNode()
-                                                          .Text("费用催收报表")
-                                                                                  .NavigateUrl("ScreenPrice/ScreenRecall")
-                                          )
+                          .Nodes(
+                          Model
+                          //F.TreeNode().Text("系统管理").Expanded(true).Nodes(
+                          //    F.TreeNode().Text("用户管理").NavigateUrl("User")
+                          //    )
+                          //    ,
+                          //    F.TreeNode()
+                          //        .Text("发车屏管理")
+                          //        .Expanded(true)
+                          //        .Nodes(
+                          //            F.TreeNode()
+                          //                .Text("发车屏记录管理")
+                          //                .NavigateUrl("ScreenStats/DispatchScreenRec"),
+                          //            F.TreeNode()
+                          //                .Text("发车屏记录报表")
+                          //                .NavigateUrl("ScreenStats/ScreenRecStats/IndexNew"),
+                          //                         F.TreeNode()
+                          //                                        .Text("发车屏服务记录")
+                          //                                                                .NavigateUrl("ScreenStats/ScreenRepairs"),
+                          //                         F.TreeNode()
+                          //                                .Text("发车屏巡检记录")
+                          //                                        .NavigateUrl("ScreenStats/ScreenInspection"),
+                          //            F.TreeNode()
+                          //                .Text("基础数据")
+                          //                .NavigateUrl("ScreenStats/BasicData")
+                          //                ),
+                          //                          F.TreeNode()
+                          //                .Text("发车屏费用管理")
+                          //                .Expanded(true).Nodes(
+                          //                F.TreeNode()
+                          //                                .Text("主屏费用维护")
+                          //                                                .NavigateUrl("ScreenPrice/ScreenPrice"),
+                          //                            F.TreeNode()
+                          //                        .Text("配件后续费用维护")
+                          //                                        .NavigateUrl("ScreenPrice/ScreenDetailPrice"), F.TreeNode()
+                          //                                .Text("主屏费用报表")
+                          //                                                .NavigateUrl("ScreenPrice/ScreenPriceStats"),
+                          //                            F.TreeNode()
+                          //                        .Text("配件后续费用报表")
+                          //                                        .NavigateUrl("ScreenPrice/ScreenDetailPriceStats"),
+                          //                                                 F.TreeNode()
+                          //                                .Text("费用催收报表")
+                          //                                                        .NavigateUrl("ScreenPrice/ScreenRecall")
+                          //                )
                                           //F.TreeNode().Text("舒适度").Expanded(true).Nodes(F.TreeNode().Text("舒适度统计").NavigateUrl("ComfortDegree/ComfortDegreeStats/"))
                           )
                   ),

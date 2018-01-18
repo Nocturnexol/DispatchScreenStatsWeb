@@ -26,10 +26,12 @@ namespace DispatchScreenStats.Controllers
                     Builders<User>.Filter.Regex(t => t.UserPwd,
                         new BsonRegularExpression(new Regex(CommonHelper.GetMd5(tbxPassword), RegexOptions.IgnoreCase))),
                     Builders<User>.Filter.Eq(t => t.LoginName, tbxUserName));
-            if (_rep.Get(filter) != null)
+
+            var user = _rep.Get(filter);
+            if (user != null)
             {
-                var cookie = new HttpCookie("user", tbxUserName) {Expires = DateTime.Now.AddDays(1)};
-                Response.Cookies.Add(cookie);
+                Response.Cookies.Add(new HttpCookie("user", tbxUserName) {Expires = DateTime.Now.AddDays(1)});
+                Response.Cookies.Add(new HttpCookie("userId", user._id.ToString()) {Expires = DateTime.Now.AddDays(1)});
                 FormsAuthentication.RedirectFromLoginPage(tbxUserName, false);
             }
             else

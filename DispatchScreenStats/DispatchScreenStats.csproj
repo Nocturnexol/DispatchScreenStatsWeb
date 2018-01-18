@@ -182,10 +182,10 @@
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Import.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRecDetail\Index.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenLog\Index.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\ScreenRecStats\Index.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\ScreenRecStats\IndexNew.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\ScreenRecStats\IndexNewBak.cshtml" />
-    <Content Include="Areas\ScreenStats\Views\ScreenRecIFrame\ScreenRecStats\Search.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Index.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\IndexNew.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\IndexNewBak.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\ScreenRecStats\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Search.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Locate.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\LocateAll.cshtml" />
@@ -2084,6 +2084,7 @@
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Enums\AuthDiffType.cs" />
+    <Compile Include="Enums\MenuEnum.cs" />
     <Compile Include="Enums\ScreenTypeEnum.cs" />
     <Compile Include="Enums\SortTypeEnum.cs" />
     <Compile Include="Global.asax.cs">
@@ -2107,6 +2108,7 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\User\Index.cshtml" />
     <Content Include="Views\User\AddOrEdit.cshtml" />
+    <Content Include="Views\User\Auth.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

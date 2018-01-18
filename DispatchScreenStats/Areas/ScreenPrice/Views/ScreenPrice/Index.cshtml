@@ -1,7 +1,7 @@
 ﻿@{
     ViewBag.Title = "Index";
     var F = Html.F();
-    var isAuthorized = CommonHelper.User == "admin";
+    var isAuthorized = ViewBag.isAuth is bool && (bool)ViewBag.isAuth;
 }
 
 @using DispatchScreenStats.Common

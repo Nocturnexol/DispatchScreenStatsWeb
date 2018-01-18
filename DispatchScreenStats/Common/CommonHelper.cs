@@ -21,6 +21,14 @@ namespace DispatchScreenStats.Common
             var cookie = HttpContext.Current.Request.Cookies["user"];
             return cookie != null ? cookie.Value : null;
         } }
+        public static string UserId
+        {
+            get
+            {
+                var cookie = HttpContext.Current.Request.Cookies["userId"];
+                return cookie != null ? cookie.Value : null;
+            }
+        }
         /// <summary>
         /// 获取md5
         /// </summary>
@@ -40,6 +48,14 @@ namespace DispatchScreenStats.Common
             {
                 throw new Exception("GetMD5() failed,error:" + ex.Message);
             }
+        }
+
+        public static ListItem[] GetMenuEnumList(Type type)
+        {
+            return
+                (from object val in Enum.GetValues(type)
+                    select new ListItem(type.GetField(val.ToString()).GetCName(), ((int) val).ToString()))
+                .ToArray();
         }
 
         public static ListItem[] GetEnumSelectList(Type type)
@@ -192,7 +208,7 @@ namespace DispatchScreenStats.Common
             var attr = prop.GetCustomAttribute(typeof(DisplayAttribute)) as DisplayAttribute;
                 return attr != null ? attr.Name : key;
         }
-        public static string GetCName(this PropertyInfo prop)
+        public static string GetCName(this MemberInfo prop)
         {
             if (prop == null) return null;
             var attr = prop.GetCustomAttribute(typeof(DisplayAttribute)) as DisplayAttribute;

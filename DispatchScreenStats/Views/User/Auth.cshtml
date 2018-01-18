@@ -1,0 +1,77 @@
+﻿@using DispatchScreenStats.Enums
+@using DispatchScreenStats.Common
+@{
+    ViewBag.Title = "Auth";
+    var F = Html.F();
+}
+@section body
+{
+    @(F.Panel()
+          .ID("Panel1")
+          .ShowBorder(false)
+          .ShowHeader(false)
+          .BodyPadding(10)
+          .AutoScroll(true)
+          .IsViewPort(true)
+          .Toolbars(
+              F.Toolbar()
+                  .Items(
+                      F.Button()
+                          .Icon(Icon.SystemClose)
+                          .Text("关闭")
+                          .Listener("click", "F.activeWindow.hide();"),
+                      F.ToolbarSeparator(),
+                      F.Button()
+                          .ValidateForms("SimpleForm1")
+                          .Icon(Icon.SystemSaveClose)
+                          .OnClick(Url.Action("Auth"), "SimpleForm1")
+                          .Text("保存后关闭")
+                  )
+          )
+          .Items(
+              F.SimpleForm()
+                  .ID("SimpleForm1")
+                  .ShowBorder(false)
+                  .ShowHeader(false)
+                  .Items(
+                  F.HiddenField().ID("id").Text(ViewBag.id),
+                      F.Panel().Layout(LayoutType.HBox).ShowHeader(false).ShowBorder(false).BodyPadding(5).Items(
+                          F.Panel().BoxFlex(1).BodyPadding(5).ShowHeader(false).ShowBorder(false).Items(
+                              F.CheckBoxList().ID("screen")
+                                  .Label(typeof(MenuEnum).GetField(MenuEnum.ScreenStats.ToString()).GetCName())
+                                  .ColumnNumber(1)
+                                  .DataTextField("Text")
+                                  .DataValueField("Value")
+                                  .DataSource(ViewBag.cblScreen)
+                                  .SelectedValueArray(ViewBag.cblScreenSelected),
+                                    F.DropDownList().ID("permission").Label("允许权限").Items(
+                                    F.ListItem().Text("仅查看").Value("0"),
+                                  F.ListItem().Text("可管理").Value("1")),
+                                  F.DropDownList().ID("range").Label("查看时间范围").Items(
+                                  F.ListItem().Text("全部").Value("0"),
+                                  F.ListItem().Text("三天内").Value("3"),
+                                  F.ListItem().Text("一周内").Value("7"),
+                                  F.ListItem().Text("一个月内").Value("30"),
+                                  F.ListItem().Text("三个月内").Value("90"),
+                                  F.ListItem().Text("六个月内").Value("180"),
+                                  F.ListItem().Text("一年内").Value("365")
+                                  )
+                              ),
+                          F.Panel().BoxFlex(1).BodyPadding(5).ShowHeader(false).ShowBorder(false).Items(
+
+                              F.CheckBoxList().ID("price")
+                                  .Label(typeof(MenuEnum).GetField(MenuEnum.ScreenPrice.ToString()).GetCName())
+                                  .ColumnNumber(1)
+                                  .DataTextField("Text")
+                                  .DataValueField("Value")
+                                  .DataSource(ViewBag.cblPrice)
+                                  .SelectedValueArray(ViewBag.cblPriceSelected)
+
+                              )
+
+
+                          )
+
+                  )
+          ))
+}
