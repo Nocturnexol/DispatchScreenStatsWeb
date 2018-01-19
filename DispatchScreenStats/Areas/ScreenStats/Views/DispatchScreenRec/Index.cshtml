@@ -126,10 +126,10 @@
                                   .Editor(F.TextBox().ID("tbxLineName").Required(true)),
                               F.RenderField()
                                   .HeaderText("同屏线路")
-                                  .DataField("LinesInSameScreen").Width(120),
+                                  .DataField("LinesInSameScreen").Width(120).Editor(F.TextBox()),
                                     F.RenderField()
                                   .HeaderText("施工类型")
-                                  .DataField("ConstructionType"),
+                                  .DataField("ConstructionType").Editor(F.TextBox()),
                       F.RenderField()
                                           .HeaderText("屏幕类型").FieldType(FieldType.Int).SortField("ScreenType")
                           .DataField("ScreenType").Width(120).RendererFunction("renderScreenType"),

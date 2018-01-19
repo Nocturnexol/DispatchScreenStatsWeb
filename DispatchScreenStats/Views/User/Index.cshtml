@@ -82,6 +82,13 @@
                           .TextAlign(TextAlign.Center)
                           .EnableHeaderMenu(false)
                           .EnableColumnHide(false),
+                                     F.RenderField()
+                                  .HeaderText("")
+                                  .Width(60)
+                                  .RendererFunction("renderPwdField")
+                                  .TextAlign(TextAlign.Center)
+                                  .EnableHeaderMenu(false)
+                                  .EnableColumnHide(false),
                             F.RenderField()
                           .HeaderText("")
                           .Width(60)
@@ -123,6 +130,9 @@
 @section script {
 
     <script>
+        function renderPwdField(value, params) {
+            return '<a href="javascript:;" class="pwdfield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/key.png")"></a>';
+        }
         function renderAuthField(value, params) {
             return '<a href="javascript:;" class="authfield"><img class="f-grid-cell-icon" src="@Url.Content("~/res/icon/user_key.png")"></a>';
         }
@@ -203,6 +213,17 @@
 
                     F.ui.Window1.show('@Url.Content("~/User/Auth/")?id=' + rowData.id, '授权');
                 });
+
+            grid1.el.on('click',
+                'a.pwdfield',
+                function (event) {
+                    var rowEl = $(this).closest('.f-grid-row');
+                    var rowData = grid1.getRowData(rowEl);
+
+                    F.ui.Window1.show('@Url.Content("~/User/ChangePwd/")?id=' + rowData.id, '密码修改');
+                });
+
+
         });
 
 

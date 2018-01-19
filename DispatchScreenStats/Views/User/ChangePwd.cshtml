@@ -1,0 +1,42 @@
+﻿@{
+    var F = Html.F();
+}
+
+@section body {
+
+    @(F.Panel()
+          .ShowBorder(false)
+          .ShowHeader(false)
+          .BodyPadding(10)
+          .AutoScroll(true)
+          .IsViewPort(true)
+          .Toolbars(
+              F.Toolbar()
+                  .Items(
+                      F.Button()
+                          .Icon(Icon.SystemClose)
+                          .Text("关闭")
+                          .Listener("click", "F.activeWindow.hide();"),
+                      F.ToolbarSeparator(),
+                      F.Button()
+                          .ValidateForms("SimpleForm1")
+                          .Icon(Icon.SystemSaveClose)
+                          .OnClick(Url.Action("ChangePwd"), "SimpleForm1")
+                          .Text("保存后关闭")
+                  )
+          )
+          .Items(
+              F.SimpleForm()
+                  .ID("SimpleForm1")
+                  .ShowBorder(false)
+                  .ShowHeader(false)
+                  .Items(
+                      F.HiddenField().ID("id").Text(Model.ToString()),
+                      F.TextBox().ID("pwd").Required(true).TextMode(TextMode.Password).Label("新密码").EmptyText("新密码"),
+                              F.TextBox().Required(true).TextMode(TextMode.Password).Label("确认密码").EmptyText("确认密码")
+                          .CompareControl("pwd")
+                          .CompareOperator(Operator.Equal)
+                          .CompareMessage("两次输入不一致！")
+                  )
+          ))
+}

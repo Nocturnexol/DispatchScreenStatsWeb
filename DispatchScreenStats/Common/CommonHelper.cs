@@ -21,6 +21,14 @@ namespace DispatchScreenStats.Common
             var cookie = HttpContext.Current.Request.Cookies["user"];
             return cookie != null ? cookie.Value : null;
         } }
+        public static string UserName
+        {
+            get
+            {
+                var cookie = HttpContext.Current.Request.Cookies["userName"];
+                return cookie != null ? cookie.Value : null;
+            }
+        }
         public static string UserId
         {
             get

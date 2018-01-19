@@ -30,15 +30,27 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<Auth> _repAuth = new MongoRepository<Auth>();
         private readonly SortDefinition<ScreenRepairs> _sort = Builders<ScreenRepairs>.Sort.Descending(t => t.Status).Descending(t=>t.RepairsDate);
         private readonly FilterDefinition<ScreenRepairs> _filterRange;
+        private readonly bool _isAuth;
         public ScreenRepairsController()
         {
             var user = CommonHelper.User;
             if (user != "admin")
             {
                 var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
-                var range = auth.Range;
-                if (range > 0)
-                    _filterRange = Builders<ScreenRepairs>.Filter.Gte(t => t.RepairsDate, DateTime.Today.AddDays(-range));
+                if (auth != null)
+                {
+                    var range = auth.Range;
+                    if (range > 0)
+                    {
+                        _filterRange = Builders<ScreenRepairs>.Filter.Gte(t => t.RepairsDate,
+                            DateTime.Today.AddDays(-range));
+                    }
+                    _isAuth = auth.Permission==1;
+                }
+            }
+            else
+            {
+                _isAuth = true;
             }
         }
         public ActionResult Index()
@@ -47,8 +59,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var list = _rep.QueryByPage(0, PageSize, out count, _filterRange, _sort);
             ViewBag.RecordCount = count;
             ViewBag.PageSize = PageSize;
-            var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
-            ViewBag.isAuth = auth!=null&& auth.Permission == 1;
+            ViewBag.isAuth = _isAuth;
             return View(list);
         }
         public ActionResult AddOrEdit(int? id)
@@ -56,7 +67,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             ViewBag.hTypes = _rep.Distinct(t => t.HitchType).Where(t=>!string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
             ViewBag.hStatuses = _rep.Distinct(t => t.Status).Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
            ViewBag.Accepters = _rep.Distinct(t => t.Accepter).Where(t => !string.IsNullOrWhiteSpace(t)).OrderBy(t => t).Select(t => new ListItem(t, t)).ToArray();
-           ViewBag.Handlers = _rep.Distinct(t => t.Handler).Where(t => !string.IsNullOrWhiteSpace(t)).OrderBy(t => t).Select(t => new ListItem(t, t)).ToArray(); ;
+           ViewBag.Handlers = _rep.Distinct(t => t.Handler).Where(t => !string.IsNullOrWhiteSpace(t)).OrderBy(t => t).Select(t => new ListItem(t, t)).ToArray();
+            ViewBag.isAuth = _isAuth;
             if (id == null) return View();
             var model = _rep.Get(t => t._id ==id);
             if (model == null)

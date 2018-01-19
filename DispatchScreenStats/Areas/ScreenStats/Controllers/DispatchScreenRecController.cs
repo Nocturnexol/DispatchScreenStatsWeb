@@ -35,6 +35,24 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenImage> _repImg = new MongoRepository<ScreenImage>();
         private readonly Expression<Func<ScreenRecDetail, bool>> _filter = t => !t.IsLog;
         private readonly Expression<Func<ScreenRec, bool>> _f = t => !t.IsLog;
+        private readonly bool _isAuth;
+
+        public DispatchScreenRecController()
+        {
+            var user = CommonHelper.User;
+            if (user != "admin")
+            {
+                var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
+                if (auth != null)
+                {
+                    _isAuth = auth.Permission == 1;
+                }
+            }
+            else
+            {
+                _isAuth = true;
+            }
+        }
         //
         // GET: /ScreenStats/DispatchScreenRec/
         public ActionResult Index()
@@ -62,8 +80,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             ViewBag.PaymentStatuses = GetBasicDdlByName("付款状态");
             ViewBag.LogTypes = GetBasicDdlByName("日志类型");
 
-            var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
-            ViewBag.isAuth = auth != null && auth.Permission == 1;
+            ViewBag.isAuth = _isAuth;
             return View(list);
         }
 

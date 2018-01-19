@@ -97,6 +97,7 @@ namespace DispatchScreenStats.Models
         public double Price { get; set; }
          [BsonDateTimeOptions(Kind = DateTimeKind.Local), Display(Name = "收费时间")]
          public DateTime? ChargeTime { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
          public DateTime? OccurredTime { get; set; }
     }
 
@@ -194,7 +195,7 @@ namespace DispatchScreenStats.Models
     {
         public int _id { get; set; }
         public string DeviceNum { get; set; }
-        [Display(Name = "报修日期"),Required]
+        [Display(Name = "报修日期"),Required,BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime RepairsDate { get; set; }
         [Display(Name = "线路"), Required]
         public string LineName { get; set; }
@@ -202,7 +203,7 @@ namespace DispatchScreenStats.Models
         public string Station { get; set; }
         [Display(Name = "营运公司"), Required]
         public string Owner { get; set; }
-        [Display(Name = "报修来源")]
+        [Display(Name = "报修来源(电话)")]
         public string RepairsSource { get; set; }
         [Display(Name = "故障接报人")]
         public string Accepter { get; set; }

@@ -4,6 +4,7 @@
     ViewBag.Title = "Auth";
     var F = Html.F();
 }
+@model DispatchScreenStats.Models.Auth
 @section body
 {
     @(F.Panel()
@@ -44,10 +45,10 @@
                                   .DataValueField("Value")
                                   .DataSource(ViewBag.cblScreen)
                                   .SelectedValueArray(ViewBag.cblScreenSelected),
-                                    F.DropDownList().ID("permission").Label("允许权限").Items(
+                                    F.DropDownListFor(t=>t.Permission).Label("允许权限").Items(
                                     F.ListItem().Text("仅查看").Value("0"),
                                   F.ListItem().Text("可管理").Value("1")),
-                                  F.DropDownList().ID("range").Label("查看时间范围").Items(
+                                  F.DropDownListFor(t=>t.Range).Label("查看时间范围").Items(
                                   F.ListItem().Text("全部").Value("0"),
                                   F.ListItem().Text("三天内").Value("3"),
                                   F.ListItem().Text("一周内").Value("7"),

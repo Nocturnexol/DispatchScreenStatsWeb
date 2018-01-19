@@ -129,7 +129,7 @@ namespace DispatchScreenStats.Controllers
                 ViewBag.cblPriceSelected = new string[] {};
             }
             ViewBag.id = id;
-            return View();
+            return View(userAuth);
         }
 
         [HttpPost]
@@ -149,6 +149,20 @@ namespace DispatchScreenStats.Controllers
                         .Set(t => t.Permission, permission));
             }
             ShowNotify("授权成功");
+            PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
+            return UIHelper.Result();
+        }
+
+        public ViewResult ChangePwd(string id)
+        {
+            return View(int.Parse(id));
+        }
+
+        [HttpPost]
+        public ActionResult ChangePwd(int? id,string pwd)
+        {
+            _rep.Update(t => t._id == id, Builders<User>.Update.Set(t => t.UserPwd, CommonHelper.GetMd5(pwd, true)));
+            ShowNotify("修改成功");
             PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
             return UIHelper.Result();
         }
