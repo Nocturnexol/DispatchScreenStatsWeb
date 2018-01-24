@@ -91,6 +91,11 @@
                                           //.Text("上传照片")
                                           //        .Listener("click", "onUploadClick") : F.Button().Hidden(true),
                               F.ToolbarFill(),
+                                       F.Button()
+                                          .ID("btnNewRec")
+                                          .Text("新增记录")
+                                          .Icon(Icon.Add)
+                                          .Listener("click", "onNewRecClick"),
                               F.Button()
                                   .ID("btnNew")
                                   .Text("新增日志")
@@ -480,6 +485,11 @@
             var deleteImageUrl = '@Url.Content("~/res/icon/image_magnify.png")';
             return '<a class="imgfield" href="javascript:;"><img class="f-grid-cell-icon" src="' + deleteImageUrl + '"></a>';
         }
+
+    function onNewRecClick() {
+        F.ui.Window2.show('@Url.Content("~/ScreenStats/DispatchScreenRec/Add")', '新增记录');
+    }
+
     function onNewClick(event) {
         var grid = null;
         //var data = grid2.alldata[0].values;

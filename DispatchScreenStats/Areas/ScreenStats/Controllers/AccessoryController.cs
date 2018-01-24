@@ -67,7 +67,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/excel", "配件列表.xls");
         }
         public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex,
-            int Grid1_pageSize)
+            int Grid1_pageSize,string devNum)
         {
             if (!Grid1_modifiedData.Any())
             {
@@ -108,7 +108,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 }
             }
             int count;
-            var source = _rep.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count);
+            var source = _rep.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count, Builders<Accessory>.Filter.Eq(t => t.DevNum, devNum));
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
             grid1.DataSource(source, Grid1_fields);
@@ -127,8 +127,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var fields = JArray.Parse(values["Grid1_fields"]);
             var pageIndex = Convert.ToInt32(values["Grid1_pageIndex"] ?? "0");
             var pageSize = Convert.ToInt32(values["Grid1_pageSize"] ?? "0");
+            var devNum = values["devNum"];
             int count;
-            var list = _rep.QueryByPage(pageIndex, pageSize, out count);
+            var list = _rep.QueryByPage(pageIndex, pageSize, out count, Builders<Accessory>.Filter.Eq(t => t.DevNum, devNum));
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
             grid1.PageSize(pageSize);

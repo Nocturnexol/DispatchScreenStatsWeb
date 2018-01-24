@@ -60,12 +60,13 @@ namespace DispatchScreenStats.Models
         }
 
         public int _id { get; set; }
-         [Display(Name = "设备编号")]
+         [Display(Name = "设备编号"),Required]
         public string DeviceNum { get; set; }
-         [Display(Name = "营运公司")]
+         [Display(Name = "营运公司"),Required]
         public string Owner { get; set; }
-         [Display(Name = "线路名")]
+         [Display(Name = "线路名"),Required]
         public string LineName { get; set; }
+        [Display(Name = "同屏线路")]
         public string LinesInSameScreen { get; set; }
          [Display(Name = "施工类型")]
         public string ConstructionType { get; set; }
@@ -73,13 +74,14 @@ namespace DispatchScreenStats.Models
         public ScreenTypeEnum? ScreenType { get; set; }
          [Display(Name = "屏数")]
         public int? ScreenCount { get; set; }
-         [Display(Name = "安装站点")]
+         [Display(Name = "安装站点"),Required]
         public string InstallStation { get; set; }
+        [Display(Name = "是否无线屏")]
          public bool IsWireLess { get; set; }
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]
-        [Display(Name = "安装日期")]
+        [Display(Name = "安装日期"),Required]
         public DateTime? InstallDate { get; set; }
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true, NullDisplayText = "")]

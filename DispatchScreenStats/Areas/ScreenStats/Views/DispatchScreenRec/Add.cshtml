@@ -1,0 +1,50 @@
+﻿@{
+    var F = Html.F();
+}
+
+@model ScreenRecDetail
+
+@section body {
+
+    @(F.Panel()
+          .ID("Panel1")
+          .ShowBorder(false)
+          .ShowHeader(false)
+          .BodyPadding(10)
+          .AutoScroll(true)
+          .IsViewPort(true)
+          .Toolbars(
+              F.Toolbar()
+                  .Items(
+                      F.Button()
+                          .Icon(Icon.SystemClose)
+                          .Text("关闭")
+                          .Listener("click", "F.activeWindow.hide();"),
+                      F.ToolbarSeparator(),
+                      F.Button()
+                          .ValidateForms("SimpleForm1")
+                          .Icon(Icon.SystemSaveClose)
+                          .OnClick(Url.Action("Add"), "SimpleForm1")
+                          .Text("保存后关闭")
+                  )
+          )
+          .Items(
+              F.SimpleForm()
+                  .ID("SimpleForm1")
+                  .ShowBorder(false)
+                  .ShowHeader(false)
+                  .Items(
+                                  F.TextBoxFor(t => t.DeviceNum),
+                                  F.DropDownListFor(t => t.Owner).AutoSelectFirstItem(false).Items(ViewBag.Owners),
+                                  F.TextBoxFor(t=>t.LineName),
+                                  F.TextBoxFor(t=>t.LinesInSameScreen),
+                                  F.TextBoxFor(t=>t.ConstructionType),
+                                  F.DropDownListFor(t=>t.ScreenType).Items(ViewBag.ScreenTypes),
+                                  F.CheckBoxFor(t=>t.IsWireLess),
+                                  F.NumberBoxFor(t=>t.ScreenCount).NoNegative(true).NoDecimal(true),
+                                  F.TextBoxFor(t=>t.InstallStation),
+                                  F.DatePickerFor(t=>t.InstallDate),
+                                  F.TextAreaFor(t=>t.Materials.Remark).Height(60)
+                  )
+          ))
+}

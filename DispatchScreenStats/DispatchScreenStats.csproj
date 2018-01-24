@@ -227,6 +227,7 @@
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Upload.cshtml" />
     <Content Include="Areas\ScreenStats\Views\ScreenRepairs\AddOrEdit.cshtml" />
     <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\ViewImage.cshtml" />
+    <Content Include="Areas\ScreenStats\Views\DispatchScreenRec\Add.cshtml" />
     <None Include="Properties\PublishProfiles\a.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Global.asax" />

@@ -25,6 +25,7 @@ namespace DispatchScreenStats.Controllers
             sysManage.Nodes.Add(userManage);
 
             var user = CommonHelper.User;
+            if (user == null) return View();
             int[] vals;
             int[] vals2;
             if (user == "admin")

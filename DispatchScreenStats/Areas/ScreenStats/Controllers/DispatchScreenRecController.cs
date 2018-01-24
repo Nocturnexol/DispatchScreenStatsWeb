@@ -466,47 +466,102 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
             return File(System.IO.File.OpenRead(path), "image/jpeg");
         }
+
         public FileResult Export()
         {
             var filter = (List<FilterDefinition<ScreenRecDetail>>) Session["filter"];
             var list =
                 _repDetail.Find(filter != null && filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null)
                     .ToList();
+            var mats = _repAcc.Find().ToList();
             const string thHtml = "<th>{0}</th>";
+            const string thHtmlMulti = "<th rowspan=\"2\">{0}</th>";
             const string tdHtml = "<td style=\"text-align: center;\">{0}</td>";
 
             var sb = new StringBuilder();
             sb.Append("<table cellspacing=\"0\" rules=\"all\" border=\"1\" style=\"border-collapse:collapse;\">");
             sb.Append("<tr>");
-            sb.AppendFormat(thHtml, "");
-            sb.AppendFormat(thHtml, "设备编号");
-            sb.AppendFormat(thHtml, "营运公司");
-            sb.AppendFormat(thHtml, "安装线路");
-            sb.AppendFormat(thHtml, "屏幕类型");
-            sb.AppendFormat(thHtml, "同屏线路");
-            sb.AppendFormat(thHtml, "屏数");
-            sb.AppendFormat(thHtml, "安装站点");
-            sb.AppendFormat(thHtml, "安装日期");
+            sb.AppendFormat(thHtmlMulti, "");
+            sb.AppendFormat(thHtmlMulti, "设备编号");
+            sb.AppendFormat(thHtmlMulti, "营运公司");
+            sb.AppendFormat(thHtmlMulti, "安装线路");
+            sb.AppendFormat(thHtmlMulti, "屏幕类型");
+            sb.AppendFormat(thHtmlMulti, "同屏线路");
+            sb.AppendFormat(thHtmlMulti, "屏数");
+            sb.AppendFormat(thHtmlMulti, "安装站点");
+            sb.AppendFormat(thHtmlMulti, "安装日期");
+            sb.AppendFormat("<th colspan=\"14\">{0}</th>", "使用材料");
+            sb.Append("</tr>");
+
+            sb.Append("<tr>");
+            sb.AppendFormat(thHtml, "电源线");
+            sb.AppendFormat(thHtml, "网线");
+            sb.AppendFormat(thHtml, "网络跳线");
+            sb.AppendFormat(thHtml, "小交换机");
+            sb.AppendFormat(thHtml, "大交换机");
+            sb.AppendFormat(thHtml, "电源接线板");
+            sb.AppendFormat(thHtml, "一分二电源开关");
+            sb.AppendFormat(thHtml, "USB网卡");
+            sb.AppendFormat(thHtml, "三线插头");
+            sb.AppendFormat(thHtml, "不锈钢方管");
+            sb.AppendFormat(thHtml, "电源");
+            sb.AppendFormat(thHtml, "单元板");
+            sb.AppendFormat(thHtml, "雨棚");
+            sb.AppendFormat(thHtml, "备注");
             sb.Append("</tr>");
 
             var rowIndex = 1;
             foreach (var item in list)
             {
+                var devNum = item.DeviceNum;
+                var mat = mats.Where(t => t.DevNum == devNum).ToList();
+
                 sb.Append("<tr>");
                 sb.AppendFormat(tdHtml, rowIndex++);
-                sb.AppendFormat(tdHtml, item.DeviceNum);
+                sb.AppendFormat(tdHtml, devNum);
                 sb.AppendFormat(tdHtml, item.Owner);
                 sb.AppendFormat(tdHtml, item.LineName);
                 sb.AppendFormat(tdHtml, item.ScreenType);
                 sb.AppendFormat(tdHtml, item.LinesInSameScreen);
                 sb.AppendFormat(tdHtml, item.ScreenCount);
                 sb.AppendFormat(tdHtml, item.InstallStation);
-                sb.AppendFormat(tdHtml, item.InstallDate);
+                sb.AppendFormat(tdHtml, item.InstallDate != null ? item.InstallDate.Value.ToString("yyyy-MM-dd") : "");
+                if (mat.Any())
+                {
+                    var cord = mat.FirstOrDefault(t => t.Name == "电源线");
+                    sb.AppendFormat(tdHtml, cord != null ? cord.Count : "");
+                    var cable = mat.FirstOrDefault(t => t.Name == "网线");
+                    sb.AppendFormat(tdHtml, cable != null ? cable.Count : "");
+                    var grid = mat.FirstOrDefault(t => t.Name == "网络跳线");
+                    sb.AppendFormat(tdHtml, grid == null ? "" : grid.Count);
+                    var small = mat.FirstOrDefault(t => t.Name == "小交换机");
+                    sb.AppendFormat(tdHtml, small == null ? "" : small.Count);
+                    var big = mat.FirstOrDefault(t => t.Name == "大交换机");
+                    sb.AppendFormat(tdHtml, big == null ? "" : big.Count);
+                    var panel = mat.FirstOrDefault(t => t.Name == "电源接线板");
+                    sb.AppendFormat(tdHtml, panel == null ? "" : panel.Count);
+                    var ps = mat.FirstOrDefault(t => t.Name == "一分二电源开关");
+                    sb.AppendFormat(tdHtml, ps == null ? "" : ps.Count);
+                    var adp = mat.FirstOrDefault(t => t.Name == "USB网卡");
+                    sb.AppendFormat(tdHtml, adp == null ? "" : adp.Count);
+                    var plug = mat.FirstOrDefault(t => t.Name == "三线插头");
+                    sb.AppendFormat(tdHtml, plug == null ? "" : plug.Count);
+                    var tube = mat.FirstOrDefault(t => t.Name == "不锈钢方管");
+                    sb.AppendFormat(tdHtml, tube == null ? "" : tube.Count);
+                    var power = mat.FirstOrDefault(t => t.Name == "电源");
+                    sb.AppendFormat(tdHtml, power == null ? "" : power.Count);
+                    var unit = mat.FirstOrDefault(t => t.Name == "单元板");
+                    sb.AppendFormat(tdHtml, unit == null ? "" : unit.Count);
+                    var canopy = mat.FirstOrDefault(t => t.Name == "雨棚");
+                    sb.AppendFormat(tdHtml, canopy == null ? "" : canopy.Count);
+                }
+                sb.AppendFormat(tdHtml, item.Materials.Remark);
                 sb.Append("</tr>");
             }
             sb.Append("</table>");
             return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/excel", "发车屏导出列表.xls");
         }
+
         private void UpdateGrid(NameValueCollection values)
         {
             JArray fields = JArray.Parse(values["Grid1_fields"]);
@@ -687,6 +742,44 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return View();
         }
 
+        public ViewResult Add()
+        {
+            ViewBag.ScreenTypes =
+            (from object e in Enum.GetValues(typeof(ScreenTypeEnum))
+                select new ListItem(e.ToString(), ((int) e).ToString())).ToArray();
+            ViewBag.Owners = _rep.Distinct(t => t.Owner).Where(t=>!string.IsNullOrEmpty(t)).OrderBy(t => t).Select(t => new ListItem(t.ToString(), t.ToString(), false)).ToArray();
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult Add(ScreenRecDetail model)
+        {
+            if (_repDetail.Get(t => t.DeviceNum == model.DeviceNum) != null)
+            {
+                Alert.Show("设备编号已存在", MessageBoxIcon.Warning);
+                return UIHelper.Result();
+            }
+            model._id = (int) (_repDetail.Max(t => t._id) ?? 0) + 1;
+            _repDetail.Add(model);
+
+            _rep.Add(new ScreenRec
+            {
+                _id = (int) (_rep.Max(t => t._id) ?? 0) + 1,
+                DeviceNum = model.DeviceNum,
+                Owner = model.Owner,
+                LineName = string.Format("{0}、{1}", model.LineName, model.LinesInSameScreen),
+                ConstructionType = model.ConstructionType,
+                ScreenType = model.ScreenType,
+                IsWireLess = model.IsWireLess,
+                ScreenCount = model.ScreenCount,
+                InstallStation = model.InstallStation,
+                InstallDate = model.InstallDate,
+                Materials = model.Materials
+            });
+
+            PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
+            return UIHelper.Result();
+        }
         public ViewResult Locate(string line,string station)
         {
             var point = new OracleHelper().GetPointByLine(line,station);

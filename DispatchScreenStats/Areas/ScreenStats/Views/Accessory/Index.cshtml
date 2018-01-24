@@ -18,7 +18,7 @@
                   .AllowCellEditing(true)
                   .PageSize(ViewBag.PageSize)
                   .IsDatabasePaging(true)
-                  .OnPageIndexChanged(Url.Action("DoSearch"), "Form1,Grid1")
+                  .OnPageIndexChanged(Url.Action("DoSearch")+"?devNum="+ViewBag.devNum, "Form1,Grid1")
                 .Listener("datachange", "onGridDataChange")
         .IsViewPort(true)
         .Columns(
@@ -70,7 +70,7 @@
                                       isAuthorized ? F.Button()
                                           .ID("btnSubmit").Enabled(false)
                                           .Text("保存数据").Icon(Icon.SystemSave)
-                                          .OnClick(Url.Action("btnSubmit_Click"), "Grid1"): F.Button().Hidden(true),
+                                                  .OnClick(Url.Action("btnSubmit_Click") + "?devNum=" + ViewBag.devNum, "Grid1") : F.Button().Hidden(true),
                                             isAuthorized ? F.Button()
                                           .ID("btnExport")
                                           .Icon(Icon.PageExcel)
