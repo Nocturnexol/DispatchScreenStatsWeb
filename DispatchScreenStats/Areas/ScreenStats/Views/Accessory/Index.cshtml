@@ -18,13 +18,13 @@
                   .AllowCellEditing(true)
                   .PageSize(ViewBag.PageSize)
                   .IsDatabasePaging(true)
-                  .OnPageIndexChanged(Url.Action("DoSearch")+"?devNum="+ViewBag.devNum, "Form1,Grid1")
+                  .OnPageIndexChanged(Url.Action("DoSearch")+"?id="+ViewBag.id, "Form1,Grid1")
                 .Listener("datachange", "onGridDataChange")
         .IsViewPort(true)
         .Columns(
               F.RowNumberField(),
-            F.RenderField()
-                .DataField("DevNum").Hidden(true),
+            //F.RenderField()
+            //    .DataField("DevNum").Hidden(true),
             F.RenderField()
                 .DataField("Name")
                 .HeaderText("名称").Editor(F.DropDownList().Required(true).Items(ViewBag.Names)),
@@ -70,7 +70,7 @@
                                       isAuthorized ? F.Button()
                                           .ID("btnSubmit").Enabled(false)
                                           .Text("保存数据").Icon(Icon.SystemSave)
-                                                  .OnClick(Url.Action("btnSubmit_Click") + "?devNum=" + ViewBag.devNum, "Grid1") : F.Button().Hidden(true),
+                                                  .OnClick(Url.Action("btnSubmit_Click") + "?id=" + ViewBag.id, "Grid1") : F.Button().Hidden(true),
                                             isAuthorized ? F.Button()
                                           .ID("btnExport")
                                           .Icon(Icon.PageExcel)
@@ -113,14 +113,14 @@
             });
         }
         function onExportClick() {
-            window.location.href = '@Url.Action("Export")?devNum=@ViewBag.devNum';
+            window.location.href = '@Url.Action("Export")?id=@ViewBag.id';
         }
         function onNewClick(event) {
             var grid1 = F.ui.Grid1;
             //var data = grid2.alldata[0].values;
             // 新增一行（返回新增行的ID）
             var addedRowId = grid1.addNewRecord({
-                'DevNum': '@ViewBag.devNum'
+                @*'DevNum': '@ViewBag.devNum'*@
                 },
                 true,
                 'Name');

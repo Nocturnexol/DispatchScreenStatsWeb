@@ -19,22 +19,24 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
     {
         private readonly IMongoRepository<Accessory> _rep = new MongoRepository<Accessory>();
         private readonly IMongoRepository<BasicData> _repBasic = new MongoRepository<BasicData>();
+        private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         //
         // GET: /ScreenStats/Accessory/
-        public ActionResult Index(string devNum)
+        public ActionResult Index(string id)
         {
             int count;
-            var list = _rep.QueryByPage(0, PageSize, out count, Builders<Accessory>.Filter.Eq(t => t.DevNum, devNum));
+            var list = _rep.QueryByPage(0, PageSize, out count,
+                Builders<Accessory>.Filter.AnyEq(t => t.RecDetailIds, int.Parse(id)));
             ViewBag.RecordCount = count;
             ViewBag.PageSize = PageSize;
-            ViewBag.devNum = devNum;
+            ViewBag.id = id;
             ViewBag.Names =
                 _repBasic.Find(t => t.Type == "配件").ToList().Select(t => new ListItem(t.Name, t.Name)).ToArray();
             return View(list);
         }
-        public FileResult Export(string devNum)
+        public FileResult Export(string id)
         {
-            var list = _rep.Find(t => t.DevNum == devNum).ToList();
+            var list = _rep.Find(Builders<Accessory>.Filter.AnyEq(t => t.RecDetailIds, int.Parse(id))).ToList();
             const string thHtml = "<th>{0}</th>";
             const string tdHtml = "<td style=\"text-align: center;\">{0}</td>";
 
@@ -67,13 +69,28 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/excel", "配件列表.xls");
         }
         public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex,
-            int Grid1_pageSize,string devNum)
+            int Grid1_pageSize,string id)
         {
             if (!Grid1_modifiedData.Any())
             {
                 ShowNotify("无修改数据！");
                 return UIHelper.Result();
             }
+            var detail = _repDetail.Get(t => t._id == int.Parse(id));
+            var detailIds = new List<int>();
+            if (detail.IsLog)
+            {
+                detailIds.Add(detail._id);
+            }
+            else
+            {
+                detailIds.AddRange(
+                    _repDetail.Find(t => t.DeviceNum == detail.DeviceNum && !t.IsLog)
+                        .ToList()
+                        .Select(t => t._id)
+                        .ToList());
+            }
+
             foreach (var jToken in Grid1_modifiedData)
             {
                 var modifiedRow = (JObject)jToken;
@@ -89,6 +106,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     {
                          typeof(Accessory).GetProperty(p.Key).SetValue(model, p.Value);
                     }
+                    model.RecDetailIds = detailIds.ToArray();
                     _rep.Add(model);
                 }
                 else if (status == "modified")
@@ -108,7 +126,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 }
             }
             int count;
-            var source = _rep.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count, Builders<Accessory>.Filter.Eq(t => t.DevNum, devNum));
+            var source = _rep.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count, Builders<Accessory>.Filter.AnyEq(t => t.RecDetailIds, int.Parse(id)));
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
             grid1.DataSource(source, Grid1_fields);
@@ -127,9 +145,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var fields = JArray.Parse(values["Grid1_fields"]);
             var pageIndex = Convert.ToInt32(values["Grid1_pageIndex"] ?? "0");
             var pageSize = Convert.ToInt32(values["Grid1_pageSize"] ?? "0");
-            var devNum = values["devNum"];
+            var id = values["id"];
             int count;
-            var list = _rep.QueryByPage(pageIndex, pageSize, out count, Builders<Accessory>.Filter.Eq(t => t.DevNum, devNum));
+            var list = _rep.QueryByPage(pageIndex, pageSize, out count, Builders<Accessory>.Filter.AnyEq(t => t.RecDetailIds, int.Parse(id)));
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
             grid1.PageSize(pageSize);

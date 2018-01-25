@@ -308,11 +308,12 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         {
                             rec.LineName = rec.LineName.Replace("、", "/");
                             var lines = rec.LineName.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                            var detailIdList = new List<int>();
                             foreach (var line in lines)
                             {
                                 var detail = new ScreenRecDetail();
                                 detail._id = maxDetailId;
-                                maxDetailId++;
+                                detailIdList.Add(maxDetailId++);
                                 detail.LineName = line;
                                 detail.LinesInSameScreen = string.Join("、", lines.Except(new[] {line}));
                                 detail.ConstructionType = rec.ConstructionType;
@@ -372,7 +373,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                     _id = maxAccId++,
                                     Count = val,
                                     DevNum = rec.DeviceNum,
-                                    Name = prop.GetCName()
+                                    Name = prop.GetCName(),
+                                    RecDetailIds = detailIdList.ToArray(),
+                                    RecId = rec._id
                                 });
                         }
                         _rep.BulkInsert(list);
@@ -469,9 +472,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
         public FileResult Export()
         {
-            var filter = (List<FilterDefinition<ScreenRecDetail>>) Session["filter"];
+            var filter = (List<FilterDefinition<ScreenRec>>) Session["filterRec"];
+            if (filter != null) filter.RemoveAt(0);
             var list =
-                _repDetail.Find(filter != null && filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null)
+                _rep.Find(filter != null && filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null)
+                    .SortBy(t => t.DeviceNum)
                     .ToList();
             var mats = _repAcc.Find().ToList();
             const string thHtml = "<th>{0}</th>";
@@ -486,7 +491,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             sb.AppendFormat(thHtmlMulti, "营运公司");
             sb.AppendFormat(thHtmlMulti, "安装线路");
             sb.AppendFormat(thHtmlMulti, "屏幕类型");
-            sb.AppendFormat(thHtmlMulti, "同屏线路");
             sb.AppendFormat(thHtmlMulti, "屏数");
             sb.AppendFormat(thHtmlMulti, "安装站点");
             sb.AppendFormat(thHtmlMulti, "安装日期");
@@ -514,7 +518,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             foreach (var item in list)
             {
                 var devNum = item.DeviceNum;
-                var mat = mats.Where(t => t.DevNum == devNum).ToList();
+                var mat = mats.Where(t => t.RecId == item._id).ToList();
 
                 sb.Append("<tr>");
                 sb.AppendFormat(tdHtml, rowIndex++);
@@ -522,7 +526,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 sb.AppendFormat(tdHtml, item.Owner);
                 sb.AppendFormat(tdHtml, item.LineName);
                 sb.AppendFormat(tdHtml, item.ScreenType);
-                sb.AppendFormat(tdHtml, item.LinesInSameScreen);
                 sb.AppendFormat(tdHtml, item.ScreenCount);
                 sb.AppendFormat(tdHtml, item.InstallStation);
                 sb.AppendFormat(tdHtml, item.InstallDate != null ? item.InstallDate.Value.ToString("yyyy-MM-dd") : "");
@@ -841,6 +844,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
             _repDetail.Delete(t => true);
             _rep.Delete(t => true);
+            _repAcc.Delete(t => true);
             UpdateGrid(values);
             return UIHelper.Result();
         }
@@ -866,7 +870,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return UIHelper.Result();
         }
 
-        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex, int Grid1_pageSize, JArray Grid2_modifiedData, JArray Grid2_fields, JArray Grid3_modifiedData, JArray Grid4_modifiedData, JArray Grid5_modifiedData)
+        public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex, int Grid1_pageSize, JArray Grid2_modifiedData, JArray Grid2_fields, JArray Grid3_modifiedData, JArray Grid4_modifiedData, JArray Grid4_fields, JArray Grid5_modifiedData)
         {
             if (!Grid1_modifiedData.Any() && !Grid2_modifiedData.Any() && !Grid3_modifiedData.Any() && !Grid4_modifiedData.Any())
             {
@@ -1021,11 +1025,18 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 }
             }
 
+            string devNum = null;
             foreach (var jToken in Grid4_modifiedData)
             {
                 var modifiedRow = (JObject)jToken;
                 string status = modifiedRow.Value<string>("status");
                 var rowId = modifiedRow.Value<string>("id");
+                if (string.IsNullOrEmpty(devNum))
+                {
+                    devNum =
+                        modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>()["DeviceNum"]
+                            .ToString();
+                }
 
                 if (status == "newadded")
                 {
@@ -1077,7 +1088,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     _repDetail.Delete(t => t._id == int.Parse(rowId));
                 }
             }
-
+            UIHelper.Grid("Grid4").DataSource(
+                _repDetail.Find(t => t.DeviceNum == devNum && t.IsLog && t.LogType == "日志类型").ToList(), Grid4_fields);
 
             foreach (var jToken in Grid5_modifiedData)
             {

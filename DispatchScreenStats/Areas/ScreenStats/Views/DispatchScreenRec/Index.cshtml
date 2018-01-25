@@ -259,7 +259,14 @@
                                       F.RenderField()
                                           .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
                                           .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
-                                      F.RenderField()
+                                                   F.RenderField()
+                                          .HeaderText("")
+                                          .Width(60)
+                                          .RendererFunction("renderDetailField")
+                                          .TextAlign(TextAlign.Center)
+                                          .EnableHeaderMenu(false)
+                                          .EnableColumnHide(false),
+                                          F.RenderField()
                                           .Width(50)
                                           .EnableHeaderMenu(false)
                                           .RendererFunction("renderActions")
@@ -676,6 +683,14 @@
                 }
             });
         });
+        grid4.el.on('click',
+                'a.detailfield',
+                function(event) {
+                    var rowEl = $(this).closest('.f-grid-row');
+                    var rowData = grid4.getRowData(rowEl);
+                    F.ui.iframeWindow.show( '@Url.Action("Index","Accessory")?id='+rowData.id);
+                });
+
 
         var grid5 = F.ui.Grid5;
         grid5.el.on('click', 'a.action-btn.delete', function (event) {
@@ -723,7 +738,7 @@
                 function(event) {
                     var rowEl = $(this).closest('.f-grid-row');
                     var rowData = grid1.getRowData(rowEl);
-                    F.ui.iframeWindow.show( '@Url.Action("Index","Accessory")?devNum='+rowData.values.DeviceNum);
+                    F.ui.iframeWindow.show( '@Url.Action("Index","Accessory")?id='+rowData.id);
                 });
 
         
