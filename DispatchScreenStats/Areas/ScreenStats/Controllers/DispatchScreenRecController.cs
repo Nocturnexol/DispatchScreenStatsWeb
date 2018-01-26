@@ -33,8 +33,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenRepairs> _repRepairs = new MongoRepository<ScreenRepairs>();
         private readonly IMongoRepository<Accessory> _repAcc = new MongoRepository<Accessory>();
         private readonly IMongoRepository<ScreenImage> _repImg = new MongoRepository<ScreenImage>();
-        private readonly Expression<Func<ScreenRecDetail, bool>> _filter = t => !t.IsLog;
-        private readonly Expression<Func<ScreenRec, bool>> _f = t => !t.IsLog;
+        private readonly Expression<Func<ScreenRec, bool>> _filter = t => !t.IsLog;
         private readonly bool _isAuth;
 
         public DispatchScreenRecController()
@@ -58,7 +57,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         public ActionResult Index()
         {
             int count;
-            var list = _repDetail.QueryByPage(0, PageSize, out count, _filter);
+            var list = _rep.QueryByPage(0, PageSize, out count, _filter);
             ViewBag.RecordCount = count;
             ViewBag.PageSize = PageSize;
 
@@ -66,14 +65,14 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             {
                 new ListItem("全部线路", "")
             };
-            lines.AddRange(_repDetail.Distinct(t => t.LineName).Select(t => new ListItem(t, t)));
+            lines.AddRange(_rep.Distinct(t => t.LineName).Select(t => new ListItem(t, t)));
             ViewBag.Lines = lines.ToArray();
 
             var stations = new List<ListItem>
             {
                 new ListItem("全部站点", "")
             };
-            stations.AddRange(_repDetail.Distinct(t => t.InstallStation).Select(t => new ListItem(t, t)));
+            stations.AddRange(_rep.Distinct(t => t.InstallStation).Select(t => new ListItem(t, t)));
             ViewBag.Stations = stations.ToArray();
             ViewBag.HandlingTypes = GetBasicDdlByName("处理类型");
             ViewBag.ChargeTypes = GetBasicDdlByName("收费类型");
@@ -288,7 +287,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 screenRec.IsWireLess = flag;
                             }
                         }
-
+                        if (string.IsNullOrWhiteSpace(model.Owner) && string.IsNullOrWhiteSpace(model.LineName) &&
+                            string.IsNullOrWhiteSpace(model.InstallStation)) continue;
                         list.Add(model);
                     }
 
@@ -306,16 +306,31 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         var maxAccId = (int) (_repAcc.Max(t => t._id) ?? 0) + 1;
                         foreach (var rec in list)
                         {
-                            rec.LineName = rec.LineName.Replace("、", "/");
-                            var lines = rec.LineName.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                            rec.LineName =
+                                rec.LineName.Replace("、", "/").Replace("/", ",").Replace("\r\n", "").Replace(" ", "");
+                            var lines = rec.LineName.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
                             var detailIdList = new List<int>();
-                            foreach (var line in lines)
+
+                            if (lines.Length > 2)
+                                rec.ScreenType = ScreenTypeEnum.表格定制屏;
+                            else if (lines.Length == 2)
+                            {
+                                int unit;
+                                if (int.TryParse(rec.Materials.UnitBoard, out unit))
+                                {
+                                    if (unit == 28) rec.ScreenType = ScreenTypeEnum.七行双线屏;
+                                    else if (unit == 35) rec.ScreenType = ScreenTypeEnum.定制双线屏;
+                                }
+                            }
+                            else if (lines.Length == 1)
+                                rec.ScreenType = ScreenTypeEnum.标准单线屏;
+                            if (rec.IsLog)
                             {
                                 var detail = new ScreenRecDetail();
                                 detail._id = maxDetailId;
                                 detailIdList.Add(maxDetailId++);
-                                detail.LineName = line;
-                                detail.LinesInSameScreen = string.Join("、", lines.Except(new[] {line}));
+                                detail.LineName = rec.LineName;
+                                //detail.LinesInSameScreen = string.Join("、", lines.Except(new[] {line}));
                                 detail.ConstructionType = rec.ConstructionType;
                                 detail.Materials = rec.Materials;
                                 detail.Owner = rec.Owner;
@@ -327,27 +342,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 detail.ExtraRemark = rec.ExtraRemark;
                                 detail.IsLog = rec.IsLog;
 
-                                if (detail.IsLog)
-                                {
-                                    detail.Date = detail.InstallDate;
-                                    detail.LogType = "日志类型";
-                                }
-
-                                if (lines.Length > 2)
-                                    detail.ScreenType = ScreenTypeEnum.表格定制屏;
-                                else if (lines.Length == 2)
-                                {
-                                    int unit;
-                                    if (int.TryParse(detail.Materials.UnitBoard, out unit))
-                                    {
-                                        if (unit == 28) detail.ScreenType = ScreenTypeEnum.七行双线屏;
-                                        else if (unit == 35) detail.ScreenType = ScreenTypeEnum.定制双线屏;
-                                    }
-                                }
-                                else if (lines.Length == 1)
-                                    detail.ScreenType = ScreenTypeEnum.标准单线屏;
-
-                                rec.ScreenType = detail.ScreenType;
+                                detail.Date = detail.InstallDate;
+                                detail.LogType = "日志类型";
                                 detail.IsWireLess = rec.IsWireLess;
                                 detailList.Add(detail);
 
@@ -478,10 +474,17 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 _rep.Find(filter != null && filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : null)
                     .SortBy(t => t.DeviceNum)
                     .ToList();
+            var devNums =
+                list.Where(t => !string.IsNullOrEmpty(t.LineName) && !string.IsNullOrEmpty(t.InstallStation))
+                    .OrderBy(t => t.InstallDate)
+                    .Select(t => t.DeviceNum)
+                    .Distinct()
+                    .ToList();
             var mats = _repAcc.Find().ToList();
             const string thHtml = "<th>{0}</th>";
             const string thHtmlMulti = "<th rowspan=\"2\">{0}</th>";
             const string tdHtml = "<td style=\"text-align: center;\">{0}</td>";
+            const string tdHtmlMulti = "<td style=\"text-align: center;\" rowspan=\"{1}\">{0}</td>";
 
             var sb = new StringBuilder();
             sb.Append("<table cellspacing=\"0\" rules=\"all\" border=\"1\" style=\"border-collapse:collapse;\">");
@@ -490,9 +493,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             sb.AppendFormat(thHtmlMulti, "设备编号");
             sb.AppendFormat(thHtmlMulti, "营运公司");
             sb.AppendFormat(thHtmlMulti, "安装线路");
+            sb.AppendFormat(thHtmlMulti, "安装站点");
             sb.AppendFormat(thHtmlMulti, "屏幕类型");
             sb.AppendFormat(thHtmlMulti, "屏数");
-            sb.AppendFormat(thHtmlMulti, "安装站点");
             sb.AppendFormat(thHtmlMulti, "安装日期");
             sb.AppendFormat("<th colspan=\"14\">{0}</th>", "使用材料");
             sb.Append("</tr>");
@@ -515,51 +518,77 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             sb.Append("</tr>");
 
             var rowIndex = 1;
-            foreach (var item in list)
+            foreach (var devNum in devNums)
             {
-                var devNum = item.DeviceNum;
-                var mat = mats.Where(t => t.RecId == item._id).ToList();
-
-                sb.Append("<tr>");
-                sb.AppendFormat(tdHtml, rowIndex++);
-                sb.AppendFormat(tdHtml, devNum);
-                sb.AppendFormat(tdHtml, item.Owner);
-                sb.AppendFormat(tdHtml, item.LineName);
-                sb.AppendFormat(tdHtml, item.ScreenType);
-                sb.AppendFormat(tdHtml, item.ScreenCount);
-                sb.AppendFormat(tdHtml, item.InstallStation);
-                sb.AppendFormat(tdHtml, item.InstallDate != null ? item.InstallDate.Value.ToString("yyyy-MM-dd") : "");
-                if (mat.Any())
+                var recs = list.Where(t => t.DeviceNum == devNum).ToList();
+                var recCount = recs.Count;
+                for (var i = 0; i < recs.Count; i++)
                 {
-                    var cord = mat.FirstOrDefault(t => t.Name == "电源线");
-                    sb.AppendFormat(tdHtml, cord != null ? cord.Count : "");
-                    var cable = mat.FirstOrDefault(t => t.Name == "网线");
-                    sb.AppendFormat(tdHtml, cable != null ? cable.Count : "");
-                    var grid = mat.FirstOrDefault(t => t.Name == "网络跳线");
-                    sb.AppendFormat(tdHtml, grid == null ? "" : grid.Count);
-                    var small = mat.FirstOrDefault(t => t.Name == "小交换机");
-                    sb.AppendFormat(tdHtml, small == null ? "" : small.Count);
-                    var big = mat.FirstOrDefault(t => t.Name == "大交换机");
-                    sb.AppendFormat(tdHtml, big == null ? "" : big.Count);
-                    var panel = mat.FirstOrDefault(t => t.Name == "电源接线板");
-                    sb.AppendFormat(tdHtml, panel == null ? "" : panel.Count);
-                    var ps = mat.FirstOrDefault(t => t.Name == "一分二电源开关");
-                    sb.AppendFormat(tdHtml, ps == null ? "" : ps.Count);
-                    var adp = mat.FirstOrDefault(t => t.Name == "USB网卡");
-                    sb.AppendFormat(tdHtml, adp == null ? "" : adp.Count);
-                    var plug = mat.FirstOrDefault(t => t.Name == "三线插头");
-                    sb.AppendFormat(tdHtml, plug == null ? "" : plug.Count);
-                    var tube = mat.FirstOrDefault(t => t.Name == "不锈钢方管");
-                    sb.AppendFormat(tdHtml, tube == null ? "" : tube.Count);
-                    var power = mat.FirstOrDefault(t => t.Name == "电源");
-                    sb.AppendFormat(tdHtml, power == null ? "" : power.Count);
-                    var unit = mat.FirstOrDefault(t => t.Name == "单元板");
-                    sb.AppendFormat(tdHtml, unit == null ? "" : unit.Count);
-                    var canopy = mat.FirstOrDefault(t => t.Name == "雨棚");
-                    sb.AppendFormat(tdHtml, canopy == null ? "" : canopy.Count);
+                    var item = recs[i];
+                    var mat = mats.Where(t => t.RecId == item._id).ToList();
+
+                    sb.Append("<tr>");
+                    sb.AppendFormat(tdHtml, rowIndex++);
+
+                    if (i == 0)
+                    {
+                        sb.AppendFormat(tdHtmlMulti, devNum, recCount);
+                        sb.AppendFormat(tdHtmlMulti, item.Owner, recCount);
+                        sb.AppendFormat(tdHtmlMulti, item.LineName, recCount);
+                        sb.AppendFormat(tdHtmlMulti, item.InstallStation, recCount);
+                        sb.AppendFormat(tdHtmlMulti, item.ScreenType, recCount);
+                    }
+                    sb.AppendFormat(tdHtml, item.ScreenCount);
+                    sb.AppendFormat(tdHtml,
+                        item.InstallDate != null ? item.InstallDate.Value.ToString("yyyy-MM-dd") : "");
+                    if (mat.Any())
+                    {
+                        var cord = mat.FirstOrDefault(t => t.Name == "电源线");
+                        sb.AppendFormat(tdHtml, cord != null ? cord.Count : "");
+                        var cable = mat.FirstOrDefault(t => t.Name == "网线");
+                        sb.AppendFormat(tdHtml, cable != null ? cable.Count : "");
+                        var grid = mat.FirstOrDefault(t => t.Name == "网络跳线");
+                        sb.AppendFormat(tdHtml, grid == null ? "" : grid.Count);
+                        var small = mat.FirstOrDefault(t => t.Name == "小交换机");
+                        sb.AppendFormat(tdHtml, small == null ? "" : small.Count);
+                        var big = mat.FirstOrDefault(t => t.Name == "大交换机");
+                        sb.AppendFormat(tdHtml, big == null ? "" : big.Count);
+                        var panel = mat.FirstOrDefault(t => t.Name == "电源接线板");
+                        sb.AppendFormat(tdHtml, panel == null ? "" : panel.Count);
+                        var ps = mat.FirstOrDefault(t => t.Name == "一分二电源开关");
+                        sb.AppendFormat(tdHtml, ps == null ? "" : ps.Count);
+                        var adp = mat.FirstOrDefault(t => t.Name == "USB网卡");
+                        sb.AppendFormat(tdHtml, adp == null ? "" : adp.Count);
+                        var plug = mat.FirstOrDefault(t => t.Name == "三线插头");
+                        sb.AppendFormat(tdHtml, plug == null ? "" : plug.Count);
+                        var tube = mat.FirstOrDefault(t => t.Name == "不锈钢方管");
+                        sb.AppendFormat(tdHtml, tube == null ? "" : tube.Count);
+                        var power = mat.FirstOrDefault(t => t.Name == "电源");
+                        sb.AppendFormat(tdHtml, power == null ? "" : power.Count);
+                        var unit = mat.FirstOrDefault(t => t.Name == "单元板");
+                        sb.AppendFormat(tdHtml, unit == null ? "" : unit.Count);
+                        var canopy = mat.FirstOrDefault(t => t.Name == "雨棚");
+                        sb.AppendFormat(tdHtml, canopy == null ? "" : canopy.Count);
+                    }
+                    else
+                    {
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                        sb.AppendFormat(tdHtml, "");
+                    }
+                    sb.AppendFormat(tdHtml, item.Materials.Remark);
+                    sb.Append("</tr>");
                 }
-                sb.AppendFormat(tdHtml, item.Materials.Remark);
-                sb.Append("</tr>");
             }
             sb.Append("</table>");
             return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/excel", "发车屏导出列表.xls");
@@ -579,8 +608,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var isFuzzyStation = values["cbIsFuzzyStation"];
             var screenType = values["tbType"];
             var screenCount = values["nbCount"];
-            var inStallDate = values["tbDate"];
-            var chargeDate = values["dpDate"];
+            var inStallDateLower = values["tbDateLower"];
+            var inStallDateUpper = values["tbDateUpper"];
+            var chargeDateLower = values["dpDateLower"];
+            var chargeDateUpper = values["dpDateUpper"];
             var lower = values["nbLower"];
             var upper = values["nbUpper"];
             var paymentStatus = values["ddlStatus"];
@@ -589,34 +620,34 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
             var sortField = values["Grid1_sortField"];
             var sortDirection = values["Grid1_sortDirection"];
-            SortDefinition<ScreenRecDetail> sort = null;
+            SortDefinition<ScreenRec> sort = null;
             if (!string.IsNullOrEmpty(sortField))
             {
                 if (!string.IsNullOrEmpty(sortDirection))
                 {
-                    var exp = sortField.ToLambda<ScreenRecDetail>();
+                    var exp = sortField.ToLambda<ScreenRec>();
                     if (sortDirection.Equals("ASC", StringComparison.CurrentCultureIgnoreCase))
-                        sort = Builders<ScreenRecDetail>.Sort.Ascending(exp);
+                        sort = Builders<ScreenRec>.Sort.Ascending(exp);
                     else if (sortDirection.Equals("DESC", StringComparison.CurrentCultureIgnoreCase))
-                        sort = Builders<ScreenRecDetail>.Sort.Descending(exp);
+                        sort = Builders<ScreenRec>.Sort.Descending(exp);
                 }
             }
-            var filter = new List<FilterDefinition<ScreenRecDetail>>
+            //var filter = new List<FilterDefinition<ScreenRecDetail>>
+            //{
+            //    _filter
+            //};
+            var filterRec = new List<FilterDefinition<ScreenRec>>
             {
                 _filter
             };
-            var filterRec = new List<FilterDefinition<ScreenRec>>
-            {
-                _f
-            };
             if (!string.IsNullOrWhiteSpace(devNum))
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.DeviceNum, devNum));
+                //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.DeviceNum, devNum));
                 filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.DeviceNum, devNum));
             }
             if (owner!=null)
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.In(t => t.Owner,owner));
+                //filter.Add(Builders<ScreenRecDetail>.Filter.In(t => t.Owner,owner));
                 filterRec.Add(Builders<ScreenRec>.Filter.In(t => t.Owner, owner));
             }
             if (!string.IsNullOrWhiteSpace(line))
@@ -624,13 +655,13 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 var isFuzzy = bool.Parse(isFuzzyLine);
                 if (isFuzzy)
                 {
-                    filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.LineName,
-                        new BsonRegularExpression(new Regex(line.Trim()))));
+                    //filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.LineName,
+                    //    new BsonRegularExpression(new Regex(line.Trim()))));
                     filterRec.Add(Builders<ScreenRec>.Filter.Regex(t => t.LineName, new BsonRegularExpression(new Regex(line.Trim()))));
                 }
                 else
                 {
-                    filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.LineName, line.Trim()));
+                    //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.LineName, line.Trim()));
                     filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.LineName, line.Trim()));
                 }
             }
@@ -639,19 +670,19 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 var isFuzzy = bool.Parse(isFuzzyStation);
                 if (isFuzzy)
                 {
-                    filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.InstallStation,
-                        new BsonRegularExpression(new Regex(station.Trim()))));
+                    //filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.InstallStation,
+                    //    new BsonRegularExpression(new Regex(station.Trim()))));
                     filterRec.Add(Builders<ScreenRec>.Filter.Regex(t => t.InstallStation, new BsonRegularExpression(new Regex(station.Trim()))));
                 }
                 else
                 {
-                    filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallStation, station.Trim()));
+                    //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallStation, station.Trim()));
                     filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.InstallStation, station.Trim()));
                 }
             }
             if (!string.IsNullOrWhiteSpace(screenType))
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ScreenType,
+                filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.ScreenType,
                     Enum.Parse(typeof(ScreenTypeEnum), screenType)));
             }
             if (!string.IsNullOrWhiteSpace(screenCount))
@@ -659,26 +690,35 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 int c;
                 if (int.TryParse(screenCount, out c))
                 {
-                    filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ScreenCount, c));
+                    //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ScreenCount, c));
                     filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.ScreenCount, c));
                 }
             }
-            if (!string.IsNullOrWhiteSpace(inStallDate))
+            if (!string.IsNullOrWhiteSpace(inStallDateLower))
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallDate, DateTime.Parse(inStallDate)));
-                filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.InstallDate, DateTime.Parse(inStallDate)));
+                //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.InstallDate, DateTime.Parse(inStallDate)));
+                filterRec.Add(Builders<ScreenRec>.Filter.Gte(t => t.InstallDate, DateTime.Parse(inStallDateLower)));
             }
-            if (!string.IsNullOrWhiteSpace(chargeDate))
+            if (!string.IsNullOrWhiteSpace(inStallDateUpper))
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ChargeTime, DateTime.Parse(chargeDate)));
-                filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.ChargeTime, DateTime.Parse(chargeDate)));
+                filterRec.Add(Builders<ScreenRec>.Filter.Lte(t => t.InstallDate, DateTime.Parse(inStallDateUpper)));
+            }
+            if (!string.IsNullOrWhiteSpace(chargeDateLower))
+            {
+                //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ChargeTime, DateTime.Parse(chargeDate)));
+                filterRec.Add(Builders<ScreenRec>.Filter.Gte(t => t.ChargeTime, DateTime.Parse(chargeDateLower)));
+            }
+            if (!string.IsNullOrWhiteSpace(chargeDateUpper))
+            {
+                //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.ChargeTime, DateTime.Parse(chargeDate)));
+                filterRec.Add(Builders<ScreenRec>.Filter.Lte(t => t.ChargeTime, DateTime.Parse(chargeDateUpper)));
             }
             if (!string.IsNullOrWhiteSpace(lower))
             {
                 double d;
                 if (double.TryParse(lower, out d) && !double.IsNaN(d))
                 {
-                    filter.Add(Builders<ScreenRecDetail>.Filter.Gte(t => t.Price, d));
+                    //filter.Add(Builders<ScreenRecDetail>.Filter.Gte(t => t.Price, d));
                     filterRec.Add(Builders<ScreenRec>.Filter.Gte(t => t.Price, d));
                 }
             }
@@ -687,13 +727,13 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 double d;
                 if (double.TryParse(upper, out d)&&!double.IsNaN(d))
                 {
-                    filter.Add(Builders<ScreenRecDetail>.Filter.Lte(t => t.Price, d));
+                    //filter.Add(Builders<ScreenRecDetail>.Filter.Lte(t => t.Price, d));
                     filterRec.Add(Builders<ScreenRec>.Filter.Lte(t => t.Price,d));
                 }
             }
             if (!string.IsNullOrWhiteSpace(paymentStatus))
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.PaymentStatus, paymentStatus));
+                //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.PaymentStatus, paymentStatus));
                 filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.PaymentStatus, paymentStatus));
             }
             if (!string.IsNullOrWhiteSpace(isWireless))
@@ -701,21 +741,21 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 bool r;
                 if (bool.TryParse(isWireless, out r))
                 {
-                        filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.IsWireLess, r));
+                        //filter.Add(Builders<ScreenRecDetail>.Filter.Eq(t => t.IsWireLess, r));
                         filterRec.Add(Builders<ScreenRec>.Filter.Eq(t => t.IsWireLess, r));
                 }
             }
             if (!string.IsNullOrWhiteSpace(remark))
             {
-                filter.Add(Builders<ScreenRecDetail>.Filter.Regex(t => t.Materials.Remark,
+                filterRec.Add(Builders<ScreenRec>.Filter.Regex(t => t.Materials.Remark,
                     new BsonRegularExpression(new Regex(remark.Trim(),RegexOptions.IgnoreCase))));
             }
-            Session["filter"] = filter;
+            Session["filter"] = filterRec;
             Session["filterRec"] = filterRec;
 
             int count;
-            var list = _repDetail.QueryByPage(pageIndex, pageSize, out count,
-                filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null,sort);
+            var list = _rep.QueryByPage(pageIndex, pageSize, out count,
+                filterRec.Any() ? Builders<ScreenRec>.Filter.And(filterRec) : null, sort);
             //var list = _repDetail.Find(filter.Any() ? Builders<ScreenRecDetail>.Filter.And(filter) : null).ToList();
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
@@ -755,30 +795,30 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         }
 
         [HttpPost]
-        public ActionResult Add(ScreenRecDetail model)
+        public ActionResult Add(ScreenRec model)
         {
-            if (_repDetail.Get(t => t.DeviceNum == model.DeviceNum) != null)
+            if (_rep.Get(t => t.DeviceNum == model.DeviceNum) != null)
             {
                 Alert.Show("设备编号已存在", MessageBoxIcon.Warning);
                 return UIHelper.Result();
             }
-            model._id = (int) (_repDetail.Max(t => t._id) ?? 0) + 1;
-            _repDetail.Add(model);
+            model._id = (int) (_rep.Max(t => t._id) ?? 0) + 1;
+            _rep.Add(model);
 
-            _rep.Add(new ScreenRec
-            {
-                _id = (int) (_rep.Max(t => t._id) ?? 0) + 1,
-                DeviceNum = model.DeviceNum,
-                Owner = model.Owner,
-                LineName = string.Format("{0}、{1}", model.LineName, model.LinesInSameScreen),
-                ConstructionType = model.ConstructionType,
-                ScreenType = model.ScreenType,
-                IsWireLess = model.IsWireLess,
-                ScreenCount = model.ScreenCount,
-                InstallStation = model.InstallStation,
-                InstallDate = model.InstallDate,
-                Materials = model.Materials
-            });
+            //_rep.Add(new ScreenRec
+            //{
+            //    _id = (int) (_rep.Max(t => t._id) ?? 0) + 1,
+            //    DeviceNum = model.DeviceNum,
+            //    Owner = model.Owner,
+            //    LineName = string.Format("{0}、{1}", model.LineName, model.LinesInSameScreen),
+            //    ConstructionType = model.ConstructionType,
+            //    ScreenType = model.ScreenType,
+            //    IsWireLess = model.IsWireLess,
+            //    ScreenCount = model.ScreenCount,
+            //    InstallStation = model.InstallStation,
+            //    InstallDate = model.InstallDate,
+            //    Materials = model.Materials
+            //});
 
             PageContext.RegisterStartupScript(ActiveWindow.GetHidePostBackReference());
             return UIHelper.Result();
@@ -800,7 +840,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
              var filter = (List<FilterDefinition<ScreenRec>>) Session["filterRec"];
             var screens =
-                _rep.Find(filter != null && filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : _f).ToList();
+                _rep.Find(filter != null && filter.Any() ? Builders<ScreenRec>.Filter.And(filter) : _filter).ToList();
             //var stations = screens.Select(t => t.InstallStation).Distinct().ToList();
             //var points = new List<dynamic>();
             //foreach (var station in stations)
@@ -852,7 +892,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         {
             var ids = selectedRows.Select(Convert.ToInt32).ToList();
             var screens =
-                _repDetail.Find(t => ids.Contains(t._id))
+                _rep.Find(t => ids.Contains(t._id))
                     .ToList()
                     .GroupBy(t => new {t.LineName, t.InstallStation})
                     .Select(t => t.Key)
@@ -860,11 +900,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             foreach (var screen in screens)
             {
                 var s = screen;
-                _repDetail.Delete(t => t.LineName == s.LineName && t.InstallStation == s.InstallStation);
-                _rep.Delete(
-                    Builders<ScreenRec>.Filter.And(
-                        Builders<ScreenRec>.Filter.Eq(t => t.InstallStation, s.InstallStation),
-                        Builders<ScreenRec>.Filter.Regex(t => t.LineName, new BsonRegularExpression(s.LineName))));
+                _rep.Delete(t => t.LineName == s.LineName && t.InstallStation == s.InstallStation);
+                //_rep.Delete(
+                //    Builders<ScreenRec>.Filter.And(
+                //        Builders<ScreenRec>.Filter.Eq(t => t.InstallStation, s.InstallStation),
+                //        Builders<ScreenRec>.Filter.Regex(t => t.LineName, new BsonRegularExpression(s.LineName))));
             }
             UpdateGrid(values);
             return UIHelper.Result();
@@ -872,6 +912,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
 
         public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex, int Grid1_pageSize, JArray Grid2_modifiedData, JArray Grid2_fields, JArray Grid3_modifiedData, JArray Grid4_modifiedData, JArray Grid4_fields, JArray Grid5_modifiedData)
         {
+            if (string.IsNullOrEmpty(CommonHelper.User)) RedirectToAction("Index", "Login");
             if (!Grid1_modifiedData.Any() && !Grid2_modifiedData.Any() && !Grid3_modifiedData.Any() && !Grid4_modifiedData.Any())
             {
                 ShowNotify("无修改数据！");
@@ -886,26 +927,37 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 if (status != "modified") continue;
                 var rowDic = modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>();
                 var sb = new StringBuilder("修改主记录：");
-                var srcDetail = _repDetail.Get(t => t._id == rowId);
+                var srcDetail = _rep.Get(t => t._id == rowId);
                 foreach (var p in rowDic)
                 {
-                    var param = Expression.Parameter(typeof(ScreenRecDetail), "x");
+                    var param = Expression.Parameter(typeof(ScreenRec), "x");
                     var paramArr = p.Key.Split(new[] {'_'}, StringSplitOptions.RemoveEmptyEntries);
-                    var body = paramArr.Length > 1 ? Expression.Property(Expression.Property(param, typeof(ScreenRecDetail), paramArr[0]), typeof(Materials), paramArr[1]) : Expression.Property(param, typeof(ScreenRecDetail), paramArr[0]);
+                    var body = paramArr.Length > 1
+                        ? Expression.Property(Expression.Property(param, typeof(ScreenRec), paramArr[0]),
+                            typeof(Materials), paramArr[1])
+                        : Expression.Property(param, typeof(ScreenRec), paramArr[0]);
                     var lambda =
-                        Expression.Lambda<Func<ScreenRecDetail, object>>(Expression.Convert(body, typeof(object)), param);
-                    _repDetail.Update(t => t.DeviceNum == srcDetail.DeviceNum, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
+                        Expression.Lambda<Func<ScreenRec, object>>(Expression.Convert(body, typeof(object)), param);
+                    _rep.Update(t => t.DeviceNum == srcDetail.DeviceNum, Builders<ScreenRec>.Update.Set(lambda, p.Value));
                     if (p.Key == "Price" || p.Key == "PaymentStatus" || p.Key == "ChargeTime" || p.Key == "IsWireLess")
-                    {   
-                        var paramRec = Expression.Parameter(typeof(ScreenRec));
-                        var bodyRec = Expression.Property(paramRec, typeof(ScreenRec), p.Key);
-                          var lambdaRec =
-                        Expression.Lambda<Func<ScreenRec, object>>(Expression.Convert(bodyRec, typeof(object)), paramRec);
-                        _rep.Update(t => t.DeviceNum == srcDetail.DeviceNum,
-                            Builders<ScreenRec>.Update.Set(lambdaRec, p.Value));
-                        _repDetail.UpdateMany(t => t.DeviceNum == srcDetail.DeviceNum, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
+                    {
+                        //var paramRec = Expression.Parameter(typeof(ScreenRec));
+                        //var bodyRec = Expression.Property(paramRec, typeof(ScreenRec), p.Key);
+                        //  var lambdaRec =
+                        //Expression.Lambda<Func<ScreenRec, object>>(Expression.Convert(bodyRec, typeof(object)), paramRec);
+                        //_rep.Update(t => t.DeviceNum == srcDetail.DeviceNum,
+                        //    Builders<ScreenRec>.Update.Set(lambdaRec, p.Value));
+                        //_rep.UpdateMany(t => t.DeviceNum == srcDetail.DeviceNum, Builders<ScreenRecDetail>.Update.Set(lambda, p.Value));
                     }
-                    sb.AppendFormat("{0}由{1}改为{2}；", paramArr.Length > 1 ? "备注" : typeof(ScreenRecDetail).GetCName(p.Key), paramArr.Length > 1 ? srcDetail.Materials.Remark : typeof(ScreenRecDetail).GetProperty(p.Key).GetValue(srcDetail), p.Value);
+                    var original = paramArr.Length > 1
+                        ? srcDetail.Materials.Remark
+                        : typeof(ScreenRec).GetProperty(p.Key).GetValue(srcDetail);
+                    if (original != null && p.Key != original)
+                        sb.AppendFormat("{0}由{1}改为{2}；", paramArr.Length > 1 ? "备注" : typeof(ScreenRec).GetCName(p.Key),
+                            original, p.Value);
+                    else
+                        sb.AppendFormat("{0}改为{1}；", paramArr.Length > 1 ? "备注" : typeof(ScreenRec).GetCName(p.Key),
+                            p.Value);
                 }
 
                 _repDetail.Add(new ScreenRecDetail
@@ -914,12 +966,13 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     LogType = "日志类型",
                     Date = DateTime.Now,
                     DeviceNum = srcDetail.DeviceNum,
+                    Operator = CommonHelper.UserName,
                     Materials = new Materials { Remark = sb.ToString() }
                 });
             }
 
             int count;
-            var source = _repDetail.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count, _filter);
+            var source = _rep.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count, _filter);
             //var source = _repDetail.Find(t => string.IsNullOrEmpty(t.Materials.Remark)).ToList();
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
@@ -1031,7 +1084,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 var modifiedRow = (JObject)jToken;
                 string status = modifiedRow.Value<string>("status");
                 var rowId = modifiedRow.Value<string>("id");
-                if (string.IsNullOrEmpty(devNum))
+                if (string.IsNullOrEmpty(devNum)&&status!="deleted")
                 {
                     devNum =
                         modifiedRow.Value<JObject>("values").ToObject<Dictionary<string, object>>()["DeviceNum"]

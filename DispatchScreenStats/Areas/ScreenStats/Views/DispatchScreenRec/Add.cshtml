@@ -2,7 +2,7 @@
     var F = Html.F();
 }
 
-@model ScreenRecDetail
+@model ScreenRec
 
 @section body {
 
@@ -37,7 +37,7 @@
                                   F.TextBoxFor(t => t.DeviceNum),
                                   F.DropDownListFor(t => t.Owner).AutoSelectFirstItem(false).Items(ViewBag.Owners),
                                   F.TextBoxFor(t=>t.LineName),
-                                  F.TextBoxFor(t=>t.LinesInSameScreen),
+                                  //F.TextBoxFor(t=>t.LinesInSameScreen),
                                   F.TextBoxFor(t=>t.ConstructionType),
                                   F.DropDownListFor(t=>t.ScreenType).Items(ViewBag.ScreenTypes),
                                   F.CheckBoxFor(t=>t.IsWireLess),

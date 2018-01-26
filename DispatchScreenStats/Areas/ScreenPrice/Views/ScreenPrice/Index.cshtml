@@ -74,16 +74,17 @@
                                   .DataField("Owner"),
                               F.RenderField()
                                   .HeaderText("安装线路")
-                                                  .DataField("LineName"),
+                                                          .DataField("LineName").Editor(F.TextBox().Required(true)),
                               F.RenderField()
                                                   .HeaderText("屏幕类型").FieldType(FieldType.Int)
                                   .DataField("ScreenType").Width(120).RendererFunction("renderScreenType"),
                               F.RenderField()
                                                   .HeaderText("安装站点").SortField("InstallStation")
-                                  .DataField("InstallStation").Width(120),
+                                  .DataField("InstallStation").Width(120).Editor(F.TextBox().Required(true)),
                               F.RenderField()
                                                   .HeaderText("安装日期").SortField("InstallDate")
-                                  .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd"),
+                                  .DataField("InstallDate").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
+                                  .Editor(F.DatePicker().DateFormatString("yyyy-MM-dd")),
                                           F.RenderField()
                                                           .HeaderText("金额").SortField("Price")
                                                           .DataField("Price").Editor(F.TextBox().ID("tbxPr")),

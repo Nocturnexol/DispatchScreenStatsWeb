@@ -15,13 +15,21 @@ namespace DispatchScreenStats.Models
         }
 
         public int _id { get; set; }
+         [Display(Name = "设备编号"), Required]
         public string DeviceNum { get; set; }
+        [Display(Name = "营运公司"), Required]
         public string Owner { get; set; }
+         [Display(Name = "线路名"), Required]
         public string LineName { get; set; }
+            [Display(Name = "屏幕类型")]
         public ScreenTypeEnum? ScreenType { get; set; }
+           [Display(Name = "施工类型")]
         public string ConstructionType { get; set; }
+        [Display(Name = "屏数")]
         public int? ScreenCount { get; set; }
+                 [Display(Name = "安装站点"), Required]
         public string InstallStation { get; set; }
+                [Display(Name = "是否无线屏")]
         public bool IsWireLess { get; set; }
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
@@ -31,9 +39,11 @@ namespace DispatchScreenStats.Models
         public Materials Materials { get; set; }
         public string ExtraRemark { get; set; }
         public bool IsLog { get; set; }
+         [Display(Name = "金额")]
         public double Price { get; set; }
+         [Display(Name = "付款状态")]
         public string PaymentStatus { get; set; }
-        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local), Display(Name = "收费时间")]
         public DateTime? ChargeTime { get; set; }
     }
 
@@ -101,6 +111,7 @@ namespace DispatchScreenStats.Models
          public DateTime? ChargeTime { get; set; }
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
          public DateTime? OccurredTime { get; set; }
+        public string Operator { get; set; }
     }
 
     public class ScreenLog

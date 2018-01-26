@@ -7,7 +7,7 @@
 
 @using DispatchScreenStats.Common
 @using DispatchScreenStats.Enums
-@model IEnumerable<ScreenRecDetail>
+@model IEnumerable<ScreenRec>
 
 
 @section body {
@@ -129,9 +129,9 @@
                           .HeaderText("安装线路")
                                           .DataField("LineName").SortField("LineName")
                                   .Editor(F.TextBox().ID("tbxLineName").Required(true)),
-                              F.RenderField()
-                                  .HeaderText("同屏线路")
-                                  .DataField("LinesInSameScreen").Width(120).Editor(F.TextBox()),
+                              //F.RenderField()
+                              //    .HeaderText("同屏线路")
+                              //    .DataField("LinesInSameScreen").Width(120).Editor(F.TextBox()),
                                     F.RenderField()
                                   .HeaderText("施工类型")
                                   .DataField("ConstructionType").Editor(F.TextBox()),
@@ -160,49 +160,48 @@
                                                   .DataField("Price").Editor(F.TextBox().ID("tbxPr")),
                                                           F.RenderField()
                                                           .HeaderText("付款状态").SortField("PaymentStatus")
-                                                                          .DataField("PaymentStatus").Editor(F.DropDownList().Items(ViewBag.PaymentStatuses)),
+                                                                          .DataField("PaymentStatus").Editor(F.DropDownList().EnableEdit(true).ForceSelection(false).Items(ViewBag.PaymentStatuses)),
                                                           F.RenderField()
                                                   .HeaderText("收费时间").SortField("ChargeTime")
                                           .DataField("ChargeTime").FieldType(FieldType.Date).RendererArgument("yyyy-MM-dd")
                                   .Editor(
                                       F.DatePicker()
                                                   .ID("dpChargeTime").MaxDate(DateTime.Today)
-                                          .Required(true)
                                           ), 
                       F.RenderField()
                           .HeaderText("备注")
-                          .DataField("Materials.Remark").ExpandUnusedSpace(true)
+                          .DataField("Materials.Remark").Width(180)
                           .Editor(F.TextBox().ID("tbxInstallStation")),
                               F.RenderField()
-                                  .HeaderText("")
-                                  .Width(60)
+                                  .HeaderText("上传照片")
+                                  .Width(75)
                                   .RendererFunction("renderUploadField")
                                   .TextAlign(TextAlign.Center)
                                   .EnableHeaderMenu(false)
                                   .EnableColumnHide(false),
                                             F.RenderField()
-                                          .HeaderText("")
-                                          .Width(60)
+                                          .HeaderText("查看照片")
+                                          .Width(75)
                                           .RendererFunction("renderImgField")
                                           .TextAlign(TextAlign.Center)
                                           .EnableHeaderMenu(false)
                                           .EnableColumnHide(false),
                       F.RenderField()
-                          .HeaderText("")
+                          .HeaderText("定位")
                           .Width(60)
                           .RendererFunction("renderLocateField")
                           .TextAlign(TextAlign.Center)
                           .EnableHeaderMenu(false)
                           .EnableColumnHide(false),
                                    F.RenderField()
-                                  .HeaderText("")
-                                  .Width(60)
+                                  .HeaderText("材料清单")
+                                  .Width(75)
                                   .RendererFunction("renderDetailField")
                                   .TextAlign(TextAlign.Center)
                                   .EnableHeaderMenu(false)
                                   .EnableColumnHide(false),
                     isAuthorized?  F.RenderField()
-                          .HeaderText("")
+                          .HeaderText("删除")
                           .Width(60)
                           .RendererFunction("renderDeleteField")
                           .TextAlign(TextAlign.Center)
@@ -259,6 +258,9 @@
                                       F.RenderField()
                                           .HeaderText("备注").Editor(F.TextBox().ID("tbxRemark").Required(true))
                                           .DataField("Materials.Remark").Width(180).ExpandUnusedSpace(true),
+                                            F.RenderField()
+                                          .HeaderText("操作用户")
+                                          .DataField("Operator").Editor(F.TextBox()),
                                                    F.RenderField()
                                           .HeaderText("")
                                           .Width(60)
@@ -300,6 +302,9 @@
                       F.RenderField()
                           .HeaderText("故障状态")
                                   .DataField("Status").Editor(F.TextBox()),
+                                             F.RenderField()
+                                  .HeaderText("故障处理人")
+                                          .DataField("Handler").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障问题")
                                   .DataField("HitchContent").Editor(F.TextBox()),

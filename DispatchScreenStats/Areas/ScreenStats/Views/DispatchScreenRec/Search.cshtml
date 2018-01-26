@@ -57,8 +57,20 @@
                                   ),
                       F.NumberBox().ID("nbCount").Label("屏数").EmptyText("屏数").NoNegative(true),
                               F.DropDownList().Items(ViewBag.ScreenTypes).ID("tbType").Label("屏幕类型").EmptyText("屏幕类型"),
-                              F.DatePicker().ID("tbDate").Label("安装日期").EmptyText("安装日期"),
-                                      F.DatePicker().ID("dpDate").Label("收费日期").EmptyText("收费日期"),
+                                    F.Panel()
+                                          .ShowHeader(false)
+                                          .ShowBorder(false)
+                                          .Layout(LayoutType.Column).Items(
+                              F.DatePicker().ID("tbDateLower").Label("安装日期").ColumnWidth("60%"),F.Label().Text("~"),
+                                       F.DatePicker().ID("tbDateUpper").ColumnWidth("40%")
+                              ),
+                                         F.Panel()
+                                                  .ShowHeader(false)
+                                                  .ShowBorder(false)
+                                                  .Layout(LayoutType.Column).Items(
+                                             F.DatePicker().ID("dpDateLower").Label("收费日期").ColumnWidth("60%"), F.Label().Text("~"),
+                                               F.DatePicker().ID("dpDateUpper").ColumnWidth("40%")
+                                      ),
                                                          F.Panel()
                                           .ShowHeader(false)
                                           .ShowBorder(false)
