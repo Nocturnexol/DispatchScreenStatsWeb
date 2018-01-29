@@ -54,6 +54,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         }
         //
         // GET: /ScreenStats/DispatchScreenRec/
+        [OutputCache(Duration = 600)]
         public ActionResult Index()
         {
             int count;

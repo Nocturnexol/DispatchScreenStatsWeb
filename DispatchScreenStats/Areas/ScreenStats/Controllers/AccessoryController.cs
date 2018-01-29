@@ -22,6 +22,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         //
         // GET: /ScreenStats/Accessory/
+        [OutputCache(Duration = 600 ,VaryByParam = "*")]
         public ActionResult Index(string id)
         {
             int count;

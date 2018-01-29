@@ -22,6 +22,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly Expression<Func<ScreenRec, bool>> _filter = t =>!t.IsLog;
         //
         // GET: /ScreenStats/ScreenRecIFrame/
+        [OutputCache(Duration = 600)]
         public ActionResult Index()
         {
             int count;

@@ -110,11 +110,17 @@
                 'ddlIsWireless': F.ui.ddlIsWireless.getValue(),
                 'tbRemark': F.ui.tbRemark.getValue()
             };
-            if (F.ui.tbDate.getValue()) {
-                values.tbDate = F.ui.tbDate.getValue().Format("yyyy-MM-dd");
+            if (F.ui.tbDateLower.getValue()) {
+                values.tbDateLower = F.ui.tbDateLower.getValue().Format("yyyy-MM-dd");
             }
-            if (F.ui.dpDate.getValue()) {
-                values.dpDate = F.ui.dpDate.getValue().Format("yyyy-MM-dd");
+            if (F.ui.tbDateUpper.getValue()) {
+                values.tbDateUpper = F.ui.tbDateUpper.getValue().Format("yyyy-MM-dd");
+            }
+            if (F.ui.dpDateLower.getValue()) {
+                values.dpDateLower = F.ui.dpDateLower.getValue().Format("yyyy-MM-dd");
+            }
+            if (F.ui.dpDateUpper.getValue()) {
+                values.dpDateUpper = F.ui.dpDateUpper.getValue().Format("yyyy-MM-dd");
             }
             // 隐藏弹出窗体
             activeWindow.hide();
