@@ -5,6 +5,7 @@
 }
 
 @using DispatchScreenStats.Common
+@using DispatchScreenStats.Enums
 @model IEnumerable<ScreenRepairs>
 
 
@@ -104,7 +105,7 @@
                                   .DataField("HitchType").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障状态")
-                                  .DataField("Status").Editor(F.TextBox()),
+                                  .DataField("Status").RendererFunction("renderStatus").Editor(F.TextBox()),
                       F.RenderField()
                           .HeaderText("故障问题")
                                   .DataField("HitchContent").Editor(F.TextBox()),
@@ -181,7 +182,20 @@
 @section script {
 
     <script>
-    function onGridDataChange() {
+        function renderStatus(val) {
+                switch (val) {
+                    case @((int) HitchStatusEnum.未完成):
+                        return "@HitchStatusEnum.未完成";
+                    case @((int)HitchStatusEnum.处理中):
+                        return "@HitchStatusEnum.处理中";
+                    case @((int)HitchStatusEnum.已完成):
+                        return "@HitchStatusEnum.已完成";
+                    default:
+                        return "";
+                }
+        }
+
+        function onGridDataChange() {
         var grid1 = F.ui.Grid1;
         var btnSubmit = F.ui.btnSubmit;
         // 如果没有删除行，没有新增行，没有修改的数据

@@ -154,7 +154,10 @@
                               F.DatePicker()
                                   .ID("dpInstallDate").MaxDate(DateTime.Today)
                                   .Required(true)
-                                  ), 
+                                  ),
+                                            F.RenderField()
+                                                          .HeaderText("在用状态").SortField("UsageStatus")
+                                                          .DataField("UsageStatus").Editor(F.TextBox()),
                                   F.RenderField()
                                                   .HeaderText("金额").SortField("Price")
                                                   .DataField("Price").Editor(F.TextBox().ID("tbxPr")),
@@ -693,7 +696,7 @@
                 function(event) {
                     var rowEl = $(this).closest('.f-grid-row');
                     var rowData = grid4.getRowData(rowEl);
-                    F.ui.iframeWindow.show( '@Url.Action("Index","Accessory")?id='+rowData.id);
+                    F.ui.iframeWindow.show( '@Url.Action("Index","Accessory")?id='+rowData.id+'&isLog=1');
                 });
 
 

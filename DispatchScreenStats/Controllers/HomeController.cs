@@ -36,9 +36,19 @@ namespace DispatchScreenStats.Controllers
             }
             else
             {
-                var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
-                vals = auth != null ? auth.Values ?? new int[] {} : new int[] {};
-                vals2 = auth != null ? auth.Values2 ?? new int[] { } : new int[] { };
+                int uid;
+                if (int.TryParse(CommonHelper.UserId, out uid))
+                {
+                    var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
+                    vals = auth != null ? auth.Values ?? new int[] {} : new int[] {};
+                    vals2 = auth != null ? auth.Values2 ?? new int[] {} : new int[] {};
+                }
+                else
+                {
+                    //获取权限出错
+                    vals = new int[] {};
+                    vals2 = new int[] { };
+                }
             }
 
             if (vals.Any())

@@ -13,7 +13,7 @@
         public string Layout { get; set; }
         public float Price { get; set; }
         public string Remark { get; set; }
-        public int[] RecDetailIds { get; set; }
+        public int RecDetailId { get; set; }
         public int RecId { get; set; }
     }
 }

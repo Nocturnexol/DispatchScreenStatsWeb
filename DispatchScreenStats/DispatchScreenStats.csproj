@@ -2086,6 +2086,7 @@
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Enums\AuthDiffType.cs" />
+    <Compile Include="Enums\HitchStatus.cs" />
     <Compile Include="Enums\MenuEnum.cs" />
     <Compile Include="Enums\ScreenTypeEnum.cs" />
     <Compile Include="Enums\SortTypeEnum.cs" />

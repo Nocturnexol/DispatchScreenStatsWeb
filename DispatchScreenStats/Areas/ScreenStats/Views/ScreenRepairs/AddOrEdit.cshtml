@@ -43,10 +43,10 @@
                           F.TextBoxFor(t => t.Owner).Enabled(false),
                           F.HiddenFieldFor(t=>t.DeviceNum),
                           F.TextBoxFor(t => t.RepairsSource),
-                          isAuth?F.DropDownListFor(t => t.Accepter).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Accepters): F.TextBoxFor(t => t.Accepter).Enabled(false).Text(CommonHelper.UserName),
+                              isAuth ? F.DropDownListFor(t => t.Accepter).Text(HttpUtility.UrlDecode(CommonHelper.UserName)).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Accepters) : F.TextBoxFor(t => t.Accepter).Enabled(false).Text(HttpUtility.UrlDecode(CommonHelper.UserName)),
                           F.DropDownListFor(t => t.Handler).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Handlers),
                           F.DropDownListFor(t => t.HitchType).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.hTypes),
-                          F.DropDownListFor(t => t.Status).Text("未完成").AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.hStatuses),
+                          F.DropDownListFor(t => t.Status).Items(ViewBag.hStatuses),
                           F.TextAreaFor(t => t.HitchContent),
                           F.TextAreaFor(m => m.Solution),
                           F.FileUpload()
@@ -77,7 +77,9 @@
                                   .ValidateForms("SimpleForm1")
                                   .Icon(Icon.SystemSaveClose)
                                   .OnClick(Url.Action("AddOrEdit"), "SimpleForm1")
-                                  .Text("保存后关闭")
+                                    .Text("保存后关闭"),
+                                                F.Button().Text("处理中").OnClick(Url.Action("OnHandle") + "?op=on"),
+                                            F.Button().Text("已完成").OnClick(Url.Action("OnHandle") + "?op=done")
                   )
           )
           .Items(
@@ -96,7 +98,7 @@
         F.DropDownListFor(t => t.Accepter).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Accepters),
                                       F.DropDownListFor(t => t.Handler).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.Handlers),
                               F.DropDownListFor(t => t.HitchType).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.hTypes),
-                              F.DropDownListFor(t => t.Status).AutoSelectFirstItem(false).EnableEdit(true).ForceSelection(false).Items(ViewBag.hStatuses),
+                              F.DropDownListFor(t => t.Status).Items(ViewBag.hStatuses),
                       F.TextAreaFor(t => t.HitchContent),
                       F.TextAreaFor(m => m.Solution),
                               F.FileUpload()

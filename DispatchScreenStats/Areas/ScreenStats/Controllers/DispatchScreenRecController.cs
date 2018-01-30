@@ -54,7 +54,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         }
         //
         // GET: /ScreenStats/DispatchScreenRec/
-        [OutputCache(Duration = 600)]
+        [OutputCache(Duration = 120)]
         public ActionResult Index()
         {
             int count;
@@ -134,44 +134,49 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         model.InstallStation = row.GetCell(5).StringCellValue;
                         model.InstallDate = row.GetCell(6).DateCellValue;
                         row.GetCell(7).SetCellType(CellType.String);
-                        model.Materials.PowerCord = row.GetCell(7).StringCellValue;
+                        model.UsageStatus = row.GetCell(7).StringCellValue;
                         row.GetCell(8).SetCellType(CellType.String);
-                        model.Materials.Cable = row.GetCell(8).StringCellValue;
+                        model.PaymentStatus = row.GetCell(8).StringCellValue;
+
                         row.GetCell(9).SetCellType(CellType.String);
-                        model.Materials.GridLines = row.GetCell(9).StringCellValue;
+                        model.Materials.PowerCord = row.GetCell(9).StringCellValue;
                         row.GetCell(10).SetCellType(CellType.String);
-                        model.Materials.SmallExchange = row.GetCell(10).StringCellValue;
+                        model.Materials.Cable = row.GetCell(10).StringCellValue;
                         row.GetCell(11).SetCellType(CellType.String);
-                        model.Materials.BigExchange = row.GetCell(11).StringCellValue;
+                        model.Materials.GridLines = row.GetCell(11).StringCellValue;
                         row.GetCell(12).SetCellType(CellType.String);
-                        model.Materials.PatchBoard = row.GetCell(12).StringCellValue;
+                        model.Materials.SmallExchange = row.GetCell(12).StringCellValue;
                         row.GetCell(13).SetCellType(CellType.String);
-                        model.Materials.OneToTwoSwitch = row.GetCell(13).StringCellValue;
+                        model.Materials.BigExchange = row.GetCell(13).StringCellValue;
                         row.GetCell(14).SetCellType(CellType.String);
-                        model.Materials.UsbAdapter = row.GetCell(14).StringCellValue;
+                        model.Materials.PatchBoard = row.GetCell(14).StringCellValue;
                         row.GetCell(15).SetCellType(CellType.String);
-                        model.Materials.ThreePinPlug = row.GetCell(15).StringCellValue;
+                        model.Materials.OneToTwoSwitch = row.GetCell(15).StringCellValue;
                         row.GetCell(16).SetCellType(CellType.String);
-                        model.Materials.SquareTube = row.GetCell(16).StringCellValue;
+                        model.Materials.UsbAdapter = row.GetCell(16).StringCellValue;
                         row.GetCell(17).SetCellType(CellType.String);
-                        model.Materials.Power = row.GetCell(17).StringCellValue;
+                        model.Materials.ThreePinPlug = row.GetCell(17).StringCellValue;
                         row.GetCell(18).SetCellType(CellType.String);
-                        model.Materials.UnitBoard = row.GetCell(18).StringCellValue;
+                        model.Materials.SquareTube = row.GetCell(18).StringCellValue;
                         row.GetCell(19).SetCellType(CellType.String);
-                        model.Materials.Canopy = row.GetCell(19).StringCellValue;
-                        model.Materials.Remark = row.GetCell(20).StringCellValue;
-                        if (row.GetCell(21) != null)
+                        model.Materials.Power = row.GetCell(19).StringCellValue;
+                        row.GetCell(20).SetCellType(CellType.String);
+                        model.Materials.UnitBoard = row.GetCell(20).StringCellValue;
+                        row.GetCell(21).SetCellType(CellType.String);
+                        model.Materials.Canopy = row.GetCell(21).StringCellValue;
+                        model.Materials.Remark = row.GetCell(22).StringCellValue;
+                        if (row.GetCell(23) != null)
                         {
-                            if (!string.IsNullOrWhiteSpace(row.GetCell(21).StringCellValue))
-                                model.ExtraRemark += row.GetCell(21).StringCellValue;
+                            if (!string.IsNullOrWhiteSpace(row.GetCell(23).StringCellValue))
+                                model.ExtraRemark += row.GetCell(23).StringCellValue;
                         }
-                        if (row.GetCell(22) != null)
+                        if (row.GetCell(24) != null)
                         {
-                            if (!string.IsNullOrWhiteSpace(row.GetCell(22).StringCellValue))
+                            if (!string.IsNullOrWhiteSpace(row.GetCell(24).StringCellValue))
                             {
                                 if (!string.IsNullOrEmpty(model.ExtraRemark))
                                     model.ExtraRemark += "；";
-                                model.ExtraRemark += row.GetCell(22).StringCellValue;
+                                model.ExtraRemark += row.GetCell(24).StringCellValue;
                             }
                         }
 
@@ -329,7 +334,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                             {
                                 var detail = new ScreenRecDetail();
                                 detail._id = maxDetailId;
-                                detailIdList.Add(maxDetailId++);
+                                detailIdList.Add(maxDetailId);
                                 detail.LineName = rec.LineName;
                                 //detail.LinesInSameScreen = string.Join("、", lines.Except(new[] {line}));
                                 detail.ConstructionType = rec.ConstructionType;
@@ -371,9 +376,10 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                     Count = val,
                                     DevNum = rec.DeviceNum,
                                     Name = prop.GetCName(),
-                                    RecDetailIds = detailIdList.ToArray(),
-                                    RecId = rec._id
+                                    RecDetailId = rec.IsLog ? maxDetailId : 0,
+                                    RecId = !rec.IsLog ? rec._id : 0
                                 });
+                            maxDetailId++;
                         }
                         _rep.BulkInsert(list);
                         if (detailList.Any()) _repDetail.BulkInsert(detailList);
@@ -497,6 +503,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             sb.AppendFormat(thHtmlMulti, "安装站点");
             sb.AppendFormat(thHtmlMulti, "屏幕类型");
             sb.AppendFormat(thHtmlMulti, "屏数");
+            sb.AppendFormat(thHtmlMulti, "在用状态");
+            sb.AppendFormat(thHtmlMulti, "付款状态");
             sb.AppendFormat(thHtmlMulti, "安装日期");
             sb.AppendFormat("<th colspan=\"14\">{0}</th>", "使用材料");
             sb.Append("</tr>");
@@ -540,6 +548,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         sb.AppendFormat(tdHtmlMulti, item.ScreenType, recCount);
                     }
                     sb.AppendFormat(tdHtml, item.ScreenCount);
+                    sb.AppendFormat(tdHtml, item.UsageStatus);
+                    sb.AppendFormat(tdHtml, item.PaymentStatus);
                     sb.AppendFormat(tdHtml,
                         item.InstallDate != null ? item.InstallDate.Value.ToString("yyyy-MM-dd") : "");
                     if (mat.Any())

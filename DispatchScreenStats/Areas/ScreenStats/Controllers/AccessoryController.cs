@@ -22,22 +22,23 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         //
         // GET: /ScreenStats/Accessory/
-        [OutputCache(Duration = 600 ,VaryByParam = "*")]
-        public ActionResult Index(string id)
+        //[OutputCache(Duration = 120 ,VaryByParam = "*")]
+        public ActionResult Index(string id,string isLog)
         {
             int count;
             var list = _rep.QueryByPage(0, PageSize, out count,
-                Builders<Accessory>.Filter.AnyEq(t => t.RecDetailIds, int.Parse(id)));
+                string.IsNullOrEmpty(isLog) ? Builders<Accessory>.Filter.Eq(t => t.RecId, int.Parse(id)) : Builders<Accessory>.Filter.Eq(t => t.RecDetailId, int.Parse(id)));
             ViewBag.RecordCount = count;
             ViewBag.PageSize = PageSize;
             ViewBag.id = id;
+            ViewBag.isLog = isLog;
             ViewBag.Names =
                 _repBasic.Find(t => t.Type == "配件").ToList().Select(t => new ListItem(t.Name, t.Name)).ToArray();
             return View(list);
         }
-        public FileResult Export(string id)
+        public FileResult Export(string id,string isLog)
         {
-            var list = _rep.Find(Builders<Accessory>.Filter.AnyEq(t => t.RecDetailIds, int.Parse(id))).ToList();
+            var list = _rep.Find(string.IsNullOrEmpty(isLog) ? Builders<Accessory>.Filter.Eq(t => t.RecId, int.Parse(id)) : Builders<Accessory>.Filter.Eq(t => t.RecDetailId, int.Parse(id))).ToList();
             const string thHtml = "<th>{0}</th>";
             const string tdHtml = "<td style=\"text-align: center;\">{0}</td>";
 
@@ -70,27 +71,27 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/excel", "配件列表.xls");
         }
         public ActionResult btnSubmit_Click(JArray Grid1_fields, JArray Grid1_modifiedData, int Grid1_pageIndex,
-            int Grid1_pageSize,string id)
+            int Grid1_pageSize,string id,string isLog)
         {
             if (!Grid1_modifiedData.Any())
             {
                 ShowNotify("无修改数据！");
                 return UIHelper.Result();
             }
-            var detail = _repDetail.Get(t => t._id == int.Parse(id));
-            var detailIds = new List<int>();
-            if (detail.IsLog)
-            {
-                detailIds.Add(detail._id);
-            }
-            else
-            {
-                detailIds.AddRange(
-                    _repDetail.Find(t => t.DeviceNum == detail.DeviceNum && !t.IsLog)
-                        .ToList()
-                        .Select(t => t._id)
-                        .ToList());
-            }
+            //var detail = _repDetail.Get(t => t._id == int.Parse(id));
+            //var detailIds = new List<int>();
+            //if (detail.IsLog)
+            //{
+            //    detailIds.Add(detail._id);
+            //}
+            //else
+            //{
+            //    detailIds.AddRange(
+            //        _repDetail.Find(t => t.DeviceNum == detail.DeviceNum && !t.IsLog)
+            //            .ToList()
+            //            .Select(t => t._id)
+            //            .ToList());
+            //}
 
             foreach (var jToken in Grid1_modifiedData)
             {
@@ -107,7 +108,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     {
                          typeof(Accessory).GetProperty(p.Key).SetValue(model, p.Value);
                     }
-                    model.RecDetailIds = detailIds.ToArray();
+                    //model.RecDetailIds = detailIds.ToArray();
+                    if (string.IsNullOrEmpty(isLog)) model.RecId = int.Parse(id);
+                    else model.RecDetailId = int.Parse(id);
                     _rep.Add(model);
                 }
                 else if (status == "modified")
@@ -127,7 +130,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                 }
             }
             int count;
-            var source = _rep.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count, Builders<Accessory>.Filter.AnyEq(t => t.RecDetailIds, int.Parse(id)));
+            var source = _rep.QueryByPage(Grid1_pageIndex, Grid1_pageSize, out count, string.IsNullOrEmpty(isLog) ? Builders<Accessory>.Filter.Eq(t => t.RecId, int.Parse(id)) : Builders<Accessory>.Filter.Eq(t => t.RecDetailId, int.Parse(id)));
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
             grid1.DataSource(source, Grid1_fields);
@@ -147,8 +150,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             var pageIndex = Convert.ToInt32(values["Grid1_pageIndex"] ?? "0");
             var pageSize = Convert.ToInt32(values["Grid1_pageSize"] ?? "0");
             var id = values["id"];
+            var isLog = values["isLog"];
             int count;
-            var list = _rep.QueryByPage(pageIndex, pageSize, out count, Builders<Accessory>.Filter.AnyEq(t => t.RecDetailIds, int.Parse(id)));
+            var list = _rep.QueryByPage(pageIndex, pageSize, out count, string.IsNullOrEmpty(isLog) ? Builders<Accessory>.Filter.Eq(t => t.RecId, int.Parse(id)) : Builders<Accessory>.Filter.Eq(t => t.RecDetailId, int.Parse(id)));
             var grid1 = UIHelper.Grid("Grid1");
             grid1.RecordCount(count);
             grid1.PageSize(pageSize);

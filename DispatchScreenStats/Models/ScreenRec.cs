@@ -43,6 +43,8 @@ namespace DispatchScreenStats.Models
         public double Price { get; set; }
          [Display(Name = "付款状态")]
         public string PaymentStatus { get; set; }
+         [Display(Name = "在用状态")]
+         public string UsageStatus { get; set; }
         [BsonDateTimeOptions(Kind = DateTimeKind.Local), Display(Name = "收费时间")]
         public DateTime? ChargeTime { get; set; }
     }
@@ -225,7 +227,7 @@ namespace DispatchScreenStats.Models
         [Display(Name = "故障类型")]
         public string HitchType { get; set; }
         [Display(Name = "故障状态")]
-        public string Status { get; set; }
+        public HitchStatusEnum Status { get; set; }
         [Display(Name = "故障问题")]
         public string HitchContent { get; set; }
         [Display(Name = "解决方法")]

@@ -18,7 +18,7 @@ namespace DispatchScreenStats.Controllers
         private readonly IMongoRepository<User> _rep = new MongoRepository<User>();
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         public ActionResult btnLogin_Click(string tbxUserName, string tbxPassword)
         {
             var filter =
@@ -31,7 +31,7 @@ namespace DispatchScreenStats.Controllers
             if (user != null)
             {
                 Response.Cookies.Add(new HttpCookie("user", tbxUserName) {Expires = DateTime.Now.AddDays(1)});
-                Response.Cookies.Add(new HttpCookie("userName", user.UserName) { Expires = DateTime.Now.AddDays(1) });
+                Response.Cookies.Add(new HttpCookie("userName",HttpUtility.UrlEncode(user.UserName)) { Expires = DateTime.Now.AddDays(1) });
                 Response.Cookies.Add(new HttpCookie("userId", user._id.ToString()) {Expires = DateTime.Now.AddDays(1)});
                 FormsAuthentication.RedirectFromLoginPage(tbxUserName, false);
             }

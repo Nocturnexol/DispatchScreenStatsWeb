@@ -8,8 +8,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
 using DispatchScreenStats.Common;
 using DispatchScreenStats.Controllers;
+using DispatchScreenStats.Enums;
 using DispatchScreenStats.IRepository;
 using DispatchScreenStats.Models;
 using DispatchScreenStats.Repository;
@@ -28,12 +30,12 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         private readonly IMongoRepository<ScreenRepairs> _rep = new MongoRepository<ScreenRepairs>();
         private readonly IMongoRepository<ScreenRecDetail> _repDetail = new MongoRepository<ScreenRecDetail>();
         private readonly IMongoRepository<Auth> _repAuth = new MongoRepository<Auth>();
-        private readonly SortDefinition<ScreenRepairs> _sort = Builders<ScreenRepairs>.Sort.Descending(t => t.Status).Descending(t=>t.RepairsDate);
+        private readonly SortDefinition<ScreenRepairs> _sort = Builders<ScreenRepairs>.Sort.Ascending(t => t.Status).Descending(t=>t.RepairsDate);
         private readonly FilterDefinition<ScreenRepairs> _filterRange;
         private readonly bool _isAuth;
         public ScreenRepairsController()
         {
-            var user = CommonHelper.User;
+            var user = HttpUtility.UrlDecode(CommonHelper.User);
             if (user != "admin")
             {
                 var auth = _repAuth.Get(t => t.UserId == int.Parse(CommonHelper.UserId));
@@ -65,7 +67,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         public ActionResult AddOrEdit(int? id)
         {
             ViewBag.hTypes = _rep.Distinct(t => t.HitchType).Where(t=>!string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
-            ViewBag.hStatuses = _rep.Distinct(t => t.Status).Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToArray();
+            ViewBag.hStatuses =
+            (from object e in Enum.GetValues(typeof(HitchStatusEnum))
+                select new ListItem(e.ToString(), ((int) e).ToString())).ToArray();
            ViewBag.Accepters = _rep.Distinct(t => t.Accepter).Where(t => !string.IsNullOrWhiteSpace(t)).OrderBy(t => t).Select(t => new ListItem(t, t)).ToArray();
            ViewBag.Handlers = _rep.Distinct(t => t.Handler).Where(t => !string.IsNullOrWhiteSpace(t)).OrderBy(t => t).Select(t => new ListItem(t, t)).ToArray();
             ViewBag.isAuth = _isAuth;
@@ -80,28 +84,31 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         [HttpPost]
         public ActionResult AddOrEdit(ScreenRepairs model)
         {
-            if (!ModelState.IsValid)
-            {
-                Alert.Show(ModelState.ToString());
-                return UIHelper.Result();
-            }
             try
             {
                 var isStatusInput = Request["Status_isUserInput"];
-                var isTypeInput = Request["HitchType_isUserInput"];
                 if (!string.IsNullOrEmpty(isStatusInput))
                 {
-                    if (bool.Parse(isStatusInput))
-                    {
-                        model.Status = Request["Status_text"];
-                    }
+                    model.Status = (HitchStatusEnum) Enum.Parse(typeof(HitchStatusEnum), Request["Status_text"]);
                 }
+                var isTypeInput = Request["HitchType_isUserInput"];
                 if (!string.IsNullOrEmpty(isTypeInput))
                 {
                     if (bool.Parse(isTypeInput))
                     {
                         model.HitchType = Request["HitchType_text"];
                     }
+                }
+
+                var isAccInput = Request["Accepter_isUserInput"];
+                var isHandInput = Request["Handler_isUserInput"];
+                if (!string.IsNullOrEmpty(isAccInput))
+                {
+                    model.Accepter = Request["Accepter_text"];
+                }
+                if (!string.IsNullOrEmpty(isHandInput))
+                {
+                    model.Handler = Request["Handler_text"];
                 }
                 //处理上传附件
                 var file = Request.Files["file"];
@@ -145,10 +152,6 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(model.Status))
-                {
-                    model.Status = "未解决";
-                }
                 if (model._id == 0)
                 {
                         model._id = (int)(_rep.Max(t => t._id) ?? 0) + 1;
@@ -229,7 +232,7 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             }
             if (!string.IsNullOrWhiteSpace(tbStatus))
             {
-                filter.Add(Builders<ScreenRepairs>.Filter.Eq(t => t.Status, tbStatus));
+                filter.Add(Builders<ScreenRepairs>.Filter.Eq(t => t.Status, (HitchStatusEnum)int.Parse(tbStatus)));
             }
             if (owner != null)
             {
@@ -276,6 +279,11 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
         }
         public ViewResult Search()
         {
+            var types = _rep.Distinct(t => t.HitchType).Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => new ListItem(t, t)).ToList();
+            types.Insert(0, new ListItem("全部", ""));
+            ViewBag.hTypes = types.ToArray();
+            ViewBag.hStatuses =
+                CommonHelper.GetEnumSelectList(typeof(HitchStatusEnum));
             ViewBag.Owners =
                 _rep.Distinct(t => t.Owner)
                     .Where(t => !string.IsNullOrEmpty(t))
@@ -348,7 +356,9 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                         model.Accepter = row.GetCell(6).StringCellValue;
                         model.Handler = row.GetCell(7).StringCellValue;
                         model.HitchType = row.GetCell(8).StringCellValue;
-                        model.Status = row.GetCell(9).StringCellValue;
+                        HitchStatusEnum e;
+                        if(Enum.TryParse(row.GetCell(9).StringCellValue,out e))
+                            model.Status = e;
                         //if (string.IsNullOrWhiteSpace(model.Status))
                         //{
                         //    model.Status = "未解决";
@@ -393,7 +403,8 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
                                 model.DeviceNum = dev.DeviceNum;
                             }
                         }
-                        list.Add(model);
+                        if(!string.IsNullOrEmpty(model.LineName)&&!string.IsNullOrEmpty(model.Station)&&!string.IsNullOrEmpty(model.Owner))
+                            list.Add(model);
                     }
                     if(list.Any())_rep.BulkInsert(list);
                     if(listLog.Any())_repDetail.BulkInsert(listLog);
@@ -532,5 +543,14 @@ namespace DispatchScreenStats.Areas.ScreenStats.Controllers
             return UIHelper.Result();
         }
 
+        public ActionResult OnHandle(string op)
+        {
+            var user = HttpUtility.UrlDecode(CommonHelper.UserName);
+            if (string.IsNullOrEmpty(user)) FormsAuthentication.RedirectToLoginPage();
+            UIHelper.DropDownList("Status").SelectedValue(op == "on" ? "1" : "2");
+            UIHelper.DropDownList("Handler").Text(user);
+            if (!_isAuth) UIHelper.DropDownList("Handler").Enabled(false);
+            return UIHelper.Result();
+        }
 	}
 }
